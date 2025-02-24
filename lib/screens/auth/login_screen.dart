@@ -14,7 +14,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isLoading = false;
 
-
   onLogin() async {
     setState(() {
       isLoading = true;
@@ -30,8 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView( 
-        child: Padding(
+        body: SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -52,13 +51,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed: _login,
+              onPressed: onLogin,
               child: const Text('Loginsssss'),
             ),
           ],
         ),
       ),
-    )
-    );
+    ));
   }
 }
