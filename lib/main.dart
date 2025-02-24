@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/route/route_constants.dart';
-
+import 'package:get_storage/get_storage.dart';
+import 'package:wayos_clone/screens/auth/login_screen.dart';
 import './route/router.dart' as router;
 
-
-void main() {
+void main() async {
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       onGenerateRoute: router.generateRoute,
-      initialRoute: logInScreenRoute,
+      initialRoute: HomeNavigationRoute,
     );
   }
 }
