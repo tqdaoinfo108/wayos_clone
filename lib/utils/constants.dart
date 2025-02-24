@@ -10,7 +10,7 @@ const productDemoImg1 =
 
 // On color 80, 60.... those means opacity
 
-const Color primaryColor = Color(0xFFEA2027);
+const Color primaryColor = Color(0xFF505CA4);
 
 const MaterialColor primaryMaterialColor =
     MaterialColor(0xFF9581FF, <int, Color>{

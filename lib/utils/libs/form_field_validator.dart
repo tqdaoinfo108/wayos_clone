@@ -22,7 +22,7 @@ abstract class FieldValidator<T> {
 }
 
 abstract class TextFieldValidator extends FieldValidator<String?> {
-  TextFieldValidator(String errorText) : super(errorText);
+  TextFieldValidator(super.errorText);
 
   // return false if you want the validator to return error
   // message when the value is empty.
@@ -149,7 +149,7 @@ class DateValidator extends TextFieldValidator {
   @override
   bool isValid(String? value) {
     try {
-      final DateTime? dateTime = DateFormat(format).parseStrict(value!);
+      final DateTime dateTime = DateFormat(format).parseStrict(value!);
       return dateTime != null;
     } catch (_) {
       return false;

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/route/route_constants.dart';
+import 'package:wayos_clone/theme/app_theme.dart';
 
 import './route/router.dart' as router;
 
 
-void main() {
+void main() async {
+  await GetStorage.init();
+  
   runApp(const MyApp());
 }
 
@@ -17,10 +21,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme(context),
+      themeMode: ThemeMode.light,
       onGenerateRoute: router.generateRoute,
       initialRoute: logInScreenRoute,
     );
