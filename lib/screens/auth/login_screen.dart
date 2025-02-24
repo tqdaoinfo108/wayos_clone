@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wayos_clone/components/loading.dart';
+import 'package:wayos_clone/screens/auth/components/login_form.dart';
+import 'package:wayos_clone/utils/constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +22,17 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading = true;
     });
     // Handle Submit
+    // var temp = await AppServices.instance
+    //     .letLogin(usernameController.text, passwordController.text);
+
+    // if (temp != null) {
+    //   GetStorage box = new GetStorage();
+    //   box.write(userUserName, temp.data!.userName);
+    //   box.write(userImagePath, temp.data!.imagePath);
+    //   box.write(userUserID, temp.data!.userID);
+
+    //   return true;
+    // }
 
     setState(() {
       isLoading = false;
@@ -28,35 +42,49 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+
     return Scaffold(
-        body: SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 10,
-          children: <Widget>[
-            Image.asset("assests/images/Logo.png", height: 100, width: 100),
-            const TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Enter your username',
+      body: isLoading
+          ? loadingWidget()
+          : Center(
+              child: Padding(
+              padding: const EdgeInsets.all(defaultPadding),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset("assets/images/Logo.png",
+                      height: 100, width: 100),
+                  const SizedBox(height: defaultPadding),
+                  LogInForm(
+                    formKey: _formKey,
+                    usernameController: usernameController,
+                    passwordController: passwordController,
+                  ),
+                  SizedBox(
+                    height:
+                        size.height > 700 ? size.height * 0.1 : defaultPadding,
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      // if (_formKey.currentState!.validate()) {
+                      //   var temp = await onLogin();
+                      //   if (temp) {
+                      //     Navigator.pushNamedAndRemoveUntil(
+                      //         context,
+                      //         homeScreenRoute,
+                      //         ModalRoute.withName(logInScreenRoute));
+                      //   }else{
+                      //     SnackbarHelper.showSnackBar("Tài koản hoặc mật không đúng", ToastificationType.error);
+                      //   }
+                      // }
+                    },
+
+                    child: const Text("Đăng nhập"),
+                  ),
+                ],
               ),
-            ),
-            const TextField(
-              obscureText: true,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Enter your password',
-              ),
-            ),
-            ElevatedButton(
-              onPressed: onLogin,
-              child: const Text('Loginsssss'),
-            ),
-          ],
-        ),
-      ),
-    ));
+            )),
+    );
   }
 }
