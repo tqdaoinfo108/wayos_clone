@@ -68,12 +68,12 @@ final passwordValidator = MultiValidator([
   //     errorText: 'passwords must have at least one special character')
 ]);
 
-final phonedValidator = MultiValidator([
-  RequiredValidator(errorText: 'Nhập số điện thoại'),
+final usernameValidator = MultiValidator([
+  RequiredValidator(errorText: 'Nhập tên người dùng'),
 
 ]);
 
-const pasNotMatchErrorText = "mật khẩu không khớp";
+const pasNotMatchErrorText = "Mật khẩu không khớp";
 const isRemember = "IS_REMEMBER";
 const userUserName = "USER_USERNAME";
 const userFullName = "USER_FULLNAME";
@@ -82,3 +82,6 @@ const userTypeUser = "USER_TYPEUSER";
 const userUserID = "USER_ID";
 const isIntro = "IS_INTRO";
 const userUserAmount = "USER_USER_AMOUNT";
+
+// WayOS 
+const tokenID = "TOKEN_ID";

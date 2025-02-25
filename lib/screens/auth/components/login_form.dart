@@ -25,12 +25,11 @@ class LogInForm extends StatelessWidget {
             onSaved: (emal) {
               // Email
             },
-            validator: phonedValidator.call,
+            validator: usernameValidator.call,
             textInputAction: TextInputAction.next,
             controller: usernameController,
-            keyboardType: TextInputType.phone,
             decoration: InputDecoration(
-              hintText: "Số điện thoại",
+              hintText: "Tên đăng nhập",
               prefixIcon: Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: defaultPadding * 0.75),

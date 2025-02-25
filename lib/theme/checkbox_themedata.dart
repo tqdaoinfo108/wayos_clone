@@ -4,7 +4,7 @@ import '../utils/constants.dart';
 
 
 CheckboxThemeData checkboxThemeData = CheckboxThemeData(
-  checkColor: MaterialStateProperty.all(Colors.white),
+  checkColor: WidgetStateProperty.all(Colors.white),
   shape: const RoundedRectangleBorder(
     borderRadius: BorderRadius.all(
       Radius.circular(defaultBorderRadious / 2),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class InformPage extends StatefulWidget {
-  const InformPage({Key? key}) : super(key: key);
+  const InformPage({super.key});
 
   @override
   State<InformPage> createState() => _InformPageState();

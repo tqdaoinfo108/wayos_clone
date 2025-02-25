@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:toastification/toastification.dart';
+import 'package:wayos_clone/components/app_snackbar.dart';
 import 'package:wayos_clone/components/loading.dart';
+import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/auth/components/login_form.dart';
+import 'package:wayos_clone/services/app_services.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,17 +26,13 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading = true;
     });
     // Handle Submit
-    // var temp = await AppServices.instance
-    //     .letLogin(usernameController.text, passwordController.text);
 
-    // if (temp != null) {
-    //   GetStorage box = new GetStorage();
-    //   box.write(userUserName, temp.data!.userName);
-    //   box.write(userImagePath, temp.data!.imagePath);
-    //   box.write(userUserID, temp.data!.userID);
+    var temp = await AppServices.instance
+        .letLogin(usernameController.text, passwordController.text);
 
-    //   return true;
-    // }
+    if (temp != null) {
+      return true;
+    }
 
     setState(() {
       isLoading = false;
@@ -67,17 +67,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
-                      // if (_formKey.currentState!.validate()) {
-                      //   var temp = await onLogin();
-                      //   if (temp) {
-                      //     Navigator.pushNamedAndRemoveUntil(
-                      //         context,
-                      //         homeScreenRoute,
-                      //         ModalRoute.withName(logInScreenRoute));
-                      //   }else{
-                      //     SnackbarHelper.showSnackBar("Tài koản hoặc mật không đúng", ToastificationType.error);
-                      //   }
-                      // }
+                      if (_formKey.currentState!.validate()) {
+                        var temp = await onLogin();
+                        if (temp) {
+                          Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              HOME_NAVIGATION_ROUTE,
+                              ModalRoute.withName(LOG_IN_SCREEN_ROUTE));
+                        }else{
+                          SnackbarHelper.showSnackBar("Tài koản hoặc mật không đúng", ToastificationType.error);
+                        }
+                      }
                     },
 
                     child: const Text("Đăng nhập"),
