@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/home/application.dart';
-import 'package:wayos_clone/screens/home/home.dart';
+import 'package:wayos_clone/screens/home/dashboard.dart';
 import 'package:wayos_clone/screens/home/inform.dart';
 import 'package:wayos_clone/screens/home/personal.dart';
 
@@ -18,7 +18,7 @@ class _BottomNavigationBarStateApp extends State<BottomNavigationBarApp> {
   // static const TextStyle optionStyle =
   //     TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const List<Widget> _widgetOptions = <Widget>[
-    HomePage(),
+    DashboardPage(),
     ApplicationPage(),
     InformPage(),
     PersonalPage(),

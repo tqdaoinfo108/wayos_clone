@@ -9,7 +9,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const LoginScreen(),
       );
-    case HomeNavigationRoute:
+    case HOME_NAVIGATION_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const BottomNavigationBarApp(),
       );

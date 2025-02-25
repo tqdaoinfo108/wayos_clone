@@ -1,2 +1,2 @@
 const String logInScreenRoute = "login";
-const String HomeNavigationRoute = "homeNavigation";
+const String HOME_NAVIGATION_ROUTE = "homeNavigation";
