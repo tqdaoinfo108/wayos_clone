@@ -74,13 +74,22 @@ final usernameValidator = MultiValidator([
 ]);
 
 const pasNotMatchErrorText = "Mật khẩu không khớp";
+
+const staffID = "USER_STAFFID"; 
+const staffFullName = "USER_STAFFFULLNAME"; 
+const staffCode = "USER_STAFFCODE"; 
+const userTypeID = "USER_USERTYPEID"; 
+const userTypeName = "USER_USERTYPENAME"; 
+const companyID = "USER_COMPANYID"; 
+const companyName = "USER_COMPANYNAME"; 
+const staffInfoID = "USER_STAFFINFOID"; 
+const departmentID = "USER_DEPARTMENTID"; 
+const departmentName = "USER_DEPARTMENTNAME"; 
+const imagesPath = "USER_IMAGESPATH"; 
+const statusID = "USER_STATUSID"; 
+const isRequestApprove = "USER_ISREQUESTAPPROVE"; 
+
 const isRemember = "IS_REMEMBER";
-const userUserName = "USER_USERNAME";
-const userFullName = "USER_FULLNAME";
-const userImagePath = "USER_IMAGEPATH";
-const userTypeUser = "USER_TYPEUSER";
-const userUserID = "USER_ID";
-const isIntro = "IS_INTRO";
 const userUserAmount = "USER_USER_AMOUNT";
 
 // WayOS 
