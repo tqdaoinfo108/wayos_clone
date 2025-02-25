@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wayos_clone/utils/constants.dart';
 
 class ListViewTaskDashboard extends StatelessWidget {
   @override
@@ -34,7 +35,7 @@ class ItemTotalDashboard extends StatelessWidget {
     return Container(
       alignment: Alignment.centerLeft,
       width: 200,
-      margin: EdgeInsets.all(10),
+      margin: EdgeInsets.only(right:12),
       padding: EdgeInsets.all(10),
       decoration:  BoxDecoration(
           color: Colors.white,
@@ -49,14 +50,14 @@ class ItemTotalDashboard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(total.toString(), style: TextStyle(fontSize: 48,color: Color.fromRGBO(65, 85, 147, 1.0),  fontWeight: FontWeight.bold)),
+              Text(total.toString(), style: TextStyle(fontSize: 48,color: primaryMaterialColor.shade900,  fontWeight: FontWeight.bold)),
             ],
           ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(title.toString(), style: TextStyle(fontSize: 20,color: Color.fromRGBO(65, 85, 147, 1.0),  fontWeight: FontWeight.bold)),
+              Text(title.toString(), style: TextStyle(fontSize: 20,color: primaryMaterialColor.shade900,  fontWeight: FontWeight.bold)),
             ],
           ),
           SizedBox(height: 8),

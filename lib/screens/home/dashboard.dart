@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/home/dashboard/listview-task-dashboard.dart';
+import 'package:wayos_clone/components/home/dashboard/task-dashboard.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -20,16 +21,16 @@ class _DashboardPageState extends State<DashboardPage> {
         centerTitle: true,
         backgroundColor: Colors.white,
       ),
-      body: Column(
-        children: [
-          ListViewTaskDashboard(),
-          Padding(padding: EdgeInsets.only(left: 4),
-          child:  Row(
-            children: [
-              Text("Công việc",style: TextStyle(fontSize: 22,fontWeight: FontWeight.w600, color: Colors.black))
-            ],
-          ))
-        ],
+      body: Padding(
+        padding: EdgeInsets.only(left: 8),
+        child: Column(
+
+          spacing: 10,
+          children: [
+            ListViewTaskDashboard(),
+            TaskDashboardComponent()
+          ],
+        ),
       )
     );
   }

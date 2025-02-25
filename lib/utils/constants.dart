@@ -23,7 +23,7 @@ const MaterialColor primaryMaterialColor =
   600: Color(0xFF7359FF),
   700: Color(0xFF684FFF),
   800: Color(0xFF5E45FF),
-  900: Color(0xFF6C56DD),
+  900: Color.fromRGBO(65, 85, 147, 1.0)
 });
 
 const Color blackColor = Color(0xFF16161E);
@@ -56,6 +56,7 @@ const Color purpleColor = Color(0xFF7B61FF);
 const Color successColor = Color(0xFF2ED573);
 const Color warningColor = Color(0xFFFFBE21);
 const Color errorColor = Color(0xFFEA5B5B);
+
 
 const double defaultPadding = 16.0;
 const double defaultBorderRadious = 12.0;
