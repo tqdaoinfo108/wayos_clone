@@ -14,23 +14,22 @@ class UserModel {
   String? imagesPath;
   int? statusID;
   int? isRequestApprove;
-  
 
   UserModel();
 
   UserModel.fromJson(Map<String, dynamic> json) {
-    staffID = json["StaffID "];
-    staffFullName = json["StaffFullName "];
-    staffCode = json["StaffCode "];
-    userTypeID = json["UserTypeID "];
-    companyID = json["CompanyID "];
-    companyName = json["CompanyName "];
-    staffInfoID = json["StaffInfoID "];
-    departmentID = json["DepartmentID "];
-    departmentName = json["DepartmentName "];
-    imagesPath = json["ImagesPath "];
-    statusID = json["StatusID "];
-    isRequestApprove = json["IsRequestApprove "];
+    staffID = json["StaffID"];
+    staffFullName = json["StaffFullName"];
+    staffCode = json["StaffCode"];
+    userTypeID = json["UserTypeID"];
+    companyID = json["CompanyID"];
+    companyName = json["CompanyName"];
+    staffInfoID = json["StaffInfoID"];
+    departmentID = json["DepartmentID"];
+    departmentName = json["DepartmentName"];
+    imagesPath = json["ImagesPath"];
+    statusID = json["StatusID"];
+    isRequestApprove = json["IsRequestApprove"];
   }
 
   static ResponseBase<UserModel> getFromJson(Map<String, dynamic> json) {
@@ -39,7 +38,18 @@ class UserModel {
         data: UserModel.fromJson(json['token']),
       );
     } else {
-      return ResponseBase()..message = json["message"] ;
+      return ResponseBase()..message = json["message"];
+    }
+  }
+
+  static ResponseBase<UserModel> getFromJsonGetProfile(
+      Map<String, dynamic> json) {
+    if (json["message"] == null) {
+      return ResponseBase<UserModel>(
+        data: UserModel.fromJson(json),
+      );
+    } else {
+      return ResponseBase()..message = json["message"];
     }
   }
 
@@ -61,4 +71,3 @@ class UserModel {
     }
   }
 }
-
