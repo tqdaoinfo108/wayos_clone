@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wayos_clone/components/home/dashboard/inform-dashboard.dart';
 import 'package:wayos_clone/components/home/dashboard/listview-task-dashboard.dart';
 import 'package:wayos_clone/components/home/dashboard/task-dashboard.dart';
 
@@ -28,7 +29,8 @@ class _DashboardPageState extends State<DashboardPage> {
           spacing: 10,
           children: [
             ListViewTaskDashboard(),
-            TaskDashboardComponent()
+            TaskDashboardComponent(),
+            InformDashboard()
           ],
         ),
       )
