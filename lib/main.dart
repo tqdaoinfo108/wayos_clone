@@ -1,3 +1,4 @@
+import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/route/route_constants.dart';
@@ -10,7 +11,14 @@ import './route/router.dart' as router;
 void main() async {
   await GetStorage.init();
   
-  runApp(const MyApp());
+  
+  runApp(DevicePreview(
+      enabled: true,
+      tools: const [
+        ...DevicePreview.defaultTools
+      ],
+      builder: (context) => const MyApp(),
+    ),);
 }
 
 class MyApp extends StatelessWidget {
