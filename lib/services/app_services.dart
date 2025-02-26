@@ -1,9 +1,13 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:toastification/toastification.dart';
+import 'package:wayos_clone/components/app_snackbar.dart';
 import 'package:wayos_clone/model/base_response.dart';
 import 'package:wayos_clone/model/user_model.dart';
+import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/utils/constants.dart';
 import 'package:wayos_clone/utils/generate_md5.dart';
 
@@ -24,6 +28,13 @@ class AppServices {
   static final AppServices _instance = AppServices._privateConstructor();
 
   static AppServices get instance => _instance;
+
+  static Future<void> _handleLogout(BuildContext context) async {
+    GetStorage().remove(tokenID);
+    SnackbarHelper.showSnackBar("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại", ToastificationType.error);
+    Navigator.pushNamedAndRemoveUntil(
+        context, LOG_IN_SCREEN_ROUTE, (Route<dynamic> route) => false);
+  }
 
   Future<ResponseBase<UserModel>?> letLogin(
       String userName, String passWord) async {
@@ -74,15 +85,20 @@ class AppServices {
     return null;
   }
 
-  Future<ResponseBase<UserModel>?> getProfile() async {
+  Future<ResponseBase<UserModel>?> getProfile({required BuildContext context}) async {
     try {
       var rawResponse = await _api
           .get(Uri.parse("${_baseURL}api/authentication/getauthdata"));
+
       if (rawResponse.statusCode == 200) {
         var result =
             UserModel.getFromJsonGetProfile(json.decode(rawResponse.body));
         return result;
+      } else if (rawResponse.statusCode == 401) {
+        _handleLogout(context);
       }
+
+      
     } catch (e) {
       return null;
     }

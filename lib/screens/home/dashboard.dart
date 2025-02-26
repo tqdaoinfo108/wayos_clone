@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/components/home/dashboard/listview-task-dashboard.dart';
 import 'package:wayos_clone/components/home/dashboard/task-dashboard.dart';
 import 'package:wayos_clone/model/user_model.dart';
 import 'package:wayos_clone/services/app_services.dart';
-import 'package:wayos_clone/utils/constants.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -16,6 +14,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   UserModel userModel = UserModel();
   bool isLoading = false;
+
 
   @override
   void initState() {
@@ -29,7 +28,7 @@ class _DashboardPageState extends State<DashboardPage> {
     setState(() {
       isLoading = true;
     });
-    var temp = (await AppServices.instance.getProfile())?.data ?? UserModel();
+    var temp = (await AppServices.instance.getProfile(context: context))?.data ?? UserModel();
     if (mounted) {
       setState(() {
         userModel = temp;
