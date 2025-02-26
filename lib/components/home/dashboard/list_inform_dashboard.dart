@@ -26,7 +26,7 @@ class InformDashboard extends StatelessWidget {
             title:"Lịch nghỉ tết âm 2025",
             description: "Lịch nghỉ tết âm 2025",
             dateAndTime:new DateTime(2025,1,12,9,27),
-            author:"Nguyễn Văn A"
+            author:"Nguyen Van A"
           );
         },
       ),
@@ -66,44 +66,60 @@ class ItemInformDashboard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // row type
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(type, style: TextStyle(fontSize: 20,color: Colors.grey,  fontWeight: FontWeight.w400)),
-              ],
+            Container(
+              child: Text(
+                  type,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 20,color: Colors.grey,  fontWeight: FontWeight.w400)),
             ),
             SizedBox(height: 8),
             // row title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(title, style: TextStyle(fontSize: 24,color: primaryMaterialColor.shade900,  fontWeight: FontWeight.bold)),
-              ],
+            Container(
+              child:
+              Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 24,color: primaryMaterialColor.shade900,  fontWeight: FontWeight.bold)),
             ),
             SizedBox(height: 8),
             // row description
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(description, style: TextStyle(fontSize: 20,color: Colors.grey,  fontWeight: FontWeight.w400)),
-              ],
+            Container(
+              child:
+              Text(description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 20,color: Colors.grey,  fontWeight: FontWeight.w400)),
             ),
             SizedBox(height: 8),
             // row date time
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(dateAndTime.day.toString()+"/"+dateAndTime.month.toString()+"/"+dateAndTime.year.toString()+"    "+dateAndTime.hour.toString()+":"+dateAndTime.minute.toString(), style: TextStyle(fontSize: 20,color: Colors.grey,  fontWeight: FontWeight.w400)),
-              ],
+            Container(
+              child:Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Align(
+                  alignment: Alignment.centerRight,
+                    child:
+                    Text(dateAndTime.day.toString()+"/"+dateAndTime.month.toString()+"/"+dateAndTime.year.toString()+"    "+dateAndTime.hour.toString()+":"+dateAndTime.minute.toString(),
+                        maxLines: 1,
+                        textAlign: TextAlign.end,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 20,color: Colors.grey,  fontWeight: FontWeight.w400)),
+                  ),
+                  Container(
+                  width: MediaQuery.of(context).size.width * 0.4,
+                    child:
+                    Text(author.toString(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 20,color: Colors.grey,  fontWeight: FontWeight.w400)),
+                  )
+                ],
+              )
+
             ),
-            SizedBox(height: 8),
-            // row author
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(description.toString(), style: TextStyle(fontSize: 20,color: Colors.grey,  fontWeight: FontWeight.w400)),
-              ],
-            )
+
           ],
         ),
       )

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/components/home/dashboard/inform-dashboard.dart';
+import 'package:wayos_clone/components/home/dashboard/list_birthday_dashboard.dart';
+import 'package:wayos_clone/components/home/dashboard/list_inform_dashboard.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:wayos_clone/components/home/dashboard/listview-task-dashboard.dart';
-import 'package:wayos_clone/components/home/dashboard/task-dashboard.dart';
+import 'package:wayos_clone/components/home/dashboard/listview_task_dashboard.dart';
+import 'package:wayos_clone/components/home/dashboard/new_employee_dashboard.dart';
+import 'package:wayos_clone/components/home/dashboard/task_dashboard.dart';
 import 'package:wayos_clone/model/user_model.dart';
 import 'package:wayos_clone/services/app_services.dart';
 import 'package:wayos_clone/utils/constants.dart';
@@ -50,19 +52,20 @@ class _DashboardPageState extends State<DashboardPage> {
         centerTitle: true,
         backgroundColor: Colors.white,
       ),
-      body: Padding(
+      body: ListView(
         padding: EdgeInsets.only(left: 8),
-        child: Column(
+        children: [ Column(
 
           spacing: 10,
           children: [
-            ListViewTaskDashboard(),
-            TaskDashboardComponent(),
-            InformDashboard()
             ListViewTaskDashboard(userModel),
-            TaskDashboardComponent()
+            TaskDashboardComponent(),
+            InformDashboard(),
+            NewEmployeeDashboard(),
+            ListBirthdayDashboard(),
+            Padding(padding: EdgeInsets.only(bottom: 20))
           ],
-        ),
+        ),],
       )
     );
   }
