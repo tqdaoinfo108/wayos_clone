@@ -49,6 +49,8 @@ class AppServices {
       if (rawResponse.statusCode == 200) {
         GetStorage box = GetStorage();
         box.write(tokenID, json.decode(rawResponse.body)["token"]["TokenID"]);
+        instance._api = BasicAuthClient(box.read(tokenID) ?? "",
+            inner: http.Client());
 
         box.write(staffID, json.decode(rawResponse.body)["token"]["StaffID"]);
         box.write(staffFullName,
@@ -57,8 +59,8 @@ class AppServices {
             staffCode, json.decode(rawResponse.body)["token"]["StaffCode"]);
         box.write(
             userTypeID, json.decode(rawResponse.body)["token"]["UserTypeID"]);
-        box.write(userTypeName,
-            json.decode(rawResponse.body)["token"]["UserTypeName"]);
+        // box.write(userTypeName,
+        //     json.decode(rawResponse.body)["token"]["UserTypeName"]);
         box.write(
             companyID, json.decode(rawResponse.body)["token"]["CompanyID"]);
         box.write(
