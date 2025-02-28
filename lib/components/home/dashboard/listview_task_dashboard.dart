@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/model/user_model.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class ListViewTaskDashboard extends StatelessWidget {
-  const ListViewTaskDashboard(this.userModel, {Key? key});
-  final UserModel userModel;
+  const ListViewTaskDashboard({Key? key});
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -17,7 +16,6 @@ class ListViewTaskDashboard extends StatelessWidget {
             title: "Công việc",
             total: index + 1,
             description: "Công việc xử lý",
-            userModel: userModel,
           );
         },
       ),
@@ -29,12 +27,11 @@ class ItemTotalDashboard extends StatelessWidget {
   final String title;
   final int total;
   final String description;
-  final UserModel userModel;
-  ItemTotalDashboard(
-      {required this.title,
-      required this.total,
-      required this.description,
-      required this.userModel});
+  ItemTotalDashboard({
+    required this.title,
+    required this.total,
+    required this.description,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +84,7 @@ class ItemTotalDashboard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(userModel.companyID.toString(),
+              Text(GetStorage().read(companyName).toString(),
                   style: TextStyle(
                       fontSize: 20,
                       color: Colors.grey,

@@ -12,7 +12,7 @@ class PersonalPage extends StatelessWidget {
    @override
   Widget build(BuildContext context) {
     AppBar appBar = AppBar(
-      title: const Text('Application Page',
+      title: const Text('Cá nhân',
           style: TextStyle(color: Colors.white, fontSize: 20)),
       centerTitle: true,
       backgroundColor: const Color.fromARGB(255, 34, 48, 168),
@@ -23,7 +23,8 @@ class PersonalPage extends StatelessWidget {
         children: [
           ProfileCard(
             name: GetStorage().read(staffFullName),
-            email: GetStorage().read(staffCode),
+            department: GetStorage().read(departmentName),
+            company: GetStorage().read(companyName),
             imageSrc: GetStorage().read(imagesPath),
             isShowArrow: false,
             isShowHi: false,
@@ -33,19 +34,19 @@ class PersonalPage extends StatelessWidget {
             text: "Thông tin cá nhân",
             svgSrc: "assets/icons/Profile.svg",
             press: () {
-              // Navigator.pushNamed(context, orderHistoryScreen);
+              Navigator.pushNamed(context, PERSONAL_DETAIL_ROUTE);
             },
           ),
           ProfileMenuListTile(
             text: "Ngôn ngữ",
-            svgSrc: "assets/icons/Address.svg",
+            svgSrc: "assets/icons/Language.svg",
             press: () {
               // Navigator.pushNamed(context, addressScreenRoute);
             },
           ),
           ProfileMenuListTile(
             text: "Hotline",
-            svgSrc: "assets/icons/Wallet.svg",
+            svgSrc: "assets/icons/Help.svg",
             press: () {
               // Navigator.pushNamed(context, walletScreen);
             },
@@ -53,7 +54,7 @@ class PersonalPage extends StatelessWidget {
           ),
           ProfileMenuListTile(
             text: "Hỗ trợ",
-            svgSrc: "assets/icons/Language.svg",
+            svgSrc: "assets/icons/FAQ.svg",
             press: () async {
               // Navigator.pushNamed(context, getHelpScreenRoute);
             },
@@ -62,7 +63,7 @@ class PersonalPage extends StatelessWidget {
           ),
           ProfileMenuListTile(
             text: "Chuyển tài khoản",
-            svgSrc: "assets/icons/Help.svg",
+            svgSrc: "assets/icons/Order.svg",
             press: () async {
               // customModalBottomSheet(context, child: SupportScreen());
               // Navigator.pushNamed(context, getHelpScreenRoute);

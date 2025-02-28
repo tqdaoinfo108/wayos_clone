@@ -39,8 +39,8 @@ class NetworkImageWithLoader extends StatelessWidget {
         ),
         placeholder: (context, url) => Center(
           child: SizedBox(
-              width: 30,
-              height: 30,
+              width: 50,
+              height: 50,
               child: LoadingAnimationWidget.staggeredDotsWave(
                   color: primaryColor, size: 20)),
         ),

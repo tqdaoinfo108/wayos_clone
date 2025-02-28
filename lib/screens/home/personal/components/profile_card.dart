@@ -10,8 +10,9 @@ class ProfileCard extends StatelessWidget {
   const ProfileCard({
     super.key,
     required this.name,
-    required this.email,
     required this.imageSrc,
+    required this.department,
+    required this.company,
     this.proLableText = "Pro",
     this.isPro = false,
     this.press,
@@ -19,7 +20,7 @@ class ProfileCard extends StatelessWidget {
     this.isShowArrow = true,
   });
 
-  final String name, email, imageSrc;
+  final String name, department, company, imageSrc;
   final String proLableText;
   final bool isPro, isShowHi, isShowArrow;
   final VoidCallback? press;
@@ -50,29 +51,48 @@ class ProfileCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(width: defaultPadding / 2),
-            if (isPro)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: defaultPadding / 2, vertical: defaultPadding / 4),
-                decoration: const BoxDecoration(
-                  color: primaryColor,
-                  borderRadius:
-                      BorderRadius.all(Radius.circular(defaultBorderRadious)),
-                ),
-                child: Text(
-                  proLableText,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                    letterSpacing: 0.7,
-                    height: 1,
-                  ),
-                ),
-              ),
           ],
         ),
-        subtitle: Text(email),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  department,
+                  style: const TextStyle(fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: defaultPadding / 2),
+                if (isPro)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: defaultPadding / 2,
+                      vertical: defaultPadding / 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      proLableText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            Text(
+              company,
+              style: const TextStyle(fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
         trailing: isShowArrow
             ? SvgPicture.asset(
                 "assets/icons/miniRight.svg",

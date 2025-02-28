@@ -1,0 +1,5 @@
+export 'package:wayos_clone/screens/auth/login_screen.dart';
+export 'package:wayos_clone/screens/home/RootNavigation.dart';
+export 'package:wayos_clone/screens/home/dashboard.dart';
+export 'package:wayos_clone/screens/home/personal/pages/personal_detail.dart';
+export 'package:wayos_clone/screens/home/personal/personal.dart';

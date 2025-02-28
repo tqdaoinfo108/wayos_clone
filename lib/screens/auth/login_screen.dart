@@ -4,7 +4,7 @@ import 'package:wayos_clone/components/app_snackbar.dart';
 import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/auth/components/login_form.dart';
-import 'package:wayos_clone/services/app_services.dart';
+import 'package:wayos_clone/service/authentication/auth_service.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -27,17 +27,20 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     // Handle Submit
 
-    var temp = await AppServices.instance
-        .letLogin(usernameController.text, passwordController.text);
-
-    if (temp != null) {
-      return true;
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-    return false;
+    var temp = await AuthService().login(
+        usernameController.text, passwordController.text);
+        if (temp == true) {
+          SnackbarHelper.showSnackBar("Đăng nhập thành công", ToastificationType.success);
+          setState(() {
+            isLoading = false;
+          });
+          return true;
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+          return false;
+        }
   }
 
   @override
@@ -69,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         var temp = await onLogin();
-                        if (temp) {
+                        if (temp == true) {
                           Navigator.pushNamedAndRemoveUntil(
                               context,
                               HOME_NAVIGATION_ROUTE,
