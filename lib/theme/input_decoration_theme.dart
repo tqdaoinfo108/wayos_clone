@@ -16,7 +16,7 @@ const InputDecorationTheme lightInputDecorationTheme = InputDecorationTheme(
 const InputDecorationTheme darkInputDecorationTheme = InputDecorationTheme(
   fillColor: darkGreyColor,
   filled: true,
-  hintStyle: TextStyle(color: whileColor40),
+  hintStyle: TextStyle(color: whiteColor40),
   border: outlineInputBorder,
   enabledBorder: outlineInputBorder,
   focusedBorder: focusedOutlineInputBorder,

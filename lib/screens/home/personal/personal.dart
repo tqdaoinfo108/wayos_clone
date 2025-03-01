@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:wayos_clone/components/menu_item_list_tile.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/personal/components/profile_card.dart';
-import 'package:wayos_clone/screens/home/personal/components/profile_menu_item_list_tile.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class PersonalPage extends StatelessWidget {
@@ -30,21 +30,21 @@ class PersonalPage extends StatelessWidget {
             isShowHi: false,
           ),
           SizedBox(height: 20),
-          ProfileMenuListTile(
+          MenuListTile(
             text: "Thông tin cá nhân",
             svgSrc: "assets/icons/Profile.svg",
             press: () {
               Navigator.pushNamed(context, PERSONAL_DETAIL_ROUTE);
             },
           ),
-          ProfileMenuListTile(
+          MenuListTile(
             text: "Ngôn ngữ",
             svgSrc: "assets/icons/Language.svg",
             press: () {
               // Navigator.pushNamed(context, addressScreenRoute);
             },
           ),
-          ProfileMenuListTile(
+          MenuListTile(
             text: "Hotline",
             svgSrc: "assets/icons/Help.svg",
             press: () {
@@ -52,7 +52,7 @@ class PersonalPage extends StatelessWidget {
             },
             isShowDivider: false,
           ),
-          ProfileMenuListTile(
+          MenuListTile(
             text: "Hỗ trợ",
             svgSrc: "assets/icons/FAQ.svg",
             press: () async {
@@ -61,7 +61,7 @@ class PersonalPage extends StatelessWidget {
             isShowDivider: false,
 
           ),
-          ProfileMenuListTile(
+          MenuListTile(
             text: "Chuyển tài khoản",
             svgSrc: "assets/icons/Order.svg",
             press: () async {

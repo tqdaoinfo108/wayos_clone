@@ -35,12 +35,12 @@ const Color blackColor10 = Color(0xFFE8E8E9);
 const Color blackColor5 = Color(0xFFF3F3F4);
 
 const Color whiteColor = Colors.white;
-const Color whileColor80 = Color(0xFFCCCCCC);
-const Color whileColor60 = Color(0xFF999999);
-const Color whileColor40 = Color(0xFF666666);
-const Color whileColor20 = Color(0xFF333333);
-const Color whileColor10 = Color(0xFF191919);
-const Color whileColor5 = Color(0xFF0D0D0D);
+const Color whiteColor80 = Color(0xFFCCCCCC);
+const Color whiteColor60 = Color(0xFF999999);
+const Color whiteColor40 = Color(0xFF666666);
+const Color whiteColor20 = Color(0xFF333333);
+const Color whiteColor10 = Color(0xFF191919);
+const Color whiteColor5 = Color(0xFF0D0D0D);
 
 const Color greyColor = Color(0xFFB8B5C3);
 const Color lightGreyColor = Color(0xFFF8F8F9);

@@ -20,6 +20,14 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const PersonalDetailPage(),
       );
+    case APPLICATION_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const ApplicationPage(),
+      );
+    case REQUEST_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) =>  const RequestPage(),
+      );
     default:
       return MaterialPageRoute(
         builder: (context) => const LoginScreen(),

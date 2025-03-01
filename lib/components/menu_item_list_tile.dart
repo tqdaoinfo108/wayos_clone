@@ -3,18 +3,20 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wayos_clone/components/list_title/divider_list_tile.dart';
 
 
-class ProfileMenuListTile extends StatelessWidget {
-  const ProfileMenuListTile({
+class MenuListTile extends StatelessWidget {
+  const MenuListTile({
     super.key,
     required this.text,
     required this.svgSrc,
     required this.press,
     this.isShowDivider = true,
+    this.isShowArrow = true,
   });
 
   final String text, svgSrc;
   final VoidCallback press;
   final bool isShowDivider;
+  final bool isShowArrow;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,7 @@ class ProfileMenuListTile extends StatelessWidget {
       ),
       press: press,
       isShowDivider: isShowDivider,
+      isShowForwordArrow: isShowArrow,
     );
   }
 }

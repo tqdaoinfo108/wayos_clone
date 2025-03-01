@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme(context),
         themeMode: ThemeMode.light,
         onGenerateRoute: router.generateRoute,
-        initialRoute: GetStorage().read(tokenID) == null ? LOG_IN_SCREEN_ROUTE : HOME_NAVIGATION_ROUTE,
+        initialRoute: GetStorage().read(tokenID) == null ? LOG_IN_SCREEN_ROUTE : REQUEST_PAGE_ROUTE,
       ),
     );
   }
