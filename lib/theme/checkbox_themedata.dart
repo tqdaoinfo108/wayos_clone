@@ -10,5 +10,5 @@ CheckboxThemeData checkboxThemeData = CheckboxThemeData(
       Radius.circular(defaultBorderRadious / 2),
     ),
   ),
-  side: const BorderSide(color: whileColor40),
+  side: const BorderSide(color: whiteColor40),
 );

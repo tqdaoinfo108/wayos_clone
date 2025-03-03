@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application.dart';
+import 'package:wayos_clone/screens/home/application/application.dart';
 import 'package:wayos_clone/screens/home/dashboard.dart';
 import 'package:wayos_clone/screens/home/inform.dart';
-import 'package:wayos_clone/screens/home/personal.dart';
+import 'package:wayos_clone/screens/home/personal/personal.dart';
 
 /// Flutter code sample for [BottomNavigationBar].
 

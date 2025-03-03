@@ -34,7 +34,7 @@ class PersonalPage extends StatelessWidget {
             text: "Thông tin cá nhân",
             svgSrc: "assets/icons/Profile.svg",
             press: () {
-              Navigator.pushNamed(context, PERSONAL);
+              Navigator.pushNamed(context, PERSONAL_DETAIL_ROUTE);
             },
           ),
           MenuListTile(

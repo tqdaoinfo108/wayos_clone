@@ -1,5 +1,7 @@
+import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:toastification/toastification.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/theme/app_theme.dart';
 import 'package:wayos_clone/utils/constants.dart';
@@ -10,7 +12,14 @@ import './route/router.dart' as router;
 void main() async {
   await GetStorage.init();
   
-  runApp(const MyApp());
+  
+  runApp(DevicePreview(
+      enabled: true,
+      tools: const [
+        ...DevicePreview.defaultTools
+      ],
+      builder: (context) => const MyApp(),
+    ),);
 }
 
 class MyApp extends StatelessWidget {
@@ -19,13 +28,15 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WayOS',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme(context),
-      themeMode: ThemeMode.light,
-      onGenerateRoute: router.generateRoute,
-      initialRoute: GetStorage().read(tokenID) == null ? LOG_IN_SCREEN_ROUTE : HOME_NAVIGATION_ROUTE,
+    return ToastificationWrapper(
+      child: MaterialApp(
+        title: 'WayOS',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme(context),
+        themeMode: ThemeMode.light,
+        onGenerateRoute: router.generateRoute,
+        initialRoute: GetStorage().read(tokenID) == null ? LOG_IN_SCREEN_ROUTE : REQUEST_PAGE_ROUTE,
+      ),
     );
   }
 }
