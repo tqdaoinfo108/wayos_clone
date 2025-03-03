@@ -2,26 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
-class NewEmployeeDashboard extends StatefulWidget{
-  NewEmployeeDashboard({super.key});
+class NotExistBirthday extends StatefulWidget{
+  NotExistBirthday({super.key});
   @override
-  State<StatefulWidget> createState() => _NewEmployeeDashboard();
+  State<StatefulWidget> createState() => _NotExistBirthday();
 
 }
-class _NewEmployeeDashboard extends State<NewEmployeeDashboard> {
+class _NotExistBirthday extends State<NotExistBirthday> {
   @override
   Widget build(BuildContext context) {
     return Center(
         child: Column(children: [
-          Row(
-            children: [
-              Text("Nhân viên mới",
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black)),
-            ],
-          ),
+
           Padding(
             padding: EdgeInsets.only(right: 4),
             child: Row(
@@ -52,7 +44,7 @@ class _NewEmployeeDashboard extends State<NewEmployeeDashboard> {
                                           color: primaryMaterialColor.shade900),
                                     ),
                                     Text(
-                                      "Bạn không có nhân viên mới nào",
+                                      "Không có sinh nhật nhân viên nào trong tháng",
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
