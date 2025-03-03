@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/select_menu.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_process.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_work_handling.dart';
-import 'package:wayos_clone/utils/constants.dart';
 
 class RequestPage extends StatefulWidget {
   const RequestPage({super.key});
@@ -19,12 +18,7 @@ class _RequestPageState extends State<RequestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Request',
-            style: TextStyle(
-                color: primaryColor,
-                fontSize: 20,
-                fontWeight: FontWeight.bold)),
-        centerTitle: true,
+        title: const Text('Yêu cầu'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0), // Thêm khoảng cách

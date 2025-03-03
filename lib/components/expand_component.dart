@@ -7,14 +7,14 @@ class ExpandComponent extends StatefulWidget {
   final bool isExpanded;
 
   const ExpandComponent({
-    Key? key,
+    super.key,
     required this.title,
     required this.body,
     required this.isExpanded,
-  }) : super(key: key);
+  });
 
   @override
-  _ExpandComponentState createState() => _ExpandComponentState();
+  State<ExpandComponent> createState() => _ExpandComponentState();
 }
 
 class _ExpandComponentState extends State<ExpandComponent> {
@@ -35,12 +35,21 @@ class _ExpandComponentState extends State<ExpandComponent> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      child: Card(
+      onTap: _toggleExpand,
+      hoverColor: whiteColor,
+      splashColor: whiteColor,
+      focusColor: whiteColor,
+      highlightColor: whiteColor,
+      child: Container(
+        decoration: BoxDecoration(
+          color: whiteColor, // Đặt màu nền trắng cho Container
+          border: Border.all(color: Colors.grey), // Đặt màu viền
+          borderRadius: BorderRadius.circular(4.0), // Bo góc viền
+        ),
         margin: const EdgeInsets.all(4.0),
         child: Column(
           children: [
             ListTile(
-              onTap: _toggleExpand,
               title: Text(widget.title),
               trailing: Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,

@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 
 
 class ListBirthdayDashboard extends StatefulWidget {
+  const ListBirthdayDashboard({super.key});
+
 
   @override
   State<StatefulWidget> createState() =>_ListBirthdayDashboard();
