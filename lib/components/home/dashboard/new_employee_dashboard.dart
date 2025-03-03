@@ -28,6 +28,7 @@ class _NewEmployeeDashboard extends State<NewEmployeeDashboard> {
               children: [
                 Expanded(
                   child: Card(
+                    color: Colors.white,
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4)),

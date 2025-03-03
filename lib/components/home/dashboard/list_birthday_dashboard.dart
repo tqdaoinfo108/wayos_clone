@@ -1,5 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:wayos_clone/components/home/dashboard/not-existed-birthday.dart';
+import 'package:wayos_clone/model/get_listbirthdays.dart';
+import 'package:wayos_clone/services/dashboard_service.dart';
 import 'package:wayos_clone/utils/constants.dart';
+import 'package:http/http.dart' as http;
+
+
 
 class ListBirthdayDashboard extends StatefulWidget {
 
@@ -9,6 +18,34 @@ class ListBirthdayDashboard extends StatefulWidget {
 
 
 class _ListBirthdayDashboard extends State<ListBirthdayDashboard>{
+  Future<GetListBirthday> response = new Future<GetListBirthday>(() {
+    return new GetListBirthday(totals: 0, data: []);
+  },);
+  bool isLoading = true;
+  bool hasError = false;
+  DashboardService dashboardService = new DashboardService();
+  @override
+  void initState() {
+    super.initState();
+    fetchBirthday();
+  }
+
+  Future<void> fetchBirthday() async {
+    try {
+      response = dashboardService.fetchStaffBirthdayList();
+      setState(() {
+        response = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        hasError = true;
+        isLoading = false;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Column(children: [
@@ -23,16 +60,29 @@ class _ListBirthdayDashboard extends State<ListBirthdayDashboard>{
       ),
       SizedBox(
         height: 150, // Set height to fit the item
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal, // Horizontal scrolling
-          itemCount: 10, // Number of items
-          itemBuilder: (context, index) {
-            return ItemBirthdayDashboard(
-                name: "Lại Dương Minh Hiếu",
-                position: "Giám Đốc",
-                birthday: new DateTime(2003, 5, 20));
-          },
-        ),
+        child: FutureBuilder<GetListBirthday>(future: response, builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error loading data"));
+          } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+            return NotExistBirthday();
+          }
+          GetListBirthday staffsBirthday = snapshot.data!;
+          return ListView.builder(
+            scrollDirection: Axis.horizontal, // Horizontal scrolling
+            itemCount: staffsBirthday.totals, // Number of items
+            itemBuilder: (context, index) {
+              final staff = staffsBirthday.data[index];
+              return ItemBirthdayDashboard(
+                  name: staff.fullName,
+                  position: staff.position,
+                  birthday: staff.birthday
+              );
+                  // birthday : staff.bi;
+            },
+          );
+        },)
       )
     ]);
   }
