@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/menu_item_list_tile.dart';
 import 'package:wayos_clone/route/route_constants.dart';
+import 'package:wayos_clone/utils/constants.dart';
 
 class ApplicationPage extends StatefulWidget {
   const ApplicationPage({super.key});
@@ -13,14 +14,9 @@ class _ApplicationPageState extends State<ApplicationPage> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    AppBar appBar = AppBar(
-      title: const Text('Ứng dụng',
-          style: TextStyle(color: Colors.white, fontSize: 20)),
-      centerTitle: true,
-      backgroundColor: const Color.fromARGB(255, 34, 48, 168),
-    );
-   return Scaffold(
-      appBar: appBar,
+
+    return Scaffold(
+      appBar: appBar(title: "Ứng dụng"),
       body: ListView(
         children: [
           SizedBox(height: 20),
@@ -35,7 +31,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
           ),
           MenuListTile(
             text: "Request",
-            svgSrc: "assets/icons/Language.svg",
+            svgSrc: "assets/icons/Request.svg",
             press: () {
               Navigator.pushNamed(context, REQUEST_PAGE_ROUTE);
             },
@@ -44,7 +40,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
           ),
           MenuListTile(
             text: "Drive",
-            svgSrc: "assets/icons/Help.svg",
+            svgSrc: "assets/icons/Drive.svg",
             press: () {
               // Navigator.pushNamed(context, walletScreen);
             },
@@ -53,17 +49,16 @@ class _ApplicationPageState extends State<ApplicationPage> {
           ),
           MenuListTile(
             text: "Tin tức thông báo",
-            svgSrc: "assets/icons/FAQ.svg",
+            svgSrc: "assets/icons/Notification.svg",
             press: () async {
               // Navigator.pushNamed(context, getHelpScreenRoute);
             },
             isShowDivider: false,
             isShowArrow: false,
-
           ),
           MenuListTile(
             text: "Đặt lịch",
-            svgSrc: "assets/icons/Order.svg",
+            svgSrc: "assets/icons/Date.svg",
             press: () async {
               // customModalBottomSheet(context, child: SupportScreen());
               // Navigator.pushNamed(context, getHelpScreenRoute);
@@ -73,7 +68,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
           ),
           MenuListTile(
             text: "Công việc",
-            svgSrc: "assets/icons/Order.svg",
+            svgSrc: "assets/icons/Task.svg",
             press: () async {
               // customModalBottomSheet(context, child: SupportScreen());
               // Navigator.pushNamed(context, getHelpScreenRoute);
@@ -83,7 +78,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
           ),
           MenuListTile(
             text: "Quản lý hồ sơ",
-            svgSrc: "assets/icons/Order.svg",
+            svgSrc: "assets/icons/Manage-profile.svg",
             press: () async {
               // customModalBottomSheet(context, child: SupportScreen());
               // Navigator.pushNamed(context, getHelpScreenRoute);

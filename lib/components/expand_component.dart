@@ -7,14 +7,14 @@ class ExpandComponent extends StatefulWidget {
   final bool isExpanded;
 
   const ExpandComponent({
-    Key? key,
+    super.key,
     required this.title,
     required this.body,
     required this.isExpanded,
-  }) : super(key: key);
+  });
 
   @override
-  _ExpandComponentState createState() => _ExpandComponentState();
+  State<ExpandComponent> createState() => _ExpandComponentState();
 }
 
 class _ExpandComponentState extends State<ExpandComponent> {

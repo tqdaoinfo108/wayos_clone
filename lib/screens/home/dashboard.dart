@@ -4,6 +4,7 @@ import 'package:wayos_clone/components/home/dashboard/list_inform_dashboard.dart
 import 'package:wayos_clone/components/home/dashboard/listview_task_dashboard.dart';
 import 'package:wayos_clone/components/home/dashboard/new_employee_dashboard.dart';
 import 'package:wayos_clone/components/home/dashboard/task_dashboard.dart';
+import 'package:wayos_clone/utils/constants.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -23,12 +24,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
         backgroundColor: Color.fromRGBO(204, 202, 198,0.4),
 
-      appBar: AppBar(
-        title: const Text('Dashboard',
-            style: TextStyle(color: Color.fromARGB(255, 34, 48, 168), fontSize: 24,fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-      ),
+      appBar: appBar(title: "Dashboard"),
       body: ListView(
         padding: EdgeInsets.only(left: 8),
         children: [ Column(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wayos_clone/utils/constants.dart';
 
 class InformPage extends StatefulWidget {
   const InformPage({super.key});
@@ -11,12 +12,7 @@ class _InformPageState extends State<InformPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thông báo ',
-            style: TextStyle(color: Colors.white, fontSize: 20)),
-        centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 34, 48, 168),
-      ),
+      appBar: appBar(title: "Thông báo"),
       body: const Center(
         child: Text('Thông báo nè '),
       ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class ListBirthdayDashboard extends StatefulWidget {
+  const ListBirthdayDashboard({super.key});
+
 
   @override
   State<StatefulWidget> createState() =>_ListBirthdayDashboard();

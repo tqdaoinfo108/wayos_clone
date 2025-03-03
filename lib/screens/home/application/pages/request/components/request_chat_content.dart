@@ -9,7 +9,8 @@ class RequestChatContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8.0), // Thêm khoảng cách bên trong Container
+      padding:
+          const EdgeInsets.all(8.0), // Thêm khoảng cách bên trong Container
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -23,15 +24,35 @@ class RequestChatContent extends StatelessWidget {
         textDirection: TextDirection.ltr,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(children: [
-            Text("Vũ Quang Ái Dân", style: TextStyle(fontWeight: FontWeight.bold, color: blackColor, fontSize: 16)),
-            Text(" - 10:00 12/12/2021", style: TextStyle(color: Colors.grey)),
-          ],
+          const Row(
+            children: [
+              Flexible(
+                child: Text(
+                  "Vũ Quang Ái Dân",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: blackColor,
+                      fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                  softWrap: true,
+                
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  " - 10:00 12/12/2021",
+                  style: TextStyle(color: Colors.grey),
+                  softWrap: true,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(0.0),
-            child: const Text("Chào bạn, tôi có thể giúp gì cho bạn?", style: TextStyle(color: blackColor)),
+            child: const Text("Chào bạn, tôi có thể giúp gì cho bạn?",
+                style: TextStyle(color: blackColor),
+                softWrap: true,),
           ),
         ],
       ),

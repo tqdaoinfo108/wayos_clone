@@ -13,10 +13,14 @@ class NetworkImageWithLoader extends StatelessWidget {
     super.key,
     this.fit = BoxFit.cover,
     this.radius = defaultPadding,
+    this.width = 50,
+    this.height = 50,
   });
 
   final String src;
   final double radius;
+  final double width;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +28,8 @@ class NetworkImageWithLoader extends StatelessWidget {
       borderRadius: BorderRadius.all(Radius.circular(radius)),
       child: CachedNetworkImage(
         fit: fit,
-        width: 50,
-        height: 50,
-        maxHeightDiskCache: 50,
-        maxWidthDiskCache: 50,
+        width: width,
+        height: height,
         imageUrl: "http://freeofficefile.gvbsoft.vn/api/file/$src",
         imageBuilder: (context, imageProvider) => Container(
           decoration: BoxDecoration(

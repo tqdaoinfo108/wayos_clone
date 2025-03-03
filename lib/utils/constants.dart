@@ -12,6 +12,16 @@ const productDemoImg1 =
 
 const Color primaryColor = Color(0xFF505CA4);
 
+AppBar appBar ({title}) => AppBar(
+      title: Text(title,
+          style: TextStyle(color: Colors.white, fontSize: 20)),
+      centerTitle: true,
+      backgroundColor: const Color.fromARGB(255, 34, 48, 168),
+      iconTheme: IconThemeData(
+        color: Colors.white, // Đặt màu của nút quay lại thành màu trắng
+      ),
+    );
+
 const MaterialColor primaryMaterialColor =
     MaterialColor(0xFF9581FF, <int, Color>{
   50: Color(0xFFEFECFF),

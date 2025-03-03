@@ -3,6 +3,7 @@ import 'package:wayos_clone/screens/home/application/application.dart';
 import 'package:wayos_clone/screens/home/dashboard.dart';
 import 'package:wayos_clone/screens/home/inform.dart';
 import 'package:wayos_clone/screens/home/personal/personal.dart';
+import 'package:wayos_clone/utils/constants.dart';
 
 /// Flutter code sample for [BottomNavigationBar].
 
@@ -38,14 +39,14 @@ class _BottomNavigationBarStateApp extends State<BottomNavigationBarApp> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Dashboard'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.business), label: 'Ứng Dụng'),
-          BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Thông Báo'),
+              icon: Icon(Icons.apps), label: 'Ứng Dụng'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Thông Báo'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Cá Nhân'),
         ],
         currentIndex: _selectedIndex,
         showUnselectedLabels: true,
-        unselectedItemColor: Colors.indigo,
-        selectedItemColor: Colors.amber[800],
+        unselectedItemColor: greyColor,
+        selectedItemColor: primaryColor,
         onTap: _onItemTapped,
       ),
     );

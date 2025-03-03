@@ -11,14 +11,8 @@ class PersonalPage extends StatelessWidget {
 
    @override
   Widget build(BuildContext context) {
-    AppBar appBar = AppBar(
-      title: const Text('Cá nhân',
-          style: TextStyle(color: Colors.white, fontSize: 20)),
-      centerTitle: true,
-      backgroundColor: const Color.fromARGB(255, 34, 48, 168),
-    );
     return Scaffold(
-      appBar: appBar,
+      appBar: appBar(title: "Cá nhân"),
       body: ListView(
         children: [
           ProfileCard(
