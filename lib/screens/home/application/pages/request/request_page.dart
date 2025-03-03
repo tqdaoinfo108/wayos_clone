@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/select_menu.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_process.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/components/request_work_handling.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestPage extends StatefulWidget {
@@ -53,13 +54,7 @@ class _RequestPageState extends State<RequestPage> {
             Expanded(
               child: selectedButton == 0
                   ? RequestProcess()
-                  : Container(
-                      child: Column(
-                        children: [
-                          Text('Xử lý công việc'),
-                        ],
-                      ),
-                    ),
+                  : RequestWorkHandling(),
             ),
           ],
         ),

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/choice_option_bar.dart';
+import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_row_detail.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
-class RequestProcess extends StatefulWidget {
-  const RequestProcess({
+class RequestWorkHandling extends StatefulWidget {
+  const RequestWorkHandling({
     Key? key,
   });
 
   @override
-  State<RequestProcess> createState() => _RequestProcessState();
+  State<RequestWorkHandling> createState() => _RequestWorkHandlingState();
 }
 
-class _RequestProcessState extends State<RequestProcess> {
+class _RequestWorkHandlingState extends State<RequestWorkHandling> {
   int selectedButton = 0;
 
   @override
@@ -21,13 +22,11 @@ class _RequestProcessState extends State<RequestProcess> {
         child: Column(children: [
       ChoiceOptionBar(
         options: [
-          "Đến lượt duyệt",
-          "Cần duyệt",
+          "Cần xử lý",
           "Đề xuất của tôi",
-          "Duyệt gần đây",
-          "Hoàn tất",
-          "Tạo lại",
-          "Không duyệt"
+          "Đang chờ",
+          "Đang xử lý",
+          "Hoàn thành"
         ],
         value: selectedButton,
         onTap: (int index) {
@@ -42,7 +41,7 @@ class _RequestProcessState extends State<RequestProcess> {
           itemCount: 10,
           itemBuilder: (context, index) {
             return RequestRowDetail(colorType: primaryColor, onTap: () {
-              // Navigator.pushNamed(context, REQUEST_PAGE_ROUTE);
+              Navigator.pushNamed(context, REQUEST_WORK_HANDLING_PAGE_ROUTE);
             });
           },
         ),
