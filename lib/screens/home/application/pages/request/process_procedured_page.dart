@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/expand_component.dart';
+import 'package:wayos_clone/components/row_detail.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class ProcessProceduredPage extends StatefulWidget {
@@ -57,8 +59,13 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     },
   ];
 
+  List<String> files = [
+    "report_2023.docx",
+  ];
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -71,48 +78,56 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          SizedBox(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal, // Cho phép cuộn ngang
-              child: Row(
-                children: List.generate(_steps.length, (index) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _index = index;
-                      });
-                    },
-                    child: Column(
-                      children: [
-                        buildStepIcon(_steps[index]["status"], index),
-                        Container(
-                          width: 100,
-                          height: 4,
-                          color: getColorBgStep(_steps[index]["status"]),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal, // Cho phép cuộn ngang
+                child: Row(
+                  children: List.generate(_steps.length, (index) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _index = index;
+                        });
+                      },
+                      child: Column(
+                        children: [
+                          buildStepIcon(_steps[index]["status"], index),
+                          Container(
+                            width: 100,
+                            height: 4,
+                            color: getColorBgStep(_steps[index]["status"]),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ),
               ),
             ),
-          ),
-          Container(
-            margin: EdgeInsets.only(right: 12, left: 12, top: 4),
-            decoration: BoxDecoration(
-                color: getColorBgStepHeader(_steps[_index]["status"]),
-                border: Border.all(
-                  color: Colors.black,
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(8)),
-            child: _buildStepContent(
-                _steps[_index]), // Chỉ hiển thị step đang chọn
-          ),
-          info_container()
-        ],
+            Container(
+              margin: EdgeInsets.only(right: 12, left: 12, top: 4),
+              decoration: BoxDecoration(
+                  color: getColorBgStepHeader(_steps[_index]["status"]),
+                  border: Border.all(
+                    color: Colors.black,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(8)),
+              child: _buildStepContent(
+                  _steps[_index]), // Chỉ hiển thị step đang chọn
+            ),
+            info_container(),
+            const SizedBox(height: 10), // Thêm khoảng cách giữa các hàng
+            ExpandComponent(
+              title: "Thảo luận",
+              isExpanded: true,
+              body: RequestDiscuss(),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -149,124 +164,34 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
         body: Container(
           child: Column(
             children: [
+              RowDetail(title: "Tên đề xuất:", content: "Xin nghỉ phép thứ 6 (Ngày 20/12/1999)"),
+              RowDetail(title: "Biểu mẫu:", content: "ĐƠN XIN NGHỈ PHÉP"),
+              RowDetail(title: "Ngày tạo:", content: "20/11/2020 12:40"),
+              RowDetail(title: "Người đề xuất:", content: "Trần Quốc Đạo"),
+              RowDetail(title: "Phòng ban:", content: "Phòng IT"),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 120,
-                    child: Text(
-                      "Tên đề xuất:",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "Xin nghỉ phép ( Thứ 6,ngày 22/10/2021)adasdasdádasdasdasdasd",
-                      softWrap: true,
-                    ),
-                  )
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      "Biểu mẫu:",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "ĐƠN XIN NGHỈ PHÉP",
-                      softWrap: true,
-                    ),
-                  )
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      "Ngày tạo:",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "20/11/2020 12:40",
-                      softWrap: true,
-                    ),
-                  )
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      "Người đề xuất:",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "Trần Quốc Đạo",
-                      softWrap: true,
-                    ),
-                  )
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      "Phòng ban:",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "Phòng IT",
-                      softWrap: true,
-                    ),
-                  )
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 120,
+                    width: 150,
                     child: Text(
                       "Tệp đính kèm:",
                       style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold),
+                        color: blackColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                   Expanded(
-                    child: Text(
-                      "Phòng IT",
-                      softWrap: true,
+                    child: GestureDetector(
+                      onTap: () {
+                        // Xử lý sự kiện mở file nhưng không đóng ExpandComponent
+                        print("Tệp tin được nhấn!");
+                      },
+                      child: buildAttachmentSection(files),
                     ),
-                  )
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ],
@@ -394,7 +319,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     );
   }
 
-// Hàm tạo 1 tệp tin với icon
+
   Widget buildFileItem(String fileName) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
