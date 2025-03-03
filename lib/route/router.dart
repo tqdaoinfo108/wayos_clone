@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/route/screen_export.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/process_procedured_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -31,6 +32,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case REQUEST_WORK_HANDLING_PAGE_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const RequestWorkHandlingPage(),
+      );
+    case PROCESS_PROCEDURED_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const ProcessProceduredPage(),
       );
     default:
       return MaterialPageRoute(

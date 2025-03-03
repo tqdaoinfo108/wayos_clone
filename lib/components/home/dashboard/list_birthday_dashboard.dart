@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/components/home/dashboard/not-existed-birthday.dart';
 import 'package:wayos_clone/model/get_listbirthdays.dart';
-import 'package:wayos_clone/services/dashboard_service.dart';
+import 'package:wayos_clone/service/dashboard_service.dart';
 import 'package:wayos_clone/utils/constants.dart';
 import 'package:http/http.dart' as http;
 
