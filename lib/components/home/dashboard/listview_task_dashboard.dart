@@ -52,43 +52,45 @@ class ItemTotalDashboard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(total.toString(),
+              Expanded(child: Text(total.toString(),
                   style: TextStyle(
                       fontSize: 48,
                       color: primaryMaterialColor.shade900,
-                      fontWeight: FontWeight.bold)),
+                      fontWeight: FontWeight.bold))),
             ],
           ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(title.toString(),
+              Expanded(child: Text(title.toString(),
                   style: TextStyle(
                       fontSize: 20,
                       color: primaryMaterialColor.shade900,
-                      fontWeight: FontWeight.bold)),
+                      fontWeight: FontWeight.bold)),)
             ],
           ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(description.toString(),
+              Expanded(child: Text(description.toString(),
                   style: TextStyle(
                       fontSize: 20,
                       color: Colors.grey,
-                      fontWeight: FontWeight.w400)),
+                      fontWeight: FontWeight.w400)))
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              Expanded(child:
               Text(GetStorage().read(companyName).toString(),
-                  style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400)),
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w400),overflow: TextOverflow.ellipsis
+                ,)),
             ],
           )
         ],

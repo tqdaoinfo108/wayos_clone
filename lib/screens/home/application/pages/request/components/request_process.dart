@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/choice_option_bar.dart';
+import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_row_detail.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
@@ -42,7 +43,7 @@ class _RequestProcessState extends State<RequestProcess> {
           itemCount: 10,
           itemBuilder: (context, index) {
             return RequestRowDetail(colorType: primaryColor, onTap: () {
-              // Navigator.pushNamed(context, REQUEST_PAGE_ROUTE);
+              Navigator.pushNamed(context, PROCESS_PROCEDURED_PAGE_ROUTE);
             });
           },
         ),
