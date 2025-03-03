@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/request/components/choice_option_bar.dart';
-import 'package:wayos_clone/screens/home/application/pages/request/components/select_menu.dart';
+import 'package:wayos_clone/components/select_menu.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/components/request_process.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/components/request_work_handling.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestPage extends StatefulWidget {
@@ -50,15 +51,11 @@ class _RequestPageState extends State<RequestPage> {
               },
             ),
             const SizedBox(height: 20), // Tạo khoảng cách
-            ChoiceOptionBar(
-              options: ['Tất cả', 'Chờ xử lý', 'Đã xử lý'],
-              value: selectedButton,
-              onTap: (int index) {
-                setState(() {
-                  selectedButton = index;
-                });
-              },
-            )
+            Expanded(
+              child: selectedButton == 0
+                  ? RequestProcess()
+                  : RequestWorkHandling(),
+            ),
           ],
         ),
       ),
