@@ -20,6 +20,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const PersonalDetailPage(),
       );
+    case PERSONAL_CHANGE_PASSWORD_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const ChangePassword(),
+      );
     case APPLICATION_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const ApplicationPage(),
