@@ -14,3 +14,4 @@ const String PERSONAL_CHANGE_PASSWORD_ROUTE = "personalChangePassword";
 const String APPLICATION_ROUTE = "application";
 const String REQUEST_PAGE_ROUTE = "requestPage";
 const String REQUEST_WORK_HANDLING_PAGE_ROUTE = "requestWorkHandlingPage";
+const String PROCESS_PROCEDURED_PAGE_ROUTE="requestProceduredPage";
