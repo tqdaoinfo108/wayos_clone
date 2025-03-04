@@ -5,15 +5,14 @@ import 'package:wayos_clone/service/api_service.dart';
 import 'package:wayos_clone/utils/constants.dart';
 import 'package:wayos_clone/utils/generate_md5.dart';
 
-class AuthService {
-  final ApiService _apiService = ApiService();
+class AuthService extends ApiService {
   final GetStorage _storage = GetStorage();
 
   // Đăng nhập và lưu token
   Future<bool> login(String username, String password) async {
     try {
-      final response = await _apiService.request(
-        'POST',
+      final response = await request(
+        HttpMethod.post,
         '/authentication/login',
         body: {
           "StaffCode": username,
@@ -23,7 +22,7 @@ class AuthService {
       );
 
       if (response['token'] != null) {
-        _apiService.setToken(response['token']['TokenID']);
+        setToken(response['token']['TokenID']);
 
         var responseToken = response['token'];
 
@@ -51,7 +50,7 @@ class AuthService {
 
   // Đăng xuất và chuyển về màn hình đăng nhập
   void logout(BuildContext context) {
-    _apiService.setToken(null);
+    setToken(null);
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
