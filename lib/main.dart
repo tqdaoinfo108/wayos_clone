@@ -10,9 +10,9 @@ import 'package:wayos_clone/utils/constants.dart';
 
 import './route/router.dart' as router;
 
-
 void main() async {
   await GetStorage.init();
+
   
   
   runApp(DevicePreview(
@@ -20,8 +20,10 @@ void main() async {
       tools: const [
         ...DevicePreview.defaultTools
       ],
+
       builder: (context) => const MyApp(),
-    ),);
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -37,6 +39,7 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme(context),
         themeMode: ThemeMode.light,
         onGenerateRoute: router.generateRoute,
+
         initialRoute: GetStorage().read(tokenID) == null ? LOG_IN_SCREEN_ROUTE : HOME_NAVIGATION_ROUTE,
       ),
     );

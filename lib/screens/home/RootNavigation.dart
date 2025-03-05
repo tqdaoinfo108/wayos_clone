@@ -38,9 +38,9 @@ class _BottomNavigationBarStateApp extends State<BottomNavigationBarApp> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.apps), label: 'Ứng Dụng'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.apps), label: 'Ứng Dụng'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Thông Báo'),
+              icon: Icon(Icons.notifications), label: 'Thông Báo'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Cá Nhân'),
         ],
         currentIndex: _selectedIndex,
