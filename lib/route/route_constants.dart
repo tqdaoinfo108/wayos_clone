@@ -9,6 +9,7 @@ const String HOME_NAVIGATION_ROUTE = "homeNavigation";
 const String PERSONAL_ROUTE = "personal";
 const String PERSONAL_DETAIL_ROUTE = "personalDetail";
 const String PERSONAL_CHANGE_PASSWORD_ROUTE = "personalChangePassword";
+const String PERSONAL_CHANGE_ACCOUNT_ROUTE = "personalChangeAccount";
 
 // Application
 const String APPLICATION_ROUTE = "application";

@@ -12,6 +12,7 @@ class RequestRowDetail extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
+        padding: const EdgeInsets.all(0),
         child: Row(
           children: [
             // sidebar
