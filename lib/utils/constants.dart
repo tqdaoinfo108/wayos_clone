@@ -8,7 +8,31 @@ const productDemoImg1 =
 
 // End For demo
 
-// On color 80, 60.... those means opacity
+String getStringStatusGlobal(int statusID){
+  switch(statusID){
+    case 1:
+      return "Hoàn thành";
+    case 0:
+      return "Đang xử lý";
+    case -1:
+      return "Huỷ";
+    default:
+      return "Không rõ";
+  }
+}
+
+Color getColorStatusGlobal(int statusID){
+  switch(statusID){
+    case 1:
+      return Colors.greenAccent;
+    case 0:
+      return Color(0xff7e86e1);
+    case -1:
+      return Colors.redAccent;
+    default:
+      return Colors.yellowAccent;
+  }
+}
 
 const Color primaryColor = Color(0xFF505CA4);
 
