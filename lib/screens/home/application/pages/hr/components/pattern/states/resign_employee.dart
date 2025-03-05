@@ -13,4 +13,23 @@ class ResignEmployee extends StateHROption {
   String title() {
     return "Danh sách nhân viên nghỉ việc ";
   }
+
+  @override
+  Container search(TextEditingController controller) {
+    // TODO: implement search
+    throw UnimplementedError();
+  }
+
+  @override
+  Container searchByDate(TextEditingController dateController) {
+    // TODO: implement searchByDate
+    throw UnimplementedError();
+  }
+
+  @override
+  Container searchFromDateToDate(TextEditingController fromDateController,
+      TextEditingController toDateController) {
+    // TODO: implement searchFromDateToDate
+    throw UnimplementedError();
+  }
 }

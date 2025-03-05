@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:wayos_clone/components/expand_component.dart';
 import 'package:wayos_clone/screens/home/application/pages/hr/components/loadData_Text_component.dart';
 import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern/interface/state_hr_option.dart';
@@ -97,5 +98,31 @@ class Department extends StateHROption {
   @override
   String title() {
     return "Danh sách phòng ban";
+  }
+
+  @override
+  Container search(TextEditingController hrController) {
+    return Container(
+      child: TextField(
+        controller: hrController, // Lấy dữ liệu nhập vào
+        decoration: InputDecoration(
+          hintText: 'Tìm kiếm',
+          border: OutlineInputBorder(), // Viền cho TextField
+          contentPadding: EdgeInsets.symmetric(horizontal: 10),
+        ),
+      ),
+    );
+  }
+  
+  @override
+  Container searchByDate(TextEditingController dateController) {
+    // TODO: implement searchByDate
+    throw UnimplementedError();
+  }
+  
+  @override
+  Container searchFromDateToDate(TextEditingController fromDateController, TextEditingController toDateController) {
+    // TODO: implement searchFromDateToDate
+    throw UnimplementedError();
   }
 }

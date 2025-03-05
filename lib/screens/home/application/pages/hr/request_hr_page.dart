@@ -16,10 +16,12 @@ class RequestHRPage extends StatefulWidget {
 
 class _RequestHRPageState extends State<RequestHRPage> {
   TextEditingController hrController = TextEditingController();
-  StateHROption selectedOption = new Department();
+  StateHROption selectedOption = new EmployeeLeave();
   final List<StateHROption> options = [
+    new EmployeeLeave(),
     new Department(),
-    new Position()
+    new Position(),
+
     // new EmployeeLeave(),
     // "Danh sách nhân viên",
     // "Sinh nhật nhân viên trong tháng",
@@ -80,14 +82,7 @@ class _RequestHRPageState extends State<RequestHRPage> {
       ),
       body: Column(
         children: [
-          TextField(
-            controller: hrController, // Lấy dữ liệu nhập vào
-            decoration: InputDecoration(
-              hintText: 'Tìm kiếm',
-              border: OutlineInputBorder(), // Viền cho TextField
-              contentPadding: EdgeInsets.symmetric(horizontal: 10),
-            ),
-          ),
+          selectedOption.search(hrController),
           ListTile(
             title: Text(selectedOption.title()),
             leading: Icon(Icons.arrow_drop_down),

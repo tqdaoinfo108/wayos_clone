@@ -60,4 +60,30 @@ class Position extends StateHROption {
   String title() {
     return "Danh sách chức vụ ";
   }
+
+  @override
+  Container search(TextEditingController controller) {
+    return Container(
+      child: TextField(
+        controller: controller, // Lấy dữ liệu nhập vào
+        decoration: InputDecoration(
+          hintText: 'Tìm kiếm',
+          border: OutlineInputBorder(), // Viền cho TextField
+          contentPadding: EdgeInsets.symmetric(horizontal: 10),
+        ),
+      ),
+    );
+  }
+  
+  @override
+  Container searchByDate(TextEditingController dateController) {
+    // TODO: implement searchByDate
+    throw UnimplementedError();
+  }
+  
+  @override
+  Container searchFromDateToDate(TextEditingController fromDateController, TextEditingController toDateController) {
+    // TODO: implement searchFromDateToDate
+    throw UnimplementedError();
+  }
 }
