@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 abstract class StateHROption {
-  Container listData(List<Map<String, dynamic>> data);
+  Container listData();
   String title();
 }

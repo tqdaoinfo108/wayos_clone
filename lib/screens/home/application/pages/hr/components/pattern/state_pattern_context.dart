@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern/interface/state_hr_option.dart';
 
 class StatePatternContext {
@@ -7,7 +8,7 @@ class StatePatternContext {
     stateHROption = _state;
   }
 
-  void execute(List<Map<String, dynamic>> data) {
-    stateHROption?.listData(data);
+  Container execute(List<Map<String, dynamic>> data) {
+    return stateHROption!.listData();
   }
 }

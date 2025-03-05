@@ -3,7 +3,7 @@ import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern
 
 class NewEmployee extends StateHROption {
   @override
-  Container listData(List<Map<String, dynamic>> data) {
+  Container listData() {
     return Container(
       child: Text("Danh sách nhân viên mới "),
     );
