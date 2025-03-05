@@ -40,7 +40,7 @@ class _RequestWorkHandlingState extends State<RequestWorkHandling> {
         child: ListView.builder(
           itemCount: 10,
           itemBuilder: (context, index) {
-            return RequestRowDetail(colorType: primaryColor, onTap: () {
+            return RequestRowDetail(data: {}, colorType: primaryColor, onTap: () {
               Navigator.pushNamed(context, REQUEST_WORK_HANDLING_PAGE_ROUTE);
             });
           },
