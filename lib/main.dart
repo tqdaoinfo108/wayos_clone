@@ -8,18 +8,16 @@ import 'package:wayos_clone/utils/constants.dart';
 
 import './route/router.dart' as router;
 
-
 void main() async {
   await GetStorage.init();
-  
-  
-  runApp(DevicePreview(
+
+  runApp(
+    DevicePreview(
       enabled: true,
-      tools: const [
-        ...DevicePreview.defaultTools
-      ],
+      tools: const [...DevicePreview.defaultTools],
       builder: (context) => const MyApp(),
-    ),);
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -35,7 +33,9 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme(context),
         themeMode: ThemeMode.light,
         onGenerateRoute: router.generateRoute,
-        initialRoute: GetStorage().read(tokenID) == null ? LOG_IN_SCREEN_ROUTE : PROCESS_PROCEDURED_PAGE_ROUTE,
+        initialRoute: GetStorage().read(tokenID) == null
+            ? LOG_IN_SCREEN_ROUTE
+            : REQUEST_HR_PAGE_ROUTE,
       ),
     );
   }

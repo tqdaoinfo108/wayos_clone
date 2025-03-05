@@ -6,3 +6,4 @@ export 'package:wayos_clone/screens/home/application/pages/request/request_work_
 export 'package:wayos_clone/screens/home/dashboard.dart';
 export 'package:wayos_clone/screens/home/personal/pages/personal_detail.dart';
 export 'package:wayos_clone/screens/home/personal/personal.dart';
+export 'package:wayos_clone/screens/home/application/pages/hr/request_hr_page.dart';

@@ -24,7 +24,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
             text: "HR",
             svgSrc: "assets/icons/Profile.svg",
             press: () {
-              // Navigator.pushNamed(context, PERSONAL_DETAIL_ROUTE);
+              Navigator.pushNamed(context, REQUEST_HR_PAGE_ROUTE);
             },
             isShowDivider: false,
             isShowArrow: false,
