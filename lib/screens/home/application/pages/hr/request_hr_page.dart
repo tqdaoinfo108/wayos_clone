@@ -1,34 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/components/expand_component.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/loadData_Text_component.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern/states/department.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern/states/employee_leave.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern/interface/state_hr_option.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern/states/position.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/department.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/employee.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/employee_leave.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/employee_of_month.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/new_employee.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/old_employee.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/position.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/resign_employee.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestHRPage extends StatefulWidget {
   const RequestHRPage({Key? key}) : super(key: key);
-
   @override
-  _RequestHRPageState createState() => _RequestHRPageState();
+  createState() => _RequestHRPageState();
 }
 
 class _RequestHRPageState extends State<RequestHRPage> {
   TextEditingController hrController = TextEditingController();
   StateHROption selectedOption = new EmployeeLeave();
   final List<StateHROption> options = [
-    new EmployeeLeave(),
-    new Department(),
-    new Position(),
-
-    // new EmployeeLeave(),
-    // "Danh sách nhân viên",
-    // "Sinh nhật nhân viên trong tháng",
-    // "Danh sách nhân viên mới",
-    // "Thâm niên công tác",
-    // "Danh sách nhân viên nghỉ phép",
-    // "Danh sách nhân viên nghỉ việc"
+    Department(),
+    Position(),
+    Employee(),
+    EmployeeOfMonth(),
+    NewEmployee(),
+    OldEmployee(),
+    EmployeeLeave(),
+    ResignEmployee(),
   ];
   @override
   void initState() {
@@ -70,7 +69,6 @@ class _RequestHRPageState extends State<RequestHRPage> {
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController hrController = TextEditingController();
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -82,7 +80,7 @@ class _RequestHRPageState extends State<RequestHRPage> {
       ),
       body: Column(
         children: [
-          selectedOption.search(hrController),
+          selectedOption.renderHeader(),
           ListTile(
             title: Text(selectedOption.title()),
             leading: Icon(Icons.arrow_drop_down),
