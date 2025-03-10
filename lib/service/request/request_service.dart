@@ -1,23 +1,13 @@
 import 'package:wayos_clone/service/api_service.dart';
 
-class RequestService {
-  final ApiService _apiService = ApiService();
-
-  Future<String> getRequestList() async {
+class RequestService extends ApiService {
+  Future<dynamic> getRequestList({int status = -100}) async {
     try {
-      final response = await _apiService.request(
-        'GET',
-        'workflow/listWorkflowsearch?typeWorkFlowID=&keySearch=&statusID=-100',
-
-      );
-
-      if (response['data'] != null) {
-        print(response['data']);
-        return response['data'];
-      }
+      var rs = await request(HttpMethod.get,
+          '/workflow/listWorkflowsearch?typeWorkFlowID=&keySearch=&statusID=$status');
+      return rs;
     } catch (e) {
       print('Lấy danh sách yêu cầu thất bại: $e');
     }
-    return "";
-  }  
+  }
 }

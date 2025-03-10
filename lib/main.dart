@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
@@ -11,10 +13,14 @@ import './route/router.dart' as router;
 void main() async {
   await GetStorage.init();
 
-  runApp(
-    DevicePreview(
-      enabled: true,
-      tools: const [...DevicePreview.defaultTools],
+  
+  
+  runApp(DevicePreview(
+      enabled: !(Platform.isAndroid || Platform.isIOS),
+      tools: const [
+        ...DevicePreview.defaultTools
+      ],
+
       builder: (context) => const MyApp(),
     ),
   );
@@ -33,9 +39,8 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme(context),
         themeMode: ThemeMode.light,
         onGenerateRoute: router.generateRoute,
-        initialRoute: GetStorage().read(tokenID) == null
-            ? LOG_IN_SCREEN_ROUTE
-            : REQUEST_HR_PAGE_ROUTE,
+
+        initialRoute: GetStorage().read(tokenID) == null ? LOG_IN_SCREEN_ROUTE : HOME_NAVIGATION_ROUTE,
       ),
     );
   }

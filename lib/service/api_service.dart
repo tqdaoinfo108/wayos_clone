@@ -3,14 +3,23 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:wayos_clone/utils/constants.dart';
 
-class ApiService {
-  static final ApiService _instance = ApiService._internal();
-  factory ApiService() => _instance;
-  ApiService._internal();
+enum HttpMethod { post, get, put, delete }
+
+abstract class ApiService {
+  // Hợp nhất headers
+  Map<String, String> _mergeHeaders(Map<String, String>? customHeaders, {int page = 1}) {
+    final defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Page': page.toString(),
+      'Limit': '20', // default
+      if (token != null) 'Authorization': '$token',
+    };
+    return {...defaultHeaders, ...?customHeaders};
+  }
 
   final String baseUrl = 'http://freeofficeapi.gvbsoft.vn/api';
   final GetStorage storage = GetStorage();
-  
+
   // Lấy token từ GetStorage
   String? get token => storage.read<String>(tokenID);
 
@@ -23,9 +32,19 @@ class ApiService {
     }
   }
 
+  // Xử lý response chung
+  dynamic _processResponse(http.Response response) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      print('Response: ${response.body}');
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Lỗi: ${response.statusCode} - ${response.body}');
+    }
+  }
+
   // Function tổng hợp: hỗ trợ GET, POST, PUT, DELETE
   Future<dynamic> request(
-    String method,
+    HttpMethod method,
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
@@ -35,45 +54,26 @@ class ApiService {
     http.Response response;
 
     try {
-      switch (method.toUpperCase()) {
-        case 'GET':
+      switch (method) {
+        case HttpMethod.get:
           response = await http.get(uri, headers: mergedHeaders);
           break;
-        case 'POST':
-          response = await http.post(uri, headers: mergedHeaders, body: jsonEncode(body));
+        case HttpMethod.post:
+          response = await http.post(uri,
+              headers: mergedHeaders, body: jsonEncode(body));
           break;
-        case 'PUT':
-          response = await http.put(uri, headers: mergedHeaders, body: jsonEncode(body));
+        case HttpMethod.put:
+          response = await http.put(uri,
+              headers: mergedHeaders, body: jsonEncode(body));
           break;
-        case 'DELETE':
+        case HttpMethod.delete:
           response = await http.delete(uri, headers: mergedHeaders);
           break;
-        default:
-          throw Exception('Phương thức HTTP không hợp lệ: $method');
       }
 
       return _processResponse(response);
     } catch (e) {
       throw Exception('Lỗi kết nối: $e');
-    }
-  }
-
-  // Hợp nhất headers
-  Map<String, String> _mergeHeaders(Map<String, String>? customHeaders) {
-    final defaultHeaders = {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-    return {...defaultHeaders, ...?customHeaders};
-  }
-
-  // Xử lý response chung
-  dynamic _processResponse(http.Response response) {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      print('Response: ${response.body}');
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Lỗi: ${response.statusCode} - ${response.body}');
     }
   }
 }

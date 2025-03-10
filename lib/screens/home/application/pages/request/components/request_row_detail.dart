@@ -2,23 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestRowDetail extends StatelessWidget {
-  const RequestRowDetail({super.key, required this.colorType, required this.onTap});
+  const RequestRowDetail({super.key, required this.data, required this.colorType, required this.onTap});
 
   final Color colorType;
   final VoidCallback onTap;
-
+  final Map<String,dynamic> data;
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Container(
+        padding: const EdgeInsets.all(0),
         child: Row(
           children: [
             // sidebar
             Container(
               width: 5,
               height: 100,
-              color: colorType,
+              color: getColorStatusGlobal(data['StatusID']),
             ),
             // content
             Expanded(
@@ -28,7 +29,7 @@ class RequestRowDetail extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tên công việc',
+                      data['Title'],
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: blackColor,
@@ -38,7 +39,7 @@ class RequestRowDetail extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Ngày tạo',
+                      'Ngày tạo: ${data['DateCreated']}' ,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 5),
@@ -53,7 +54,7 @@ class RequestRowDetail extends StatelessWidget {
                         const SizedBox(width: 10),
                         Flexible(
                           child: Text(
-                            'Đang xử lý',
+                            getStringStatusGlobal(data['StatusID']),
                             style: TextStyle(
                               color: colorType,
                             ),
@@ -74,7 +75,7 @@ class RequestRowDetail extends StatelessWidget {
                         const SizedBox(width: 10),
                         Flexible(
                           child: Text(
-                            'Nguyễn Tuấn Vũ',
+                            data['UserRequirementName'],
                             style: TextStyle(
                               color: colorType,
                             ),
@@ -92,7 +93,7 @@ class RequestRowDetail extends StatelessWidget {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: colorType,
+                color: getColorStatusGlobal(data['StatusID']),
                 shape: BoxShape.circle,
               ),
             ),

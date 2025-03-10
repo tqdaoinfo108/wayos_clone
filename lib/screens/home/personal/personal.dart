@@ -59,8 +59,7 @@ class PersonalPage extends StatelessWidget {
             text: "Chuyển tài khoản",
             svgSrc: "assets/icons/Order.svg",
             press: () async {
-              // customModalBottomSheet(context, child: SupportScreen());
-              // Navigator.pushNamed(context, getHelpScreenRoute);
+              Navigator.pushNamed(context, PERSONAL_CHANGE_ACCOUNT_ROUTE);
             },
           ),
           ListTile(
