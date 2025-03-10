@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestChatContent extends StatelessWidget {
-  const RequestChatContent({
+  const RequestChatContent(this.data, {
     super.key,
   });
-
+final dynamic data;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -24,11 +24,11 @@ class RequestChatContent extends StatelessWidget {
         textDirection: TextDirection.ltr,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+           Row(
             children: [
               Flexible(
                 child: Text(
-                  "Vũ Quang Ái Dân",
+                  data['UserComment'],
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: blackColor,
@@ -40,7 +40,7 @@ class RequestChatContent extends StatelessWidget {
               ),
               Flexible(
                 child: Text(
-                  " - 10:00 12/12/2021",
+                  " - ${data['DateCreated']}",
                   style: TextStyle(color: Colors.grey),
                   softWrap: true,
                 ),
@@ -50,7 +50,7 @@ class RequestChatContent extends StatelessWidget {
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(0.0),
-            child: const Text("Chào bạn, tôi có thể giúp gì cho bạn?",
+            child:  Text(data['ContentComment'],
                 style: TextStyle(color: blackColor),
                 softWrap: true,),
           ),

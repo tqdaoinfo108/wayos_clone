@@ -10,10 +10,12 @@ const productDemoImg1 =
 
 String getStringStatusGlobal(int statusID){
   switch(statusID){
-    case 1:
+    case 100:
       return "Hoàn thành";
     case 0:
       return "Đang xử lý";
+    case 200:
+      return "Không duyệt";
     case -1:
       return "Huỷ";
     default:
@@ -23,8 +25,10 @@ String getStringStatusGlobal(int statusID){
 
 Color getColorStatusGlobal(int statusID){
   switch(statusID){
-    case 1:
+    case 100:
       return Colors.greenAccent;
+    case 200:
+      return Colors.amberAccent;
     case 0:
       return Color(0xff7e86e1);
     case -1:
