@@ -80,6 +80,9 @@ class _RequestHRPageState extends State<RequestHRPage> {
       ),
       body: Column(
         children: [
+          const SizedBox(
+            height: 20,
+          ),
           selectedOption.renderHeader(),
           ListTile(
             title: Text(selectedOption.title()),
@@ -87,6 +90,9 @@ class _RequestHRPageState extends State<RequestHRPage> {
             onTap: _showOptionsModal, // Gọi modal khi bấm vào
           ),
           Expanded(child: selectedOption.listData()),
+          const SizedBox(
+            height: 32,
+          )
         ],
       ),
     );
