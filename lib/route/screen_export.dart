@@ -3,6 +3,8 @@ export 'package:wayos_clone/screens/home/RootNavigation.dart';
 export 'package:wayos_clone/screens/home/application/application.dart';
 export 'package:wayos_clone/screens/home/application/pages/request/request_page.dart';
 export 'package:wayos_clone/screens/home/application/pages/request/request_work_handling_page.dart';
+export 'package:wayos_clone/screens/home/application/pages/task/add_task_page.dart';
+export 'package:wayos_clone/screens/home/application/pages/task/task_page.dart';
 export 'package:wayos_clone/screens/home/dashboard.dart';
 export 'package:wayos_clone/screens/home/personal/pages/change_account/change_account_page.dart';
 export 'package:wayos_clone/screens/home/personal/pages/change_password_page.dart';

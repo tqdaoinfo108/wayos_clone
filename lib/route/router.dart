@@ -46,6 +46,14 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const ProcessProceduredPage(),
       );
+    case TASK_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const TaskPage(),
+      );
+    case ADD_TASK_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const AddTaskPage(),
+      );
     case REQUEST_HR_PAGE_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const RequestHRPage(),

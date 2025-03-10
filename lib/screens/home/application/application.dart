@@ -71,7 +71,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
             svgSrc: "assets/icons/Task.svg",
             press: () async {
               // customModalBottomSheet(context, child: SupportScreen());
-              // Navigator.pushNamed(context, getHelpScreenRoute);
+              Navigator.pushNamed(context, TASK_PAGE_ROUTE);
             },
             isShowDivider: false,
             isShowArrow: false,

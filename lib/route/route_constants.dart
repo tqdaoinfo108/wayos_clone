@@ -13,7 +13,13 @@ const String PERSONAL_CHANGE_ACCOUNT_ROUTE = "personalChangeAccount";
 
 // Application
 const String APPLICATION_ROUTE = "application";
+
+//Request
 const String REQUEST_PAGE_ROUTE = "requestPage";
 const String REQUEST_WORK_HANDLING_PAGE_ROUTE = "requestWorkHandlingPage";
-const String PROCESS_PROCEDURED_PAGE_ROUTE = "requestProceduredPage";
+const String PROCESS_PROCEDURED_PAGE_ROUTE="requestProceduredPage";
+
+// Task
+const String TASK_PAGE_ROUTE = "taskPage";
+const String ADD_TASK_PAGE_ROUTE = "addTaskPage";
 const String REQUEST_HR_PAGE_ROUTE = "requestHRPage";

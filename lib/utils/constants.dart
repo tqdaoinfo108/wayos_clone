@@ -36,11 +36,22 @@ Color getColorStatusGlobal(int statusID){
 
 const Color primaryColor = Color(0xFF505CA4);
 
-AppBar appBar ({title}) => AppBar(
+AppBar appBar ({title, back = true}) => AppBar(
       title: Text(title,
           style: TextStyle(color: Colors.white, fontSize: 20)),
+      automaticallyImplyLeading: back,
       centerTitle: true,
       backgroundColor: const Color.fromARGB(255, 34, 48, 168),
+      iconTheme: IconThemeData(
+        color: Colors.white, // Đặt màu của nút quay lại thành màu trắng
+      ),
+    );
+
+    AppBar modalBar ({title, back = true}) => AppBar(
+      title: Text(title,
+          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+      automaticallyImplyLeading: back,
+      centerTitle: true,
       iconTheme: IconThemeData(
         color: Colors.white, // Đặt màu của nút quay lại thành màu trắng
       ),
