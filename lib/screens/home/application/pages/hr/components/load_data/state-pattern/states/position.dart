@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/components/expand_component.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/loadData_Text_component.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/types-load-data/loadData_Text_component.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/types-load-header/text_header.dart';
 
 class Position extends StateHROption {
   List<Map<String, dynamic>> data = [
@@ -62,28 +62,7 @@ class Position extends StateHROption {
   }
 
   @override
-  Container search(TextEditingController controller) {
-    return Container(
-      child: TextField(
-        controller: controller, // Lấy dữ liệu nhập vào
-        decoration: InputDecoration(
-          hintText: 'Tìm kiếm',
-          border: OutlineInputBorder(), // Viền cho TextField
-          contentPadding: EdgeInsets.symmetric(horizontal: 10),
-        ),
-      ),
-    );
-  }
-  
-  @override
-  Container searchByDate(TextEditingController dateController) {
-    // TODO: implement searchByDate
-    throw UnimplementedError();
-  }
-  
-  @override
-  Container searchFromDateToDate(TextEditingController fromDateController, TextEditingController toDateController) {
-    // TODO: implement searchFromDateToDate
-    throw UnimplementedError();
+  Widget renderHeader() {
+    return HeaderTextHR();
   }
 }

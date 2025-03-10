@@ -1,67 +1,69 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/loadData_Expand_component.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/pattern/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/to_from_headers_hr_interface.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/types-load-data/loadData_Expand_component.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/types-load-header/date_tofrom_header.dart';
 
-class EmployeeLeave extends StateHROption {
+class NewEmployee extends StateHROption {
   List<Map<String, dynamic>> data = [
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Nguyễn Văn A",
+      "fullName": "Nguyễn Văn Tiến",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
@@ -99,33 +101,11 @@ class EmployeeLeave extends StateHROption {
 
   @override
   String title() {
-    return "Danh sách nhân viên nghỉ phép";
+    return "Danh sách nhân viên mới ";
   }
 
   @override
-  Container searchByDate(TextEditingController dateController) {
-    // TODO: implement searchByDate
-    throw UnimplementedError();
-  }
-
-  @override
-  Container searchFromDateToDate(TextEditingController fromDateController,
-      TextEditingController toDateController) {
-    // TODO: implement searchFromDateToDate
-    throw UnimplementedError();
-  }
-
-  @override
-  Container search(TextEditingController hrController) {
-    return Container(
-      child: TextField(
-        controller: hrController, // Lấy dữ liệu nhập vào
-        decoration: InputDecoration(
-          hintText: 'Tìm kiếm',
-          border: OutlineInputBorder(), // Viền cho TextField
-          contentPadding: EdgeInsets.symmetric(horizontal: 10),
-        ),
-      ),
-    );
+  Widget renderHeader() {
+    return HeaderDateToFromHR();
   }
 }
