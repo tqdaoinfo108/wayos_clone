@@ -27,28 +27,26 @@ class _RequestPageState extends State<RequestPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           Expanded(
-                  child: TextField(
-                  controller: requestController,
-                  decoration: InputDecoration(
-                    hintText: 'Tìm kiếm',
-                    border: OutlineInputBorder(
-                    borderSide: BorderSide(color: primaryColor),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: whiteColor80),
-                    ),
-                    contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 10),
-                    suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () {
-                      // Add search functionality here
-                    },
-                    ),
-                  ),
-                  ),
-                ),
+           TextField(
+           controller: requestController,
+           decoration: InputDecoration(
+             hintText: 'Tìm kiếm',
+             border: OutlineInputBorder(
+             borderSide: BorderSide(color: primaryColor),
+             ),
+             enabledBorder: OutlineInputBorder(
+             borderSide: BorderSide(color: whiteColor80),
+             ),
+             contentPadding:
+               const EdgeInsets.symmetric(horizontal: 10),
+             suffixIcon: IconButton(
+             icon: const Icon(Icons.search),
+             onPressed: () {
+               // Add search functionality here
+             },
+             ),
+           ),
+           ),
             const SizedBox(height: 10), // Tạo khoảng cách
             SelectMenu(
               title: ['Quy trình xét duyệt', 'Xử lý công việc'],

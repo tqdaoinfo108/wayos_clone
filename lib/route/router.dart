@@ -58,6 +58,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const RequestHRPage(),
       );
+    case ADD_TASK_HEAD_TASK_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const AddTaskHeadTaskPage(),
+      );
     default:
       return MaterialPageRoute(
         builder: (context) => const LoginScreen(),

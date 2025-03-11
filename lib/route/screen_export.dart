@@ -1,8 +1,10 @@
 export 'package:wayos_clone/screens/auth/login_screen.dart';
 export 'package:wayos_clone/screens/home/RootNavigation.dart';
 export 'package:wayos_clone/screens/home/application/application.dart';
+export 'package:wayos_clone/screens/home/application/pages/hr/request_hr_page.dart';
 export 'package:wayos_clone/screens/home/application/pages/request/request_page.dart';
 export 'package:wayos_clone/screens/home/application/pages/request/request_work_handling_page.dart';
+export 'package:wayos_clone/screens/home/application/pages/task/add_task_head_task_page.dart';
 export 'package:wayos_clone/screens/home/application/pages/task/add_task_page.dart';
 export 'package:wayos_clone/screens/home/application/pages/task/task_page.dart';
 export 'package:wayos_clone/screens/home/dashboard.dart';
@@ -10,5 +12,3 @@ export 'package:wayos_clone/screens/home/personal/pages/change_account/change_ac
 export 'package:wayos_clone/screens/home/personal/pages/change_password_page.dart';
 export 'package:wayos_clone/screens/home/personal/pages/personal_detail_page.dart';
 export 'package:wayos_clone/screens/home/personal/personal.dart';
-export 'package:wayos_clone/screens/home/application/pages/hr/request_hr_page.dart';
-

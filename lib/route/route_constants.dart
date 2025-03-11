@@ -23,3 +23,4 @@ const String PROCESS_PROCEDURED_PAGE_ROUTE="requestProceduredPage";
 const String TASK_PAGE_ROUTE = "taskPage";
 const String ADD_TASK_PAGE_ROUTE = "addTaskPage";
 const String REQUEST_HR_PAGE_ROUTE = "requestHRPage";
+const String ADD_TASK_HEAD_TASK_PAGE_ROUTE = "addTaskHeadTaskPage";
