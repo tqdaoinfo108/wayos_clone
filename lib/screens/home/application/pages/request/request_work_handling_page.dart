@@ -113,7 +113,7 @@ class RequestWorkHandlingPage extends StatelessWidget {
               ExpandComponent(
                 title: "Thảo luận",
                 isExpanded: true,
-                body: RequestDiscuss(),
+                body: RequestDiscuss([]),
               )
             ],
           ),

@@ -1,71 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/expand_component.dart';
+import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/components/row_detail.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
-class ProcessProceduredPage extends StatefulWidget {
-  const ProcessProceduredPage({super.key});
+import '../../../../../model/workflow_approve_model.dart';
+import '../../../../../service/request/request_service.dart';
 
+class ProcessProceduredPage extends StatefulWidget {
+  const ProcessProceduredPage(this.workflowID, {super.key});
+  final int workflowID;
   @override
   State<ProcessProceduredPage> createState() => _ProcessProceduredPage();
 }
 
 class _ProcessProceduredPage extends State<ProcessProceduredPage> {
   int _index = 0;
-
-  final List<Map<String, dynamic>> _steps = [
-    {
-      "status": "approved",
-      "title": "Ban Quản Lý",
-      "name": "Nguyễn Văn A",
-      "timestamp": "21/10/2021 22:05",
-    },
-    {
-      "status": "rejected",
-      "title": "Ban Quản Lý",
-      "name": "Nguyễn Văn A",
-      "timestamp": "",
-    },
-    {
-      "status": "pending",
-      "title": "Ban Quản Lý",
-      "name": "Lê Hữu Đức Minh",
-      "timestamp": "",
-    },
-    {
-      "status": "pending",
-      "title": "Ban Quản Lý",
-      "name": "Lại Dương Minh Hiếu",
-      "timestamp": "",
-    },
-    {
-      "status": "pending",
-      "title": "Ban Quản Lý",
-      "name": "Lại Dương Minh Hiếu Đẹp Trai",
-      "timestamp": "",
-    },
-    {
-      "status": "pending",
-      "title": "Ban Quản Lý",
-      "name": "BLA BAL",
-      "timestamp": "",
-    },
-    {
-      "status": "pending",
-      "title": "Ban Quản Lý",
-      "name": "ABLE BLLE",
-      "timestamp": "",
-    },
-  ];
-
+  bool isLoading = false;
+  List<ApprovalItem> _steps = [];
+  List<dynamic> listComment = [];
+  dynamic objectData;
   List<String> files = [
     "report_2023.docx",
   ];
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+    init(widget.workflowID);
+  }
 
+  init(int workflowID ) async {
+    var _respository = RequestService();
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      var response = await _respository.getListWorkFlowApprove(workflowID);
+      if (response['data'] != null) {
+        setState(() {
+          _steps = convertJson(response);
+        });
+      }
+
+      var data = await _respository.getWorkFlowByID(workflowID);
+      if (data != null) {
+        setState(() {
+          objectData = data;
+        });
+      }
+
+      var _lstComment = await _respository.getWorkflowComment(workflowID);
+      if (_lstComment['data'] != null) {
+        setState(() {
+          listComment = _lstComment['data'];
+        });
+      }
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -78,7 +78,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: isLoading ? loadingWidget() :  SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(
@@ -94,11 +94,11 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                       },
                       child: Column(
                         children: [
-                          buildStepIcon(_steps[index]["status"], index),
+                          buildStepIcon(_steps[index].status, index),
                           Container(
                             width: 100,
                             height: 4,
-                            color: getColorBgStep(_steps[index]["status"]),
+                            color: getColorBgStep(_steps[index].status),
                           ),
                         ],
                       ),
@@ -110,7 +110,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
             Container(
               margin: EdgeInsets.only(right: 12, left: 12, top: 4),
               decoration: BoxDecoration(
-                  color: getColorBgStepHeader(_steps[_index]["status"]),
+                  color: getColorBgStepHeader(_steps[_index].status),
                   border: Border.all(
                     color: Colors.black,
                     width: 1,
@@ -124,7 +124,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
             ExpandComponent(
               title: "Thảo luận",
               isExpanded: true,
-              body: RequestDiscuss(),
+              body: RequestDiscuss(listComment),
             )
           ],
         ),
@@ -132,43 +132,44 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     );
   }
 
-  Widget _buildStepContent(Map<String, dynamic> step) {
+  Widget _buildStepContent(ApprovalItem step) {
     return SizedBox(
       width: double.infinity,
       height: 100,
       child: Column(
         children: [
-          Text(step["title"],
+          Text(step.title,
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w600)),
-          Text(step["name"],
-              style: TextStyle(color: Colors.white, fontSize: 20)),
+          Text(step.name, style: TextStyle(color: Colors.white, fontSize: 20)),
           Text(
-              step["timestamp"].toString().length > 0
-                  ? step["timestamp"]
-                  : getTextStatusFaild(step["status"]),
+              step.timestamp.toString().length > 0
+                  ? step.timestamp
+                  : getTextStatusFaild(step.status),
               style: TextStyle(color: Colors.white, fontSize: 20)),
         ],
       ),
     );
   }
 
-  Container info_container(){
+  Container info_container() {
     return Container(
-      margin: EdgeInsets.only(top: 20,left: 4,right: 4),
+      margin: EdgeInsets.only(top: 20, left: 4, right: 4),
       child: ExpandComponent(
         title: "THÔNG TIN YÊU CẦU",
         isExpanded: true,
         body: Container(
           child: Column(
             children: [
-              RowDetail(title: "Tên đề xuất:", content: "Xin nghỉ phép thứ 6 (Ngày 20/12/1999)"),
-              RowDetail(title: "Biểu mẫu:", content: "ĐƠN XIN NGHỈ PHÉP"),
-              RowDetail(title: "Ngày tạo:", content: "20/11/2020 12:40"),
-              RowDetail(title: "Người đề xuất:", content: "Trần Quốc Đạo"),
-              RowDetail(title: "Phòng ban:", content: "Phòng IT"),
+              RowDetail(
+                  title: "Tên đề xuất:",
+                  content: objectData["Title"]),
+              RowDetail(title: "Biểu mẫu:", content: objectData["TypeWorkFlowName"]),
+              RowDetail(title: "Ngày tạo:", content: objectData["DateCreated"]),
+              RowDetail(title: "Người đề xuất:",content:  objectData["DateCreated"]),
+              RowDetail(title: "Phòng ban:",content:   objectData["DepartmentUserRequirement"]),
               Row(
                 children: [
                   SizedBox(
@@ -289,7 +290,6 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     );
   }
 
-
   Widget buildAttachmentSection(List<String> fileNames) {
     return Container(
       padding: const EdgeInsets.all(10),
@@ -318,7 +318,6 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
       ),
     );
   }
-
 
   Widget buildFileItem(String fileName) {
     return Padding(

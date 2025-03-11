@@ -3,10 +3,11 @@ import 'package:wayos_clone/screens/home/application/pages/request/components/re
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestDiscuss extends StatefulWidget {
-  RequestDiscuss({
+  RequestDiscuss(
+    this.dataComment, {
     Key? key,
   });
-
+  List<dynamic> dataComment;
   @override
   State<RequestDiscuss> createState() => _RequestDiscussState();
 }
@@ -17,9 +18,15 @@ class _RequestDiscussState extends State<RequestDiscuss> {
   TextEditingController _disscussContent = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8.0), // Thêm khoảng cách bên trong Container
+      padding:
+          const EdgeInsets.all(8.0), // Thêm khoảng cách bên trong Container
       child: Column(
         children: [
           Container(
@@ -67,14 +74,7 @@ class _RequestDiscussState extends State<RequestDiscuss> {
             ),
           ),
           // Chat content
-          RequestChatContent(),
-          RequestChatContent(),
-          RequestChatContent(),
-          RequestChatContent(),
-          RequestChatContent(),
-          RequestChatContent(),
-          RequestChatContent(),
-          RequestChatContent(),
+          for (var item in widget.dataComment) RequestChatContent(item)
         ],
       ),
     );
