@@ -14,19 +14,19 @@ class LoadDataText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.only(left: 20, right: 20, bottom: 40),
+        padding: EdgeInsets.only(left: 20, right: 20, bottom: 10),
         child: Column(
           children: [
             Divider(),
             const SizedBox(
-              height: 20,
+              height: 4,
             ),
             Row(
               children: [
                 Text(
                   teamName,
                   style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Colors.black),
                 ),
@@ -37,7 +37,7 @@ class LoadDataText extends StatelessWidget {
                 Text(
                   departmentName,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -49,14 +49,14 @@ class LoadDataText extends StatelessWidget {
                 Text(
                   timestamp,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   leaderName,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
