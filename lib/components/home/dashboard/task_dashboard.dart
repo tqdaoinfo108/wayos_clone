@@ -11,7 +11,7 @@ class TaskDashboardComponent extends StatelessWidget {
         children: [
           Text("Công việc",
               style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: Colors.black)),
         ],
@@ -28,8 +28,11 @@ class TaskDashboardComponent extends StatelessWidget {
                   child: Row(
                     children: [
                       const Image(
-                          image:
-                              AssetImage('assets/images/news-dashboard.png')),
+                        image: AssetImage('assets/images/news-dashboard.png'),
+                        width: 120, // Chiều rộng mong muốn
+                        height: 120, // Chiều cao mong muốn
+                        fit: BoxFit.cover,
+                      ),
                       Expanded(
                           child: Padding(
                         padding: EdgeInsets.all(4),
@@ -40,14 +43,14 @@ class TaskDashboardComponent extends StatelessWidget {
                             Text(
                               "Chúc mừng !",
                               style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: primaryMaterialColor.shade900),
                             ),
                             Text(
                               "Không có công việc nào cần xử lý",
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
                             )

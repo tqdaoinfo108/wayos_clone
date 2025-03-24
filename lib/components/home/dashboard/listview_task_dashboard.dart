@@ -7,7 +7,7 @@ class ListViewTaskDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 200, // Set height to fit the item
+      height: 160, // Set height to fit the item
       child: ListView.builder(
         scrollDirection: Axis.horizontal, // Horizontal scrolling
         itemCount: 10, // Number of items
@@ -37,64 +37,73 @@ class ItemTotalDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.centerLeft,
-      width: 200,
-      margin: EdgeInsets.only(right: 12),
+      width: 180,
+      margin: EdgeInsets.only(right: 4),
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: Color.fromRGBO(0, 0, 0, 0.4), width: 1),
           borderRadius: BorderRadius.circular(6)),
-      child: Column(
-        // mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // row title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(child: Text(total.toString(),
+      child: Expanded(
+          child: SingleChildScrollView(
+        child: Column(
+          // mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // row title
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                    child: Text(total.toString(),
+                        style: TextStyle(
+                            fontSize: 32,
+                            color: primaryMaterialColor.shade900,
+                            fontWeight: FontWeight.bold))),
+              ],
+            ),
+            SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(title.toString(),
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: primaryMaterialColor.shade900,
+                          fontWeight: FontWeight.bold)),
+                )
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                    child: Text(description.toString(),
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w400)))
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                    child: Text(
+                  GetStorage().read(companyName).toString(),
                   style: TextStyle(
-                      fontSize: 48,
-                      color: primaryMaterialColor.shade900,
-                      fontWeight: FontWeight.bold))),
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(child: Text(title.toString(),
-                  style: TextStyle(
-                      fontSize: 20,
-                      color: primaryMaterialColor.shade900,
-                      fontWeight: FontWeight.bold)),)
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(child: Text(description.toString(),
-                  style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 16,
                       color: Colors.grey,
-                      fontWeight: FontWeight.w400)))
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(child:
-              Text(GetStorage().read(companyName).toString(),
-                style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w400),overflow: TextOverflow.ellipsis
-                ,)),
-            ],
-          )
-        ],
-      ),
+                      fontWeight: FontWeight.w400),
+                  overflow: TextOverflow.ellipsis,
+                )),
+              ],
+            )
+          ],
+        ),
+      )),
     );
   }
 }

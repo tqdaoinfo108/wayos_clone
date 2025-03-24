@@ -9,13 +9,13 @@ class InformDashboard extends StatelessWidget {
         children: [
           Text("Thông báo công việc",
               style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: Colors.black)),
         ],
       ),
       SizedBox(
-        height: 200, // Set height to fit the item
+        height: 150, // Set height to fit the item
         child: ListView.builder(
           scrollDirection: Axis.horizontal, // Horizontal scrolling
           itemCount: 10, // Number of items
@@ -51,7 +51,7 @@ class ItemInformDashboard extends StatelessWidget {
     return Container(
         alignment: Alignment.centerLeft,
         width: 350,
-        height: 200,
+        // height: 1000,
         margin: EdgeInsets.only(right: 12),
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -66,12 +66,11 @@ class ItemInformDashboard extends StatelessWidget {
               // row type
               Container(
                 padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
-
                 child: Text(type,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         color: Colors.grey,
                         fontWeight: FontWeight.w400)),
               ),
@@ -84,7 +83,7 @@ class ItemInformDashboard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 16,
                         color: primaryMaterialColor.shade900,
                         fontWeight: FontWeight.bold)),
               ),
@@ -97,52 +96,48 @@ class ItemInformDashboard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         color: Colors.grey,
                         fontWeight: FontWeight.w400)),
               ),
               SizedBox(height: 8),
               // row date time
               Container(
-                  padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
-
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Align(
+                padding: const EdgeInsets.all(0.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Align(
                         alignment: Alignment.centerRight,
                         child: Text(
-                            dateAndTime.day.toString() +
-                                "/" +
-                                dateAndTime.month.toString() +
-                                "/" +
-                                dateAndTime.year.toString() +
-                                "    " +
-                                dateAndTime.hour.toString() +
-                                ":" +
-                                dateAndTime.minute.toString(),
-                            maxLines: 1,
-                            textAlign: TextAlign.end,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w400)),
+                          "${dateAndTime.day}/${dateAndTime.month}/${dateAndTime.year}    "
+                          "${dateAndTime.hour}:${dateAndTime.minute}",
+                          maxLines: 1,
+                          textAlign: TextAlign.end,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w400),
+                        ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
-
-                        width: MediaQuery.of(context).size.width * 0.4,
-                        child: Text(author.toString(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w400)),
-                      )
-                    ],
-                  )),
+                    ),
+                    SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        author.toString(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w400),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ));

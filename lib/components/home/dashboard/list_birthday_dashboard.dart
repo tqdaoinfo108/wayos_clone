@@ -1,28 +1,22 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/components/home/dashboard/not-existed-birthday.dart';
 import 'package:wayos_clone/model/get_listbirthdays.dart';
 import 'package:wayos_clone/service/dashboard_service.dart';
 import 'package:wayos_clone/utils/constants.dart';
-import 'package:http/http.dart' as http;
-
-
 
 class ListBirthdayDashboard extends StatefulWidget {
   const ListBirthdayDashboard({super.key});
 
-
   @override
-  State<StatefulWidget> createState() =>_ListBirthdayDashboard();
+  State<StatefulWidget> createState() => _ListBirthdayDashboard();
 }
 
-
-class _ListBirthdayDashboard extends State<ListBirthdayDashboard>{
-  Future<GetListBirthday> response = new Future<GetListBirthday>(() {
-    return new GetListBirthday(totals: 0, data: []);
-  },);
+class _ListBirthdayDashboard extends State<ListBirthdayDashboard> {
+  Future<GetListBirthday> response = new Future<GetListBirthday>(
+    () {
+      return new GetListBirthday(totals: 0, data: []);
+    },
+  );
   bool isLoading = true;
   bool hasError = false;
   DashboardService dashboardService = new DashboardService();
@@ -47,7 +41,6 @@ class _ListBirthdayDashboard extends State<ListBirthdayDashboard>{
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Column(children: [
@@ -55,40 +48,40 @@ class _ListBirthdayDashboard extends State<ListBirthdayDashboard>{
         children: [
           Text("Sinh Nhật Trong Tháng",
               style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.black)),
         ],
       ),
       SizedBox(
-        height: 150, // Set height to fit the item
-        child: FutureBuilder<GetListBirthday>(future: response, builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error loading data"));
-          } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
-            return NotExistBirthday();
-          }
-          GetListBirthday staffsBirthday = snapshot.data!;
-          return ListView.builder(
-            scrollDirection: Axis.horizontal, // Horizontal scrolling
-            itemCount: staffsBirthday.totals, // Number of items
-            itemBuilder: (context, index) {
-              final staff = staffsBirthday.data[index];
-              return ItemBirthdayDashboard(
-                  name: staff.fullName,
-                  position: staff.position,
-                  birthday: staff.birthday
-              );
+          height: 120, // Set height to fit the item
+          child: FutureBuilder<GetListBirthday>(
+            future: response,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text("Error loading data"));
+              } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+                return NotExistBirthday();
+              }
+              GetListBirthday staffsBirthday = snapshot.data!;
+              return ListView.builder(
+                scrollDirection: Axis.horizontal, // Horizontal scrolling
+                itemCount: staffsBirthday.totals, // Number of items
+                itemBuilder: (context, index) {
+                  final staff = staffsBirthday.data[index];
+                  return ItemBirthdayDashboard(
+                      name: staff.fullName,
+                      position: staff.position,
+                      birthday: staff.birthday);
                   // birthday : staff.bi;
+                },
+              );
             },
-          );
-        },)
-      )
+          ))
     ]);
   }
-
 }
 
 class ItemBirthdayDashboard extends StatelessWidget {
@@ -102,8 +95,7 @@ class ItemBirthdayDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         alignment: Alignment.centerLeft,
-        width: 350,
-        height: 200,
+        width: 250,
         margin: EdgeInsets.only(right: 12),
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -120,7 +112,7 @@ class ItemBirthdayDashboard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 16,
                         color: primaryMaterialColor.shade900,
                         fontWeight: FontWeight.bold)),
               ),
@@ -131,7 +123,7 @@ class ItemBirthdayDashboard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         color: Colors.grey,
                         fontWeight: FontWeight.w400)),
               ),
@@ -153,7 +145,7 @@ class ItemBirthdayDashboard extends StatelessWidget {
                         textAlign: TextAlign.end,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 16,
                             color: Colors.black,
                             fontWeight: FontWeight.w400)),
                   ),
