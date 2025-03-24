@@ -51,7 +51,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
             text: "Tin tức thông báo",
             svgSrc: "assets/icons/Notification.svg",
             press: () async {
-              // Navigator.pushNamed(context, getHelpScreenRoute);
+              Navigator.pushNamed(context, REQUEST_NOTIFICATION_PAGE_ROUTE);
             },
             isShowDivider: false,
             isShowArrow: false,

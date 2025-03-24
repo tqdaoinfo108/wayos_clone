@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/route/screen_export.dart';
 import 'package:wayos_clone/screens/home/application/pages/hr/request_hr_page.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/request_notification_page.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/process_procedured_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -50,6 +51,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case REQUEST_HR_PAGE_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const RequestHRPage(),
+      );
+    case REQUEST_NOTIFICATION_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const RequestNotificationPage(),
       );
     default:
       return MaterialPageRoute(
