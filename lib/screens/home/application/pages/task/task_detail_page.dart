@@ -3,8 +3,10 @@ import 'package:wayos_clone/components/custom_modal_bottom_sheet.dart';
 import 'package:wayos_clone/components/network_image_with_loader.dart';
 import 'package:wayos_clone/components/select_menu.dart';
 import 'package:wayos_clone/route/route_constants.dart';
+import 'package:wayos_clone/screens/home/application/pages/task/components/task_add_file.dart';
 import 'package:wayos_clone/screens/home/application/pages/task/components/task_discuss.dart';
 import 'package:wayos_clone/screens/home/application/pages/task/components/task_implementation_step.dart';
+import 'package:wayos_clone/screens/home/application/pages/task/components/task_option.dart';
 import 'package:wayos_clone/utils/constants.dart';
 import 'package:wayos_clone/utils/libs/time_render.dart';
 
@@ -39,33 +41,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       customModalBottomSheet(
                         height: MediaQuery.of(context).size.height * 0.5,
                         context,
-                        child: Container(
-                          child: ListView(
-                            children: [
-                              ListTile(
-                                leading: Icon(Icons.done),
-                                title: Text("Hoàn thành"),
-                                onTap: () {
-                                  // Handle "Hoàn thành" tap
-                                },
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.remove_circle_outline),
-                                title: Text("Chưa hoàn thành"),
-                                onTap: () {
-                                  // Handle "Chưa hoàn thành" tap
-                                },
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.cancel_outlined),
-                                title: Text("Huỷ"),
-                                onTap: () {
-                                  // Handle "Huỷ" tap
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+                        child: TaskOption()
                       );
                     },
                     icon: const Icon(Icons.more_vert),
@@ -217,6 +193,44 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
               const SizedBox(height: 10),
               const Divider(),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.white70),
+                      ),
+                      onPressed: () {
+                        customModalBottomSheet(
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          context,
+                          child: TaskAddFile()
+                        );
+                      },
+                      child: Text(
+                        "Thêm tệp",
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Chưa có tệp nào",
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: blackColor),
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
+              const Divider(),
               SelectMenu(
                 title: ['Các bước thực hiện', "Thảo luận"],
                 value: selectMenu,
@@ -227,9 +241,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 },
               ),
               const Divider(),
-              selectMenu == 0
-                  ? (TaskImplementationStep())
-                  : (TaskDiscuss())
+              selectMenu == 0 ? (TaskImplementationStep()) : (TaskDiscuss())
             ],
           ),
         ),
