@@ -24,3 +24,5 @@ const String TASK_PAGE_ROUTE = "taskPage";
 const String ADD_TASK_PAGE_ROUTE = "addTaskPage";
 const String REQUEST_HR_PAGE_ROUTE = "requestHRPage";
 const String ADD_TASK_HEAD_TASK_PAGE_ROUTE = "addTaskHeadTaskPage";
+const String TASK_DETAIL_PAGE_ROUTE = "taskDetailPage";
+const String ADD_PERSON_PAGE_ROUTE = "addPersonPage";

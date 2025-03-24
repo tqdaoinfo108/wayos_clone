@@ -27,4 +27,21 @@ class TimeRender {
 
     return '$_hour:$_minute';
   }
+  String getDuration (DateTime from, DateTime to) {
+    // return days
+    if (from.year != to.year || from.month != to.month || from.day != to.day) {
+      return '${to.difference(from).inDays} ngày';
+    }
+    // return hours
+    if (from.hour != to.hour) {
+      return '${to.difference(from).inHours} giờ';
+    }
+    // return minutes
+    if (from.minute != to.minute) {
+      return '${to.difference(from).inMinutes} phút';
+    }
+
+    return 'Just now';
+    
+  }
 }

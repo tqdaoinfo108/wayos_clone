@@ -3,6 +3,7 @@ import 'package:wayos_clone/components/choice_option_bar.dart';
 import 'package:wayos_clone/components/custom_modal_bottom_sheet.dart';
 import 'package:wayos_clone/components/select_menu.dart';
 import 'package:wayos_clone/route/route_constants.dart';
+import 'package:wayos_clone/screens/home/application/pages/task/components/task_card.dart';
 import 'package:wayos_clone/screens/home/application/pages/task/components/task_modal_filter.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
@@ -134,6 +135,106 @@ class _TaskPageState extends State<TaskPage> {
                 selectOptionBar = index;
               });
             },
+          ),
+          const SizedBox(height: 5),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              children: [
+                TaskCard(
+                  title: "TRIỂN KHAI KHÁCH HÀNG",
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ), TaskCard(
+                  username: "Phung Anh Minh",
+                  description: "Do something else",
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                ),
+              ],
+            ),
           ),
         ],
       ),

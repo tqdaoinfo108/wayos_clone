@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/route/screen_export.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/request_hr_page.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/process_procedured_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -62,6 +61,14 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case ADD_TASK_HEAD_TASK_PAGE_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const AddTaskHeadTaskPage(),
+      );
+    case TASK_DETAIL_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const TaskDetailPage(),
+      );
+    case ADD_PERSON_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const AddPersonPage(),
       );
     default:
       return MaterialPageRoute(
