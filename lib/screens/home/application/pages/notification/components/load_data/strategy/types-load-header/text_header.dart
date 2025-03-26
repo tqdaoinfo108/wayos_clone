@@ -20,7 +20,7 @@ class _HeaderText extends State<HeaderTextOption> {
             decoration: InputDecoration(
               hintText: 'Tìm kiếm',
               border: OutlineInputBorder(), // Viền cho TextField
-              contentPadding: EdgeInsets.symmetric(horizontal: 10),
+              contentPadding: EdgeInsets.symmetric(horizontal: 2),
             )));
   }
 }

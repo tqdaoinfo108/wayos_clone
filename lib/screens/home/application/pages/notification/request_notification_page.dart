@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/interface/state_hr_option.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/all.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/customer.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/demo.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/developer_customer.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/devops.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/game.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/public.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/report.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/states/timeline.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/types-load-header/text_header.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/all.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/customer.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/demo.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/developer_customer.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/devops.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/game.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/public.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/report.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/states/timeline.dart';
 
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/types-load-header/text_header.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/types-load-header/text_header.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestNotificationPage extends StatefulWidget {
@@ -84,10 +85,30 @@ class _RequestNotificationPage extends State<RequestNotificationPage> {
       ),
       body: Column(
         children: [
-          const SizedBox(
-            height: 20,
+          Row(
+            children: [
+              const SizedBox(
+                width: 20,
+              ),
+              Expanded(
+                flex: 4,
+                child: SizedBox(
+                  child: HeaderTextOption(),
+                ),
+              ),
+              const SizedBox(
+                width: 20,
+              ),
+              Expanded(
+                  child: SizedBox(
+                width: 20,
+                child: selectedOption.addNewData(),
+              )),
+              const SizedBox(
+                width: 20,
+              ),
+            ],
           ),
-          HeaderTextOption(),
           ListTile(
             title: Text(selectedOption.title()),
             leading: Icon(Icons.arrow_drop_down),

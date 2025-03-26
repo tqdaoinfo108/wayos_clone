@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/interface/state_hr_option.dart';
 
 class StatePatternContext {
   StateHROption? stateHROption;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/types-load-data/loadData_Text_component.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/state_hr_option.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/types-load-header/text_header.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/types-load-data/loadData_Text_component.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/types-load-header/text_header.dart';
 
 class Department extends StateHROption {
   List<Map<String, dynamic>> data = [

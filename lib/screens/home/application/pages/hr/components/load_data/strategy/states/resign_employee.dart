@@ -1,76 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/state_hr_option.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/date_headers_hr_interface.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/types-load-data/loadData_Expand_component.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/types-load-header/date_header.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/types-load-data/loadData_Expand_component.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/types-load-header/text_header.dart';
 
-class OldEmployee extends StateHROption {
+class ResignEmployee extends StateHROption {
   List<Map<String, dynamic>> data = [
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
     {
-      "fullName": "Ngô Xuân Sơn",
+      "fullName": "Tạ Quang Thắng",
       "departmentName": "Ban Giám Đốc",
       "position": "Trưởng phòng",
       "gmail": "NguyenVanA@gmail.com",
       "phone": "09093123123",
     },
   ];
-
   @override
   Container listData() {
     return Container(
@@ -101,11 +99,11 @@ class OldEmployee extends StateHROption {
 
   @override
   String title() {
-    return "Danh sách nhân viên thâm niên ";
+    return "Danh sách nhân viên nghỉ việc ";
   }
 
   @override
   Widget renderHeader() {
-    return HeaderDateHR();
+    return HeaderTextHR();
   }
 }

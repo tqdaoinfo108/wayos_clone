@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/interface/state_hr_option.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/types-load-data/load_data_notification.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/types-load-data/load_data_notification.dart';
 
 class DeveloperCustomer extends StateNotificationOption {
   List<Map<String, dynamic>> data = [
@@ -76,5 +76,22 @@ class DeveloperCustomer extends StateNotificationOption {
   @override
   String title() {
     return "Thông báo cho khách hàng Developer";
+  }
+
+  @override
+  Container addNewData() {
+    return Container(
+      child: ButtonTheme(
+          child: SizedBox(
+        height: 40,
+        width: 20,
+        child: ElevatedButton(
+          onPressed: () {
+            print("Nút đã được nhấn");
+          },
+          child: Text("+"),
+        ),
+      )),
+    );
   }
 }

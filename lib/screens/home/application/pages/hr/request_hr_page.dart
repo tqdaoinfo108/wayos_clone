@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/department.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/employee.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/employee_leave.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/interface/state_hr_option.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/employee_of_month.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/new_employee.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/old_employee.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/position.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/state-pattern/states/resign_employee.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/states/department.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/states/employee.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/states/employee_leave.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/states/employee_of_month.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/states/new_employee.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/states/old_employee.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/states/position.dart';
+import 'package:wayos_clone/screens/home/application/pages/hr/components/load_data/strategy/states/resign_employee.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestHRPage extends StatefulWidget {

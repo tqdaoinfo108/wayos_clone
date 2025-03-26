@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/interface/state_hr_option.dart';
-import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/state-pattern/types-load-data/load_data_notification.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/interface/state_hr_option.dart';
+import 'package:wayos_clone/screens/home/application/pages/notification/components/load_data/strategy/types-load-data/load_data_notification.dart';
 
 class TimelineNotification extends StateNotificationOption {
   List<Map<String, dynamic>> data = [
@@ -77,5 +77,22 @@ class TimelineNotification extends StateNotificationOption {
   @override
   String title() {
     return "Timeline công việc nhóm";
+  }
+
+  @override
+  Container addNewData() {
+    return Container(
+      child: ButtonTheme(
+          child: SizedBox(
+        height: 40,
+        width: 20,
+        child: ElevatedButton(
+          onPressed: () {
+            print("Nút đã được nhấn");
+          },
+          child: Text("+"),
+        ),
+      )),
+    );
   }
 }
