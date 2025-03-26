@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/expand_component.dart';
 import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/components/row_detail.dart';
-import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/components/request_discuss.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 import '../../../../../model/workflow_approve_model.dart';

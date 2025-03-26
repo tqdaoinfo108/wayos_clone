@@ -69,12 +69,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          TimeRender().getDate(DateTime.now()),
+                          TimeRender().getDateLeft(DateTime.now()),
                           style: const TextStyle(fontSize: 10),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          TimeRender().getDate(DateTime.now()),
+                          TimeRender().getDateLeft(DateTime.now()),
                           style: const TextStyle(fontSize: 10),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -82,7 +82,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     ),
                   ),
                   Text(
-                    "Còn ${TimeRender().getDuration(DateTime.now(), DateTime.now()) == "Just now" ? "0 phút" : TimeRender().getDuration(DateTime.now(), DateTime.now())}",
+                    "Còn ${TimeRender().getDurationLeft(DateTime.now(), DateTime.now()) == "Just now" ? "0 phút" : TimeRender().getDurationLeft(DateTime.now(), DateTime.now())}",
                     style: const TextStyle(fontSize: 10, color: primaryColor),
                   ),
                 ],

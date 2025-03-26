@@ -26,3 +26,9 @@ const String REQUEST_HR_PAGE_ROUTE = "requestHRPage";
 const String ADD_TASK_HEAD_TASK_PAGE_ROUTE = "addTaskHeadTaskPage";
 const String TASK_DETAIL_PAGE_ROUTE = "taskDetailPage";
 const String ADD_PERSON_PAGE_ROUTE = "addPersonPage";
+
+// Schedule
+const String SCHEDULE_PAGE_ROUTE = "schedulePage";
+const String ADD_SCHEDULE_PAGE_ROUTE = "addSchedulePage";
+const String SCHEDULE_LIST_ATTACHED_PAGE_ROUTE = "scheduleListAttachedPage";
+const String SCHEDULE_DETAIL_PAGE_ROUTE = "scheduleDetailPage";

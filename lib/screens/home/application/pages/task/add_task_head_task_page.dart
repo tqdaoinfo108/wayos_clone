@@ -72,11 +72,11 @@ class _AddTaskHeadTaskPageState extends State<AddTaskHeadTaskPage> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    TimeRender().getDate(dateTimeFrom),
+                                    TimeRender().getDateLeft(dateTimeFrom),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    TimeRender().getTime(dateTimeFrom),
+                                    TimeRender().getTimeLeft(dateTimeFrom),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
@@ -105,11 +105,11 @@ class _AddTaskHeadTaskPageState extends State<AddTaskHeadTaskPage> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    TimeRender().getDate(dateTimeTo),
+                                    TimeRender().getDateLeft(dateTimeTo),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    TimeRender().getTime(dateTimeTo),
+                                    TimeRender().getTimeLeft(dateTimeTo),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],

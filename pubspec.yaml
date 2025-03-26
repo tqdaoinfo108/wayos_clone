@@ -24,6 +24,8 @@ dependencies:
   riverpod: ^2.6.1
   time_picker_spinner: ^1.0.2
   flutter_datetime_picker_plus: ^2.2.0
+  flutter_neat_and_clean_calendar: ^0.4.16
+  flutter_widget_from_html: ^0.16.0
 
 dev_dependencies:
   flutter_test:

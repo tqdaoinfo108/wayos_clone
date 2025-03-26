@@ -13,11 +13,11 @@ class ApprovalItem {
   });
 
   Map<String, dynamic> toJson() => {
-    'status': status,
-    'title': title,
-    'name': name,
-    'timestamp': timestamp,
-  };
+        'status': status,
+        'title': title,
+        'name': name,
+        'timestamp': timestamp,
+      };
 }
 
 List<ApprovalItem> convertJson(Map<String, dynamic> json) {

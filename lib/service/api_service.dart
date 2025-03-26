@@ -35,7 +35,6 @@ abstract class ApiService {
   // Xử lý response chung
   dynamic _processResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      print('Response: ${response.body}');
       return jsonDecode(response.body);
     } else {
       throw Exception('Lỗi: ${response.statusCode} - ${response.body}');

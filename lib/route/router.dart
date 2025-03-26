@@ -70,6 +70,23 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const AddPersonPage(),
       );
+    case SCHEDULE_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const SchedulePage(),
+      );
+    case ADD_SCHEDULE_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const AddSchedulePage(),
+      );
+    case SCHEDULE_LIST_ATTACHED_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const ScheduleListAttachedPage(),
+      );
+    case SCHEDULE_DETAIL_PAGE_ROUTE:
+      final args = settings.arguments as int;
+      return MaterialPageRoute(
+        builder: (context) => ScheduleDetailPage(args),
+      );
     default:
       return MaterialPageRoute(
         builder: (context) => const LoginScreen(),

@@ -141,97 +141,15 @@ class _TaskPageState extends State<TaskPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               children: [
+                for (int i = 0; i < 10; i++)
                 TaskCard(
                   title: "TRIỂN KHAI KHÁCH HÀNG",
                   username: "Phung Anh Minh",
                   description: "Do something else",
                   fromDate: DateTime.now(),
                   toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ), TaskCard(
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () => {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                  onTap: () =>
+                      {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
                 ),
               ],
             ),

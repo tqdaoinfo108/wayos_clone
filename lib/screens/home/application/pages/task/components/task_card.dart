@@ -111,12 +111,12 @@ class TaskCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        TimeRender().getDate(fromDate),
+                        TimeRender().getDateLeft(fromDate),
                         style: const TextStyle(fontSize: 14),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        TimeRender().getDate(toDate),
+                        TimeRender().getDateLeft(toDate),
                         style: const TextStyle(fontSize: 14),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -124,7 +124,7 @@ class TaskCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "Còn ${TimeRender().getDuration(fromDate, toDate) == "Just now" ? "0 phút" : TimeRender().getDuration(fromDate, toDate)}",
+                  "Còn ${TimeRender().getDurationLeft(fromDate, toDate) == "Just now" ? "0 phút" : TimeRender().getDurationLeft(fromDate, toDate)}",
                   style: const TextStyle(fontSize: 14, color: primaryColor),
                 ),
               ],

@@ -9,8 +9,10 @@ class AddPersonPage extends StatefulWidget {
 }
 
 class _AddPersonPageState extends State<AddPersonPage> {
-  String? selectedPerson;
+  List<String> selectedPeople = [];
   final List<String> people = ["Nguyễn Văn A", "Trần Thị B", "Lê Văn C"];
+
+  String selectedPerson = '';
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +33,14 @@ class _AddPersonPageState extends State<AddPersonPage> {
               },
               onSelected: (String selection) {
                 setState(() {
-                  selectedPerson = selection;
+                  selectedPeople.add(selection);
+                  people.remove(selection);
+                  
                 });
               },
               fieldViewBuilder: (BuildContext context, TextEditingController textEditingController, FocusNode focusNode, VoidCallback onFieldSubmitted) {
+                textEditingController.text = selectedPerson;
+
                 return TextField(
                   controller: textEditingController,
                   focusNode: focusNode,
@@ -42,26 +48,29 @@ class _AddPersonPageState extends State<AddPersonPage> {
                     labelText: "Chọn người",
                     border: OutlineInputBorder(),
                   ),
+
                 );
               },
             ),
             const Divider(),
             Expanded(
-              child: ListView.builder(
-                itemCount: 30,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: const Icon(Icons.person),
-                    title: const Text("Nguyễn Văn A"),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        // Handle delete action
-                      },
+              child: ListView(
+                children: [
+                  for (String person in selectedPeople)
+                    ListTile(
+                      title: Text(person),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          setState(() {
+                            selectedPeople.remove(person);
+                            people.add(person);
+                          });
+                        },
+                      ),
                     ),
-                  );
-                },
-              ),
+                ],
+              )
             ),
           ],
         ),
