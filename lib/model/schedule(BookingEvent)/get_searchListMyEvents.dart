@@ -45,18 +45,8 @@ List<BookingEvent> convertJson(Map<String, dynamic> json) {
 
     for (var item in data) {
       DateTime dateTimeStart = DateTime.parse(item['TimeStart']);
-      String timeStart = '${dateTimeStart.day.toString().padLeft(2, '0')}/'
-          '${dateTimeStart.month.toString().padLeft(2, '0')}/'
-          '${dateTimeStart.year} '
-          '${dateTimeStart.hour.toString().padLeft(2, '0')}:'
-          '${dateTimeStart.minute.toString().padLeft(2, '0')}';
 
       DateTime dateTimeEnd = DateTime.parse(item['TimeEnd']);
-      String timeEnd = '${dateTimeEnd.day.toString().padLeft(2, '0')}/'
-          '${dateTimeEnd.month.toString().padLeft(2, '0')}/'
-          '${dateTimeEnd.year} '
-          '${dateTimeEnd.hour.toString().padLeft(2, '0')}:'
-          '${dateTimeEnd.minute.toString().padLeft(2, '0')}';
 
       var bookingEvent = BookingEvent(
         eventId: item['EventID'],

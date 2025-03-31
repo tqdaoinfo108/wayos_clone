@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/choice_option_bar.dart';
 import 'package:wayos_clone/components/custom_modal_bottom_sheet.dart';
+import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/components/select_menu.dart';
+import 'package:wayos_clone/model/todolist/get_searchListToDo_assignedTome.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/task/components/task_card.dart';
 import 'package:wayos_clone/screens/home/application/pages/task/components/task_modal_filter.dart';
+import 'package:wayos_clone/service/todolist/todolist_service.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
+
+
 
   @override
   State<TaskPage> createState() => _TaskPageState();
@@ -22,6 +27,24 @@ class _TaskPageState extends State<TaskPage> {
 
   TextEditingController searchController = TextEditingController();
 
+  List<SearchListToDo_assignedTome> _listTask = [];
+  bool isLoading = false;
+
+  String? getValueSelectOptionBar() {
+    switch (selectOptionBar) {
+      case 0:
+        return "0"; // Đang xử lý
+      case 1:
+        return "1"; // Hoàn thành
+      case 2:
+        return "2"; // Chưa hoàn thành
+      case 3:
+        return "-1"; // Đã huỷ
+      default:
+        return null; // Tất cả
+    }
+  }
+
   void onFilterTaskGroupChange(int value) {
     setState(() {
       filterTaskGroup = value;
@@ -32,6 +55,59 @@ class _TaskPageState extends State<TaskPage> {
     setState(() {
       filterTime = value;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    init();
+  }
+
+  init() async {
+    var _respository = await TodolistService();
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      var response = null;
+
+  print("selectMenu: $selectMenu");
+
+      if (selectMenu == 0) {
+        response = await _respository.searchListToDo_assignedTome(
+            statusID: getValueSelectOptionBar());
+      } else if (selectMenu == 1) {
+        response = await _respository.searchListToDo_createdByMe(
+            statusID: getValueSelectOptionBar());
+      } else if (selectMenu == 2) {
+        response = await _respository.searchListToDo_referencesByMe(
+            statusID: getValueSelectOptionBar());
+      }
+
+      try {
+        if (response != null) {
+          setState(() {
+            isLoading = false;
+            _listTask = convertJson(response);
+            print(_listTask);
+          });
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      } catch (e) {
+        print('Lỗi khi chuyển đổi dữ liệu: $e');
+      }
+    } catch (e) {
+      print('Lỗi khi lấy danh sách công việc: $e');
+    }
+  }
+
+@override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -118,6 +194,7 @@ class _TaskPageState extends State<TaskPage> {
             onTap: (int index) {
               setState(() {
                 selectMenu = index;
+                init();
               });
             },
           ),
@@ -133,24 +210,25 @@ class _TaskPageState extends State<TaskPage> {
             onTap: (int index) {
               setState(() {
                 selectOptionBar = index;
+                init();
               });
             },
           ),
           const SizedBox(height: 5),
-          Expanded(
+         isLoading ? loadingWidget() :  Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               children: [
-                for (int i = 0; i < 10; i++)
-                TaskCard(
-                  title: "TRIỂN KHAI KHÁCH HÀNG",
-                  username: "Phung Anh Minh",
-                  description: "Do something else",
-                  fromDate: DateTime.now(),
-                  toDate: DateTime.now(),
-                  onTap: () =>
-                      {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
-                ),
+                for (SearchListToDo_assignedTome item in _listTask)
+                  TaskCard(
+                    title: item.title ?? "",
+                    username: item.userCreateName ?? "",
+                    description: item.description ?? "",
+                    fromDate: item.timeStart ?? DateTime.now(),
+                    toDate: item.timeEnd ?? DateTime.now(),
+                    onTap: () =>
+                        {Navigator.pushNamed(context, TASK_DETAIL_PAGE_ROUTE)},
+                  )
               ],
             ),
           ),

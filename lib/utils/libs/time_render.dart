@@ -30,15 +30,18 @@ class TimeRender {
   String getDurationLeft (DateTime from, DateTime to) {
     // return days
     if (from.year != to.year || from.month != to.month || from.day != to.day) {
-      return '${to.difference(from).inDays} ngày';
+      int days = to.difference(from).inDays;
+      return days < 0 ? 'Hết hạn ${-days} ngày' : 'Còn $days ngày';
     }
     // return hours
     if (from.hour != to.hour) {
-      return '${to.difference(from).inHours} giờ';
+      int hours = to.difference(from).inHours;
+      return hours < 0 ? 'Hết hạn ${-hours} giờ' : 'Còn $hours giờ';
     }
     // return minutes
     if (from.minute != to.minute) {
-      return '${to.difference(from).inMinutes} phút';
+      int minutes = to.difference(from).inMinutes;
+      return minutes < 0 ? 'Hết hạn ${-minutes} phút' : 'Còn $minutes phút';
     }
 
     return 'Just now';

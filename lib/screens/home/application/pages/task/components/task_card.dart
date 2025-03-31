@@ -8,6 +8,7 @@ class TaskCard extends StatelessWidget {
   const TaskCard({
     super.key,
     this.title = "",
+    this.typeTitle = "",
     required this.username,
     required this.description,
     required this.fromDate,
@@ -16,6 +17,7 @@ class TaskCard extends StatelessWidget {
   });
 
   final String title;
+  final String typeTitle; // "Công việc", "Lịch", "Sự kiện"
   final String username;
   final String description;
   final DateTime fromDate;
@@ -48,7 +50,7 @@ class TaskCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    title,
+                    typeTitle,
                     style: const TextStyle(
                         fontSize: 12, fontWeight: FontWeight.bold, color: blackColor),
                     overflow: TextOverflow.ellipsis,
@@ -124,17 +126,24 @@ class TaskCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "Còn ${TimeRender().getDurationLeft(fromDate, toDate) == "Just now" ? "0 phút" : TimeRender().getDurationLeft(fromDate, toDate)}",
-                  style: const TextStyle(fontSize: 14, color: primaryColor),
+                  "${TimeRender().getDurationLeft(DateTime.now(), toDate) == "Just now" ? "0 phút" : TimeRender().getDurationLeft(DateTime.now(), toDate)}",
+                  style: TextStyle(fontSize: 14, color: TimeRender().getDurationLeft(DateTime.now(), toDate).contains("Hết hạn") ? Colors.red : primaryColor),
                 ),
               ],
             ),
             const SizedBox(height: 10),
             Text(
-              description,
-              style: const TextStyle(fontSize: 16),
-              overflow: TextOverflow.ellipsis,
-            ),
+                    title,
+                    style: const TextStyle(fontSize: 14, color: blackColor,  fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+            description.isNotEmpty
+                ? Text(
+                    description,
+                    style: const TextStyle(fontSize: 14, color: blackColor),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : const SizedBox.shrink(),
             const SizedBox(height: 10),
             const Divider(),
             Row(
