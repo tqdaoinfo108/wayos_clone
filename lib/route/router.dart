@@ -40,8 +40,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         builder: (context) => const RequestPage(),
       );
     case REQUEST_WORK_HANDLING_PAGE_ROUTE:
+      final args = settings.arguments as int;
+
       return MaterialPageRoute(
-        builder: (context) => const RequestWorkHandlingPage(),
+        builder: (context) => RequestWorkHandlingPage(args),
       );
     case PROCESS_PROCEDURED_PAGE_ROUTE:
       final args = settings.arguments as int;

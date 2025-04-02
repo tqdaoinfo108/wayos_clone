@@ -75,7 +75,7 @@ class RequestRowDetail extends StatelessWidget {
                         const SizedBox(width: 10),
                         Flexible(
                           child: Text(
-                            data['UserRequirementName'],
+                            data['UserRequirementName'] ?? data["UserPostName"],
                             style: TextStyle(
                               color: colorType,
                             ),
