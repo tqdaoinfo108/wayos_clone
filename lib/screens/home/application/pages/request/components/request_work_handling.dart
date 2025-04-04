@@ -21,6 +21,14 @@ class _RequestWorkHandlingState extends State<RequestWorkHandling> {
   bool isLoading = false;
   int statusID = -100;
   int totals = 0; // để sau này load more
+  Map<int, String> requestStatusMap = {
+    -100: 'Cần xử lý',
+    -10: 'Đề xuất của tôi',
+    0: 'Đang chờ',
+    1: 'Đang xử lý',
+    2: 'Hoàn thành'
+  };
+
   @override
   void initState() {
     super.initState();
@@ -32,8 +40,20 @@ class _RequestWorkHandlingState extends State<RequestWorkHandling> {
       setState(() {
         isLoading = true;
       });
-      var response =
-          await RequestService().getRequestWorkList(status: statusID);
+      var response;
+      switch (statusID) {
+        case -100:
+          response = await RequestService().getNeedToHandleProcessList();
+          break;
+        case -10:
+          response = await RequestService().getMyProposalProcessList();
+          break;
+        default:
+          response =
+              await RequestService().getRequestWorkList(status: statusID);
+          break;
+      }
+
       if (response['data'] != null) {
         setState(() {
           listRequest = response['data'];
@@ -51,55 +71,39 @@ class _RequestWorkHandlingState extends State<RequestWorkHandling> {
   Widget build(BuildContext context) {
     return Column(children: [
       ChoiceOptionBar(
-        options: [
-          "Cần xử lý",
-          "Đề xuất của tôi",
-          "Đang chờ",
-          "Đang xử lý",
-          "Hoàn thành"
-        ],
+        options: requestStatusMap.values.toList(),
         value: selectedButton,
         onTap: (int index) {
-          switch(index){
-            case 0:
-              statusID = -100;
-              break;
-            case 1:
-              statusID = 0;
-              break;
-            case 2:
-              statusID = 2;
-              break;
-            case 3:
-              statusID = 100;
-              break;
-            case 4:
-              statusID =  200;
-              break;
-            default:
-              statusID = -100;
-          }
           setState(() {
             selectedButton = index;
           });
-          initData(statusID);
+          initData(requestStatusMap.keys.elementAt(index));
         },
       ),
       const SizedBox(height: 10),
       Expanded(
-        child: ListView.builder(
-          itemCount: listRequest.length,
-          itemBuilder: (context, index) {
-            return RequestRowDetail(
-                data: listRequest[index],
-                colorType: primaryColor,
-                onTap: () {
-                  Navigator.pushNamed(
-                      context, REQUEST_WORK_HANDLING_PAGE_ROUTE,arguments:
-                  listRequest[index]['ProcessID']);
-                });
-          },
-        ),
+        child: listRequest.isEmpty
+            ? Center(
+                child: Text(
+                  'Chưa có dữ liệu',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+              )
+            : ListView.builder(
+                itemCount: listRequest.length,
+                itemBuilder: (context, index) {
+                  return RequestRowDetail(
+                      data: listRequest[index],
+                      colorType: primaryColor,
+                      status: getStringStatusInWorkProcessing(
+                          listRequest[index]['StatusID']),
+                      onTap: () {
+                        Navigator.pushNamed(
+                            context, REQUEST_WORK_HANDLING_PAGE_ROUTE,
+                            arguments: listRequest[index]['ProcessID']);
+                      });
+                },
+              ),
       )
     ]);
   }

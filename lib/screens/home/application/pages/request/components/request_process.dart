@@ -34,7 +34,7 @@ class _RequestProcessState extends State<RequestProcess> {
         isLoading = true;
       });
       var response = await RequestService().getRequestList(status: statusID);
-      if(response['data'] != null){
+      if (response['data'] != null) {
         setState(() {
           listRequest = response['data'];
           totals = response['totals'];
@@ -61,7 +61,7 @@ class _RequestProcessState extends State<RequestProcess> {
         ],
         value: selectedButton,
         onTap: (int index) {
-          switch(index){
+          switch (index) {
             case 0:
               statusID = -100;
               break;
@@ -75,7 +75,7 @@ class _RequestProcessState extends State<RequestProcess> {
               statusID = 100;
               break;
             case 4:
-              statusID =  200;
+              statusID = 200;
               break;
             default:
               statusID = -100;
@@ -88,20 +88,30 @@ class _RequestProcessState extends State<RequestProcess> {
       ),
       const SizedBox(height: 10),
       isLoading
-          ? loadingWidget()
+          ? Expanded(child: loadingWidget())
           : Expanded(
-              child: ListView.builder(
-                itemCount: listRequest.length,
-                itemBuilder: (context, index) {
-                  return RequestRowDetail(
-                      data: listRequest[index],
-                      colorType: primaryColor,
-                      onTap: () {
-                        Navigator.pushNamed(
-                            context, PROCESS_PROCEDURED_PAGE_ROUTE, arguments: listRequest[index]["WorkFlowID"]);
-                      });
-                },
-              ),
+              child: listRequest.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Chưa có dữ liệu',
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: listRequest.length,
+                      itemBuilder: (context, index) {
+                        return RequestRowDetail(
+                            data: listRequest[index],
+                            colorType: primaryColor,
+                            status: getStringStatusGlobal(
+                                listRequest[index]['StatusID']),
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, PROCESS_PROCEDURED_PAGE_ROUTE,
+                                  arguments: listRequest[index]["WorkFlowID"]);
+                            });
+                      },
+                    ),
             )
     ]));
   }

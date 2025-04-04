@@ -17,6 +17,8 @@ class RequestService extends ApiService {
         .format(DateTime.now().subtract(Duration(days: 30)));
     var dateEnd = DateFormat('dd/MM/yyyy').format(DateTime.now());
     try {
+      // dateStart = '30/03/2022';
+      // dateEnd = '05/04/2025';
       var rs = await request(HttpMethod.get,
           '/requestprocess/listprocess?keySearch=&statusID=${status}&fromDate=$dateStart&toDate=$dateEnd&userID=null');
       return rs;
@@ -59,6 +61,30 @@ class RequestService extends ApiService {
     try {
       var rs = await request(HttpMethod.get,
           '/requestprocess/getprocessbyid/$workFlowID?processID=$workFlowID');
+      return rs;
+    } catch (e) {
+      print('Lấy danh sách yêu cầu thất bại: $e');
+    }
+  }
+
+  Future<dynamic> getNeedToHandleProcessList() async {
+    try {
+      var rs = await request(HttpMethod.get,
+          '/requestprocess/listprocessneedmyapproval?keySearch=',
+          headers: {
+            'limit': '10',
+            'page': '1',
+          });
+      return rs;
+    } catch (e) {
+      print('Lấy danh sách yêu cầu thất bại: $e');
+    }
+  }
+
+  Future<dynamic> getMyProposalProcessList() async {
+    try {
+      var rs = await request(
+          HttpMethod.get, '/requestprocess/listprocesscreatedbyme?keySearch=');
       return rs;
     } catch (e) {
       print('Lấy danh sách yêu cầu thất bại: $e');

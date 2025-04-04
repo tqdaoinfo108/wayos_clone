@@ -8,8 +8,25 @@ const productDemoImg1 =
 
 // End For demo
 
-String getStringStatusGlobal(int statusID){
-  switch(statusID){
+String getStringStatusInWorkProcessing(int statusID) {
+  switch (statusID) {
+    case 0:
+      return "Đang chờ";
+    case 1:
+      return "Đang xử lý";
+    case 2:
+      return "Hoàn thành";
+    case 200:
+      return "Không duyệt";
+    case -1:
+      return "Huỷ";
+    default:
+      return "Không rõ";
+  }
+}
+
+String getStringStatusGlobal(int statusID) {
+  switch (statusID) {
     case 100:
       return "Hoàn thành";
     case 0:
@@ -23,8 +40,8 @@ String getStringStatusGlobal(int statusID){
   }
 }
 
-Color getColorStatusGlobal(int statusID){
-  switch(statusID){
+Color getColorStatusGlobal(int statusID) {
+  switch (statusID) {
     case 100:
       return Colors.greenAccent;
     case 200:
@@ -40,9 +57,8 @@ Color getColorStatusGlobal(int statusID){
 
 const Color primaryColor = Color(0xFF505CA4);
 
-AppBar appBar ({title}) => AppBar(
-      title: Text(title,
-          style: TextStyle(color: Colors.white, fontSize: 20)),
+AppBar appBar({title}) => AppBar(
+      title: Text(title, style: TextStyle(color: Colors.white, fontSize: 20)),
       centerTitle: true,
       backgroundColor: const Color.fromARGB(255, 34, 48, 168),
       iconTheme: IconThemeData(
@@ -95,7 +111,6 @@ const Color successColor = Color(0xFF2ED573);
 const Color warningColor = Color(0xFFFFBE21);
 const Color errorColor = Color(0xFFEA5B5B);
 
-
 const double defaultPadding = 16.0;
 const double defaultBorderRadious = 12.0;
 const Duration defaultDuration = Duration(milliseconds: 300);
@@ -109,27 +124,26 @@ final passwordValidator = MultiValidator([
 
 final usernameValidator = MultiValidator([
   RequiredValidator(errorText: 'Nhập tên người dùng'),
-
 ]);
 
 const pasNotMatchErrorText = "Mật khẩu không khớp";
 
-const staffID = "USER_STAFFID"; 
-const staffFullName = "USER_STAFFFULLNAME"; 
-const staffCode = "USER_STAFFCODE"; 
-const userTypeID = "USER_USERTYPEID"; 
-// const userTypeName = "USER_USERTYPENAME"; 
-const companyID = "USER_COMPANYID"; 
-const companyName = "USER_COMPANYNAME"; 
-const staffInfoID = "USER_STAFFINFOID"; 
-const departmentID = "USER_DEPARTMENTID"; 
-const departmentName = "USER_DEPARTMENTNAME"; 
-const imagesPath = "USER_IMAGESPATH"; 
-const statusID = "USER_STATUSID"; 
-const isRequestApprove = "USER_ISREQUESTAPPROVE"; 
+const staffID = "USER_STAFFID";
+const staffFullName = "USER_STAFFFULLNAME";
+const staffCode = "USER_STAFFCODE";
+const userTypeID = "USER_USERTYPEID";
+// const userTypeName = "USER_USERTYPENAME";
+const companyID = "USER_COMPANYID";
+const companyName = "USER_COMPANYNAME";
+const staffInfoID = "USER_STAFFINFOID";
+const departmentID = "USER_DEPARTMENTID";
+const departmentName = "USER_DEPARTMENTNAME";
+const imagesPath = "USER_IMAGESPATH";
+const statusID = "USER_STATUSID";
+const isRequestApprove = "USER_ISREQUESTAPPROVE";
 
 const isRemember = "IS_REMEMBER";
 const userUserAmount = "USER_USER_AMOUNT";
 
-// WayOS 
+// WayOS
 const tokenID = "TOKEN_ID";
