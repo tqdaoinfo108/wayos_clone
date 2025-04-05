@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/choice_option_bar.dart';
+import 'package:wayos_clone/components/unavailable_data.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_row_detail.dart';
 import 'package:wayos_clone/utils/constants.dart';
@@ -7,8 +8,11 @@ import 'package:wayos_clone/utils/constants.dart';
 import '../../../../../../service/request/request_service.dart';
 
 class RequestWorkHandling extends StatefulWidget {
+  final String searchText;
+
   const RequestWorkHandling({
-    Key? key,
+    super.key,
+    this.searchText = '',
   });
 
   @override
@@ -32,25 +36,27 @@ class _RequestWorkHandlingState extends State<RequestWorkHandling> {
   @override
   void initState() {
     super.initState();
-    initData(statusID);
+    initData(statusID, widget.searchText);
   }
 
-  initData(int statusID) async {
+  initData(int statusID, String searchText) async {
     try {
       setState(() {
         isLoading = true;
       });
-      var response;
+      Map<String, dynamic> response;
       switch (statusID) {
         case -100:
-          response = await RequestService().getNeedToHandleProcessList();
+          response = await RequestService()
+              .getNeedToHandleProcessList(searchText: searchText);
           break;
         case -10:
-          response = await RequestService().getMyProposalProcessList();
+          response = await RequestService()
+              .getMyProposalProcessList(searchText: searchText);
           break;
         default:
-          response =
-              await RequestService().getRequestWorkList(status: statusID);
+          response = await RequestService()
+              .getRequestWorkList(status: statusID, searchText: searchText);
           break;
       }
 
@@ -77,18 +83,13 @@ class _RequestWorkHandlingState extends State<RequestWorkHandling> {
           setState(() {
             selectedButton = index;
           });
-          initData(requestStatusMap.keys.elementAt(index));
+          initData(requestStatusMap.keys.elementAt(index), widget.searchText);
         },
       ),
       const SizedBox(height: 10),
       Expanded(
         child: listRequest.isEmpty
-            ? Center(
-                child: Text(
-                  'Chưa có dữ liệu',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-              )
+            ? UnavailableData()
             : ListView.builder(
                 itemCount: listRequest.length,
                 itemBuilder: (context, index) {
@@ -106,5 +107,14 @@ class _RequestWorkHandlingState extends State<RequestWorkHandling> {
               ),
       )
     ]);
+  }
+
+  @override
+  void didUpdateWidget(covariant RequestWorkHandling oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.searchText != widget.searchText) {
+      initData(statusID, widget.searchText);
+    }
   }
 }

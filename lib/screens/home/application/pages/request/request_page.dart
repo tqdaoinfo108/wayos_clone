@@ -11,14 +11,24 @@ class RequestPage extends StatefulWidget {
 }
 
 class _RequestPageState extends State<RequestPage> {
-  TextEditingController requestController = TextEditingController();
+  late TextEditingController requestController;
+  late FocusNode requestFocusNode;
   int selectedButton = 0;
+  String searchText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    requestController = TextEditingController();
+    requestFocusNode = FocusNode(debugLabel: 'requestFocusNode');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Yêu cầu'),
+        forceMaterialTransparency: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0), // Thêm khoảng cách
@@ -28,10 +38,23 @@ class _RequestPageState extends State<RequestPage> {
           children: [
             TextField(
               controller: requestController, // Lấy dữ liệu nhập vào
+              focusNode: requestFocusNode,
+              onTapOutside: (event) {
+                FocusScope.of(context).unfocus();
+              },
               decoration: InputDecoration(
                 hintText: 'Tìm kiếm',
                 border: OutlineInputBorder(), // Viền cho TextField
                 contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      searchText = requestController.text;
+                    });
+                    FocusScope.of(context).unfocus();
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 10), // Tạo khoảng cách
@@ -47,12 +70,23 @@ class _RequestPageState extends State<RequestPage> {
             const SizedBox(height: 20), // Tạo khoảng cách
             Expanded(
               child: selectedButton == 0
-                  ? RequestProcess()
-                  : RequestWorkHandling(),
+                  ? RequestProcess(
+                      searchText: searchText,
+                    )
+                  : RequestWorkHandling(
+                      searchText: searchText,
+                    ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    requestFocusNode.dispose();
+    requestController.dispose();
+    super.dispose();
   }
 }
