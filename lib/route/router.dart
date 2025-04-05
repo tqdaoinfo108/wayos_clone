@@ -46,9 +46,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         builder: (context) => RequestWorkHandlingPage(args),
       );
     case PROCESS_PROCEDURED_PAGE_ROUTE:
-      final args = settings.arguments as int;
+      final args = settings.arguments as (int, int); // (workFlowID, statusID)
       return MaterialPageRoute(
-        builder: (context) => ProcessProceduredPage(args),
+        builder: (context) => ProcessProceduredPage(args.$1, args.$2),
       );
     case REQUEST_HR_PAGE_ROUTE:
       return MaterialPageRoute(

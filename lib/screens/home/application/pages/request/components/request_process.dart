@@ -107,7 +107,10 @@ class _RequestProcessState extends State<RequestProcess> {
                             onTap: () {
                               Navigator.pushNamed(
                                   context, PROCESS_PROCEDURED_PAGE_ROUTE,
-                                  arguments: listRequest[index]["WorkFlowID"]);
+                                  arguments: (
+                                    listRequest[index]["WorkFlowID"],
+                                    statusID
+                                  ));
                             });
                       },
                     ),

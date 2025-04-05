@@ -1,21 +1,19 @@
 // Định nghĩa class cho định dạng mới
 class ApprovalItem {
-  final String status;
   final String title;
   final String name;
   final String timestamp;
-  final int isApprove;
+  final int statusStepID;
 
   ApprovalItem({
-    required this.status,
     required this.title,
     required this.name,
     required this.timestamp,
-    this.isApprove = -10,
+    this.statusStepID = -10,
   });
 
   Map<String, dynamic> toJson() =>
-      {'status': status, 'title': title, 'name': name, 'timestamp': timestamp};
+      {'title': title, 'name': name, 'timestamp': timestamp};
 }
 
 List<ApprovalItem> convertJson(Map<String, dynamic> json) {
@@ -32,11 +30,10 @@ List<ApprovalItem> convertJson(Map<String, dynamic> json) {
         '${dateTime.minute.toString().padLeft(2, '0')}';
 
     var approvalItem = ApprovalItem(
-      status: item['IsApprove'] == 1 ? 'approved' : 'pending',
       title: item['DepartmentApproveName'],
       name: item['UserApproveName'],
       timestamp: timestamp,
-      isApprove: item['IsApprove'] as int,
+      statusStepID: item['IsApprove'] as int,
     );
 
     result.add(approvalItem);
