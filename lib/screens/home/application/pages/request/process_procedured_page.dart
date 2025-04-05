@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/expand_component.dart';
 import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/components/row_detail.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/components/procedure_step_painter.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
@@ -16,7 +17,6 @@ class ProcessProceduredPage extends StatefulWidget {
 }
 
 class _ProcessProceduredPage extends State<ProcessProceduredPage> {
-  int _index = 0;
   bool isLoading = false;
   List<ApprovalItem> _steps = [];
   List<dynamic> listComment = [];
@@ -24,6 +24,10 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
   List<String> files = [
     "report_2023.docx",
   ];
+  bool isNotApprove = false;
+  bool isNextNotApproveStep = false;
+
+  List<int> notApproveList = [0, 200];
 
   @override
   void initState() {
@@ -31,7 +35,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     init(widget.workflowID);
   }
 
-  init(int workflowID ) async {
+  init(int workflowID) async {
     var _respository = RequestService();
     try {
       setState(() {
@@ -66,6 +70,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -78,79 +83,93 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
         ),
         centerTitle: true,
       ),
-      body: isLoading ? loadingWidget() :  SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal, // Cho phép cuộn ngang
-                child: Row(
-                  children: List.generate(_steps.length, (index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _index = index;
-                        });
-                      },
-                      child: Column(
-                        children: [
-                          buildStepIcon(_steps[index].status, index),
-                          Container(
-                            width: 100,
-                            height: 4,
-                            color: getColorBgStep(_steps[index].status),
+      body: isLoading
+          ? loadingWidget()
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: width / 3.5,
+                    child: ListView.builder(
+                      itemCount: _steps.length,
+                      scrollDirection: Axis.horizontal,
+                      // shrinkWrap: true,
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      itemBuilder: (context, index) {
+                        ApprovalItem step = _steps[index];
+                        String time =
+                            getTextStatus(step.isApprove, step.timestamp);
+                        Color backgroundColor =
+                            getBackgroundColor(step.isApprove);
+                        Color pipelineColor = backgroundColor;
+
+                        // set pipeline color to grey if next step is not approve
+                        if (index < _steps.length - 1 &&
+                            _steps[index + 1].isApprove == 0) {
+                          pipelineColor = Colors.grey;
+                        }
+
+                        // get content painter to calculate width of text
+                        TextPainter contentPainter =
+                            getTextPainter(step.title, step.name, time);
+                        contentPainter.layout();
+
+                        final customPaint = CustomPaint(
+                          size: Size(contentPainter.width + 40, width / 3.5),
+                          painter: ProcedureStepPainter(
+                            title: step.title,
+                            name: step.name,
+                            time: time,
+                            backgroundColor: getBackgroundColor(step.isApprove),
+                            icon: getIconStepByStatusID(step.isApprove),
+                            contentPainter: contentPainter,
+                            isLastStep: index == _steps.length - 1,
+                            pipelineColor: pipelineColor,
                           ),
-                        ],
-                      ),
-                    );
-                  }),
-                ),
+                        );
+
+                        // set not approve to change color
+                        if (step.isApprove == 200 || step.isApprove == 0) {
+                          isNotApprove = true;
+                        }
+                        return customPaint;
+                      },
+                    ),
+                  ),
+                  info_container(),
+                  const SizedBox(height: 10), // Thêm khoảng cách giữa các hàng
+                  ExpandComponent(
+                    title: "Thảo luận",
+                    isExpanded: true,
+                    body: RequestDiscuss(listComment),
+                  )
+                ],
               ),
             ),
-            Container(
-              margin: EdgeInsets.only(right: 12, left: 12, top: 4),
-              decoration: BoxDecoration(
-                  color: getColorBgStepHeader(_steps[_index].status),
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(8)),
-              child: _buildStepContent(
-                  _steps[_index]), // Chỉ hiển thị step đang chọn
-            ),
-            info_container(),
-            const SizedBox(height: 10), // Thêm khoảng cách giữa các hàng
-            ExpandComponent(
-              title: "Thảo luận",
-              isExpanded: true,
-              body: RequestDiscuss(listComment),
-            )
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildStepContent(ApprovalItem step) {
-    return SizedBox(
-      width: double.infinity,
-      height: 100,
-      child: Column(
+  TextPainter getTextPainter(String title, String name, String time) {
+    return TextPainter(
+      text: TextSpan(
+        style: TextStyle(height: 1.5, fontSize: 11, color: Colors.white),
         children: [
-          Text(step.title,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600)),
-          Text(step.name, style: TextStyle(color: Colors.white, fontSize: 20)),
-          Text(
-              step.timestamp.toString().length > 0
-                  ? step.timestamp
-                  : getTextStatusFaild(step.status),
-              style: TextStyle(color: Colors.white, fontSize: 20)),
+          TextSpan(
+            text: title,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text: '\n$name',
+            style: TextStyle(fontWeight: FontWeight.normal),
+          ),
+          TextSpan(
+            text: '\n$time',
+            style: TextStyle(fontWeight: FontWeight.normal),
+          ),
         ],
       ),
+      textDirection: TextDirection.ltr,
+      textWidthBasis: TextWidthBasis.longestLine,
     );
   }
 
@@ -163,13 +182,15 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
         body: Container(
           child: Column(
             children: [
+              RowDetail(title: "Tên đề xuất:", content: objectData["Title"]),
               RowDetail(
-                  title: "Tên đề xuất:",
-                  content: objectData["Title"]),
-              RowDetail(title: "Biểu mẫu:", content: objectData["TypeWorkFlowName"]),
+                  title: "Biểu mẫu:", content: objectData["TypeWorkFlowName"]),
               RowDetail(title: "Ngày tạo:", content: objectData["DateCreated"]),
-              RowDetail(title: "Người đề xuất:",content:  objectData["DateCreated"]),
-              RowDetail(title: "Phòng ban:",content:   objectData["DepartmentUserRequirement"]),
+              RowDetail(
+                  title: "Người đề xuất:", content: objectData["DateCreated"]),
+              RowDetail(
+                  title: "Phòng ban:",
+                  content: objectData["DepartmentUserRequirement"]),
               Row(
                 children: [
                   SizedBox(
@@ -202,13 +223,28 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     );
   }
 
-  String getTextStatusFaild(String status) {
-    String message = "Error";
-    switch (status) {
-      case "rejected":
-        message = "Trạng Thái | Không Duyệt";
-      case "pending":
-        message = "Trạng Thái | Đang Chờ ";
+  String getTextStatus(int statusID, String time) {
+    String message = '';
+    switch (statusID) {
+      case -1:
+        message = "Trạng Thái | Huỷ";
+        break;
+      case 0:
+        message = "Trạng Thái | Đang chờ duyệt";
+        break;
+      case 100:
+        message = time;
+        break;
+      case 200:
+        message = "Trạng Thái | Không duyệt";
+        break;
+      default:
+        message = "Trạng Thái | Không rõ";
+        break;
+    }
+
+    if (isNotApprove) {
+      message = "Trạng Thái | Chưa duyệt";
     }
     return message;
   }
@@ -249,6 +285,40 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
         return Icons.watch_later_rounded;
       default:
         return Icons.watch_later_rounded;
+    }
+  }
+
+  IconData getIconStepByStatusID(int statusID) {
+    switch (statusID) {
+      case -1:
+        return Icons.block;
+      case 0:
+        return Icons.radio_button_checked;
+      case 100:
+        return Icons.check_circle_outline;
+      case 200:
+        return Icons.cancel;
+      default:
+        return Icons.block;
+    }
+  }
+
+  Color getBackgroundColor(int statusID) {
+    if (isNotApprove) {
+      return Colors.grey;
+    }
+
+    switch (statusID) {
+      case -1:
+        return Colors.amberAccent;
+      case 0:
+        return Color(0xff7e86e1);
+      case 100:
+        return Colors.lightGreen.shade600;
+      case 200:
+        return Colors.redAccent;
+      default:
+        return Colors.yellowAccent;
     }
   }
 

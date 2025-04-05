@@ -4,20 +4,18 @@ class ApprovalItem {
   final String title;
   final String name;
   final String timestamp;
+  final int isApprove;
 
   ApprovalItem({
     required this.status,
     required this.title,
     required this.name,
     required this.timestamp,
+    this.isApprove = -10,
   });
 
-  Map<String, dynamic> toJson() => {
-    'status': status,
-    'title': title,
-    'name': name,
-    'timestamp': timestamp,
-  };
+  Map<String, dynamic> toJson() =>
+      {'status': status, 'title': title, 'name': name, 'timestamp': timestamp};
 }
 
 List<ApprovalItem> convertJson(Map<String, dynamic> json) {
@@ -38,6 +36,7 @@ List<ApprovalItem> convertJson(Map<String, dynamic> json) {
       title: item['DepartmentApproveName'],
       name: item['UserApproveName'],
       timestamp: timestamp,
+      isApprove: item['IsApprove'] as int,
     );
 
     result.add(approvalItem);

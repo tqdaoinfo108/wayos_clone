@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestRowDetail extends StatelessWidget {
-  const RequestRowDetail({super.key, required this.data, required this.colorType, required this.onTap});
+  const RequestRowDetail(
+      {super.key,
+      required this.data,
+      required this.colorType,
+      required this.onTap,
+      required this.status});
 
   final Color colorType;
   final VoidCallback onTap;
-  final Map<String,dynamic> data;
+  final Map<String, dynamic> data;
+  final String status;
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -39,7 +45,7 @@ class RequestRowDetail extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Ngày tạo: ${data['DateCreated']}' ,
+                      'Ngày tạo: ${data['DateCreated']}',
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 5),
@@ -54,7 +60,7 @@ class RequestRowDetail extends StatelessWidget {
                         const SizedBox(width: 10),
                         Flexible(
                           child: Text(
-                            getStringStatusGlobal(data['StatusID']),
+                            status,
                             style: TextStyle(
                               color: colorType,
                             ),
