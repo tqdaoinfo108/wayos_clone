@@ -10,6 +10,8 @@ const productDemoImg1 =
 
 String getStringStatusInWorkProcessing(int statusID) {
   switch (statusID) {
+    case -1:
+      return "Huỷ";
     case 0:
       return "Đang chờ";
     case 1:
@@ -18,8 +20,6 @@ String getStringStatusInWorkProcessing(int statusID) {
       return "Hoàn thành";
     case 200:
       return "Không duyệt";
-    case -1:
-      return "Huỷ";
     default:
       return "Không rõ";
   }
@@ -27,14 +27,14 @@ String getStringStatusInWorkProcessing(int statusID) {
 
 String getStringStatusGlobal(int statusID) {
   switch (statusID) {
-    case 100:
-      return "Hoàn thành";
-    case 0:
-      return "Đang xử lý";
-    case 200:
-      return "Không duyệt";
     case -1:
       return "Huỷ";
+    case 0:
+      return "Đang xử lý";
+    case 100:
+      return "Hoàn thành";
+    case 200:
+      return "Không duyệt";
     default:
       return "Không rõ";
   }
@@ -43,13 +43,13 @@ String getStringStatusGlobal(int statusID) {
 Color getColorStatusGlobal(int statusID) {
   switch (statusID) {
     case 100:
-      return Colors.greenAccent;
+      return Colors.lightGreen.shade600;
     case 200:
-      return Colors.amberAccent;
+      return Colors.redAccent;
     case 0:
       return Color(0xff7e86e1);
     case -1:
-      return Colors.redAccent;
+      return Colors.amberAccent;
     default:
       return Colors.yellowAccent;
   }
