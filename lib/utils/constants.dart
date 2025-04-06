@@ -47,7 +47,7 @@ Color getColorStatusGlobal(int statusID) {
     case 200:
       return Colors.redAccent;
     case 0:
-      return Color(0xff7e86e1);
+      return secondaryColor;
     case -1:
       return Colors.amberAccent;
     default:
@@ -56,6 +56,7 @@ Color getColorStatusGlobal(int statusID) {
 }
 
 const Color primaryColor = Color(0xFF505CA4);
+const Color secondaryColor = Color.fromARGB(255, 89, 100, 224);
 
 AppBar appBar({title}) => AppBar(
       title: Text(title, style: TextStyle(color: Colors.white, fontSize: 20)),

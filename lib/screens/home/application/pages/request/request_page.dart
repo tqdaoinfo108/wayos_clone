@@ -40,7 +40,7 @@ class _RequestPageState extends State<RequestPage> {
               controller: requestController, // Lấy dữ liệu nhập vào
               focusNode: requestFocusNode,
               onTapOutside: (event) {
-                FocusScope.of(context).unfocus();
+                requestFocusNode.unfocus();
               },
               decoration: InputDecoration(
                 hintText: 'Tìm kiếm',
@@ -52,7 +52,7 @@ class _RequestPageState extends State<RequestPage> {
                     setState(() {
                       searchText = requestController.text;
                     });
-                    FocusScope.of(context).unfocus();
+                    requestFocusNode.unfocus();
                   },
                 ),
               ),

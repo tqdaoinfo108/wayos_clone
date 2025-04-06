@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../utils/constants.dart';
 import 'workflow_approve_model.dart';
 
 class ApprovalStatusItem extends ApprovalItem {
@@ -118,7 +119,7 @@ Color _getBackgroundColor(int statusID, bool isNotApprove) {
     case -1:
       return Colors.amberAccent;
     case 0:
-      return Color(0xff7e86e1);
+      return secondaryColor;
     case 100:
       return Colors.lightGreen.shade600;
     case 200:

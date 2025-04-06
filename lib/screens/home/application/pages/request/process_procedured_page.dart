@@ -25,6 +25,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     "report_2023.docx",
   ];
   bool isExpandedRequestInfomation = true;
+  bool commentLoading = false;
 
   @override
   void initState() {
@@ -65,6 +66,35 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     }
   }
 
+  Future createComment(String comment) async {
+    if (comment.isEmpty) {
+      return;
+    }
+
+    print("comment $comment");
+    try {
+      setState(() {
+        commentLoading = true;
+      });
+      var respository = RequestService();
+      var commentResult = await respository.createRequestCommentWorkflow(
+          widget.workflowID, comment);
+      if (commentResult['data'] != null) {
+        var _lstComment =
+            await respository.getWorkflowComment(widget.workflowID);
+        if (_lstComment['data'] != null) {
+          setState(() {
+            listComment = _lstComment['data'];
+          });
+        }
+      }
+    } finally {
+      setState(() {
+        commentLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
@@ -85,18 +115,16 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
           ? loadingWidget()
           : SingleChildScrollView(
               child: Column(
+                spacing: 10,
                 children: [
-                  Container(
+                  SizedBox(
                     height: width / 3.5,
-                    margin: const EdgeInsets.only(bottom: 10),
                     child: ListView.builder(
                       itemCount: _steps.length,
                       scrollDirection: Axis.horizontal,
-                      // shrinkWrap: true,
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       itemBuilder: (context, index) {
                         ApprovalStatusItem step = _steps[index];
-
                         // get content painter to calculate width of text
                         TextPainter contentPainter = getTextPainter(
                             step.title, step.name, step.statusText);
@@ -114,7 +142,13 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                     ),
                   ),
                   ExpansionTile(
-                    title: Text('THÔNG TIN YÊU CẦU'),
+                    title: Text(
+                      'THÔNG TIN YÊU CẦU',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(color: primaryMaterialColor.shade900),
+                    ),
                     collapsedShape: Border(
                         bottom: BorderSide(color: blackColor40, width: 0.5)),
                     shape: Border(),
@@ -136,49 +170,70 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                               ),
                             ),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Column(
-                              spacing: 15,
-                              children: [
-                                RequestInformationItem(
-                                    title: "Tên đề xuất",
-                                    data: objectData["Title"]),
-                                RequestInformationItem(
-                                    title: "Biểu mẫu",
-                                    data: objectData["TypeWorkFlowName"]),
-                                RequestInformationItem(
-                                    title: "Ngày tạo",
-                                    data: objectData["DateCreated"]),
-                                RequestInformationItem(
-                                    title: "Người đề xuất",
-                                    data: objectData["UserCreated"]),
-                                RequestInformationItem(
-                                    title: "Phòng ban",
-                                    data: objectData[
-                                        "DepartmentUserRequirement"]),
-                                RequestInformationItem(
-                                    title: "Tệp đính kèm",
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // Xử lý sự kiện mở file nhưng không đóng ExpandComponent
-                                        print("Tệp tin được nhấn!");
-                                      },
-                                      child: buildAttachmentSection(files),
-                                    )),
-                              ],
-                            ),
+                          child: Column(
+                            spacing: 15,
+                            children: [
+                              RequestInformationItem(
+                                  title: "Tên đề xuất",
+                                  data: objectData["Title"]),
+                              RequestInformationItem(
+                                title: "Biểu mẫu",
+                                data: objectData["TypeWorkFlowName"],
+                                suffixIcon: IconButton(
+                                  onPressed: () {},
+                                  icon:
+                                      Image.asset("assets/images/ic_goto.png"),
+                                ),
+                              ),
+                              RequestInformationItem(
+                                  title: "Ngày tạo",
+                                  data: objectData["DateCreated"]),
+                              RequestInformationItem(
+                                  title: "Người đề xuất",
+                                  data: objectData["UserCreated"]),
+                              RequestInformationItem(
+                                  title: "Phòng ban",
+                                  data:
+                                      objectData["DepartmentUserRequirement"]),
+                              RequestInformationItem(
+                                  title: "Tệp đính kèm",
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      // Xử lý sự kiện mở file nhưng không đóng ExpandComponent
+                                      print("Tệp tin được nhấn!");
+                                    },
+                                    child: buildAttachmentSection(files),
+                                  )),
+                            ],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10), // Thêm khoảng cách giữa các hàng
-                  ExpandComponent(
-                    title: "Thảo luận",
-                    isExpanded: true,
-                    body: RequestDiscuss(listComment),
-                  )
+                  ExpansionTile(
+                    title: Text('THẢO LUẬN',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(color: primaryMaterialColor.shade900)),
+                    collapsedShape: Border(
+                        bottom: BorderSide(color: blackColor40, width: 0.5)),
+                    shape: Border(),
+                    initiallyExpanded: true,
+                    trailing: Icon(
+                        isExpandedRequestInfomation ? Icons.remove : Icons.add),
+                    onExpansionChanged: (isExpanded) {
+                      setState(() {
+                        isExpandedRequestInfomation = isExpanded;
+                      });
+                    },
+                    children: <Widget>[
+                      ListTile(
+                        title: RequestDiscuss(listComment, createComment,
+                            commentLoading: commentLoading),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

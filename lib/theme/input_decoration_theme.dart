@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../utils/constants.dart';
 
-
 const InputDecorationTheme lightInputDecorationTheme = InputDecorationTheme(
   fillColor: lightGreyColor,
   filled: true,
@@ -21,6 +20,24 @@ const InputDecorationTheme darkInputDecorationTheme = InputDecorationTheme(
   enabledBorder: outlineInputBorder,
   focusedBorder: focusedOutlineInputBorder,
   errorBorder: errorOutlineInputBorder,
+);
+
+const InputDecorationTheme customInputDecorationTheme = InputDecorationTheme(
+  hintStyle: TextStyle(color: greyColor),
+  border: OutlineInputBorder(),
+  enabledBorder: OutlineInputBorder(
+    borderSide: BorderSide(
+      color: blackColor60,
+      width: 0.5,
+    ),
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderSide: BorderSide(
+      color: blackColor60,
+      width: 0.5,
+    ),
+  ),
+  contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
 );
 
 const OutlineInputBorder outlineInputBorder = OutlineInputBorder(
