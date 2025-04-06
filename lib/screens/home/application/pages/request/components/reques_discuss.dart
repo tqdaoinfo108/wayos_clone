@@ -61,9 +61,7 @@ class _RequestDiscussState extends State<RequestDiscuss> {
                 ),
               ),
             ),
-            Container(
-              height: 48,
-              width: 48,
+            DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5),
                 color: secondaryColor,
@@ -71,6 +69,7 @@ class _RequestDiscussState extends State<RequestDiscuss> {
               child: IconButton(
                 icon: Image.asset(
                   "assets/images/ic_send.png",
+                  scale: 1.6,
                   color: whiteColor,
                 ),
                 onPressed: () {

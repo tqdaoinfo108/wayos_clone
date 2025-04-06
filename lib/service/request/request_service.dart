@@ -106,4 +106,14 @@ class RequestService extends ApiService {
       print('Tạo comment thất bại: $e');
     }
   }
+
+  Future<dynamic> getAttachmentList(int workFlowID) async {
+    try {
+      var rs = await request(HttpMethod.get,
+          '/requestattachment/listattachments?processID=null&workFlowID=$workFlowID');
+      return rs;
+    } catch (e) {
+      print('Lấy danh sách tệp đính kèm thất bại: $e');
+    }
+  }
 }

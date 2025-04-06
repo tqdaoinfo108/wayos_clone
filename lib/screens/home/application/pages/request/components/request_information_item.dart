@@ -33,20 +33,18 @@ class RequestInformationItem extends StatelessWidget {
                     ? Row(
                         children: [
                           Expanded(
-                            flex: 3,
+                            flex: 5,
                             child: Text(
                               data!,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
-                          Expanded(
-                            child: suffixIcon!,
-                          )
+                          suffixIcon!
                         ],
                       )
                     : Text(
                         data!,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ))
                 : child!),
       ],
