@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:toastification/toastification.dart';
 import 'package:wayos_clone/route/route_constants.dart';
@@ -14,14 +15,12 @@ import './route/router.dart' as router;
 void main() async {
   await GetStorage.init();
 
-  
-  
-  runApp(DevicePreview(
-      enabled: kIsWeb,
-      tools: const [
-        ...DevicePreview.defaultTools
-      ],
+  await FlutterDownloader.initialize(debug: true);
 
+  runApp(
+    DevicePreview(
+      enabled: kIsWeb,
+      tools: const [...DevicePreview.defaultTools],
       builder: (context) => const MyApp(),
     ),
   );
@@ -40,8 +39,9 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme(context),
         themeMode: ThemeMode.light,
         onGenerateRoute: router.generateRoute,
-
-        initialRoute: GetStorage().read(tokenID) == null ? LOG_IN_SCREEN_ROUTE : HOME_NAVIGATION_ROUTE,
+        initialRoute: GetStorage().read(tokenID) == null
+            ? LOG_IN_SCREEN_ROUTE
+            : HOME_NAVIGATION_ROUTE,
       ),
     );
   }

@@ -1,14 +1,19 @@
+import 'dart:isolate';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/components/expand_component.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/model/attachment_file.dart';
+import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/procedure_step_painter.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
 import 'package:wayos_clone/utils/constants.dart';
 import '../../../../../model/approval_status_item.dart';
 import '../../../../../service/request/request_service.dart';
+import '../../../../../utils/functions_util.dart';
 import 'components/request_information.dart';
-import 'components/request_information_item.dart';
 
 class ProcessProceduredPage extends StatefulWidget {
   const ProcessProceduredPage(this.workflowID, this.statusID, {super.key});
@@ -27,11 +32,40 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
   bool expandedRequestInfomation = true;
   bool expandedDiscuss = false;
   bool commentLoading = false;
+  ReceivePort port = ReceivePort();
+  String downloadedFileName = '';
+
+  static final String portName = 'downloader_send_port';
 
   @override
   void initState() {
     super.initState();
     init(widget.workflowID);
+
+    // debug print download progress
+    IsolateNameServer.registerPortWithName(port.sendPort, portName);
+    port.listen((dynamic data) {
+      String id = data[0];
+      DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1]);
+      int progress = data[2];
+      debugPrint("id: $id");
+      debugPrint("status: $status");
+      debugPrint("progress: $progress");
+
+      if (status == DownloadTaskStatus.complete ||
+          status == DownloadTaskStatus.failed) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(status == DownloadTaskStatus.complete
+                ? "$downloadedFileName downloaded successfully."
+                : "Download $downloadedFileName failed"),
+          ),
+        );
+      }
+      setState(() {});
+    });
+
+    FlutterDownloader.registerCallback(downloadCallback);
   }
 
   init(int workflowID) async {
@@ -176,7 +210,30 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                     children: <Widget>[
                       ListTile(
                         title: RequestInformation(
-                            objectData: objectData, files: files),
+                          objectData: objectData,
+                          files: files,
+                          onDownload: (file) async {
+                            PermissionStatus permissionStatus =
+                                await Permission.manageExternalStorage.status;
+                            // navigator to request permission page
+                            if (permissionStatus != PermissionStatus.granted &&
+                                mounted) {
+                              permissionStatus = (await Navigator.pushNamed(
+                                      context, REQUEST_PERMISSION_PAGE_ROUTE,
+                                      arguments: permissionStatus))
+                                  as PermissionStatus;
+                              debugPrint("PermissionStatus: $permissionStatus");
+                            }
+
+                            if (permissionStatus == PermissionStatus.granted) {
+                              setState(() {
+                                downloadedFileName = file.fileName;
+                              });
+                              await downloadFileFromUrl(
+                                  file.fileName, file.filePath);
+                            }
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -207,6 +264,13 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
               ),
             ),
     );
+  }
+
+  /// track progress in background
+  @pragma('vm:entry-point')
+  static void downloadCallback(String id, int status, int progress) {
+    final SendPort? send = IsolateNameServer.lookupPortByName(portName);
+    send?.send([id, status, progress]);
   }
 
   TextPainter getTextPainter(String title, String name, String statusText) {
@@ -285,5 +349,11 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
               );
             },
           );
+  }
+
+  @override
+  void dispose() {
+    IsolateNameServer.removePortNameMapping(portName);
+    super.dispose();
   }
 }

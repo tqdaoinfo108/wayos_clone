@@ -5,14 +5,16 @@ import '../../../../../../utils/constants.dart';
 import 'request_information_item.dart';
 
 class RequestInformation extends StatelessWidget {
+  final dynamic objectData;
+  final List<AttachmentFile> files;
+  final ValueChanged<AttachmentFile> onDownload;
+
   const RequestInformation({
     super.key,
     required this.objectData,
     required this.files,
+    required this.onDownload,
   });
-
-  final dynamic objectData;
-  final List<AttachmentFile> files;
 
   @override
   Widget build(BuildContext context) {
@@ -76,9 +78,7 @@ class RequestInformation extends StatelessWidget {
                         AttachmentFile file = files[index];
 
                         return GestureDetector(
-                          onTap: () {
-                            print("asdasdadsad");
-                          },
+                          onTap: () => onDownload(file),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 8),

@@ -148,3 +148,11 @@ const userUserAmount = "USER_USER_AMOUNT";
 
 // WayOS
 const tokenID = "TOKEN_ID";
+
+const allowingAccess = "CHO PHÉP TRUY CẬP";
+const allowingAccessDescription =
+    "Chức năng cần cho phép truy cập vào bộ nhớ của thiết bị. Vui lòng cấp quyền cho ứng dụng";
+
+const movingToSettings = "CHUYỂN ĐẾN CÀI ĐẶT";
+const movingToSettingsDescription =
+    '''Chức năng cần cho phép truy cập vào bộ nhớ của thiết bị. Vui lòng chuyển đến cài đặt và cấp quyền cho ứng dụng.''';
