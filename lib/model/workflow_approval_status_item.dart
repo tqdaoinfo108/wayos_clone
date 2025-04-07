@@ -4,13 +4,13 @@ import 'package:intl/intl.dart';
 import '../utils/constants.dart';
 import 'workflow_approve_model.dart';
 
-class ApprovalStatusItem extends ApprovalItem {
+class WorkflowApprovalStatusItem extends ApprovalItem {
   final Color backgroundColor;
   final Color pipelineColor;
   final IconData icon;
   final String statusText;
 
-  ApprovalStatusItem({
+  WorkflowApprovalStatusItem({
     required super.title,
     required super.name,
     required super.timestamp,
@@ -22,10 +22,11 @@ class ApprovalStatusItem extends ApprovalItem {
   });
 }
 
-List<ApprovalStatusItem> convertJson(Map<String, dynamic> json, int statusID) {
+List<WorkflowApprovalStatusItem> convertJson(
+    Map<String, dynamic> json, int statusID) {
   bool isNotApprove = false;
 
-  List<ApprovalStatusItem> result = [];
+  List<WorkflowApprovalStatusItem> result = [];
   List<dynamic> data = json['data'];
   for (var i = 0; i < data.length; i++) {
     var item = data[i];
@@ -48,7 +49,7 @@ List<ApprovalStatusItem> convertJson(Map<String, dynamic> json, int statusID) {
       pipelineColor = Colors.grey;
     }
 
-    var approveStatusItem = ApprovalStatusItem(
+    var approveStatusItem = WorkflowApprovalStatusItem(
       title: item['DepartmentApproveName'],
       name: item['UserApproveName'],
       timestamp: timestamp,

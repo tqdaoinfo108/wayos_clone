@@ -20,3 +20,4 @@ const String REQUEST_HR_PAGE_ROUTE = "requestHRPage";
 const String REQUEST_NOTIFICATION_PAGE_ROUTE = "requestNotificationPage";
 
 const String REQUEST_PERMISSION_PAGE_ROUTE = "requestPermissionPage";
+const String PREVIEW_WORKFLOW_PAGE_ROUTE = "previewWorkflowPage";

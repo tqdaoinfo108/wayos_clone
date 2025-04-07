@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:wayos_clone/route/route_constants.dart';
 
-import '../../../../../../model/attachment_file.dart';
+import '../../../../../../model/attachment_file_model.dart';
+import '../../../../../../model/workflow_request_information_model.dart';
 import '../../../../../../utils/constants.dart';
 import 'request_information_item.dart';
 
 class RequestInformation extends StatelessWidget {
-  final dynamic objectData;
-  final List<AttachmentFile> files;
-  final ValueChanged<AttachmentFile> onDownload;
+  final WorkflowRequestInformationModel model;
+  final List<AttachmentFileModel> files;
+  final ValueChanged<AttachmentFileModel> onDownload;
 
   const RequestInformation({
     super.key,
-    required this.objectData,
+    required this.model,
     required this.files,
     required this.onDownload,
   });
@@ -32,26 +34,26 @@ class RequestInformation extends StatelessWidget {
       child: Column(
         spacing: 15,
         children: [
-          RequestInformationItem(
-              title: "Tên đề xuất", data: objectData["Title"]),
+          RequestInformationItem(title: "Tên đề xuất", data: model.title),
           RequestInformationItem(
             title: "Biểu mẫu",
-            data: objectData["TypeWorkFlowName"],
+            data: model.typeWorkFlowName,
             suffixIcon: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, PREVIEW_WORKFLOW_PAGE_ROUTE,
+                    arguments: model);
+              },
               icon: Image.asset(
                 "assets/images/ic_goto.png",
                 scale: 1.6,
               ),
             ),
           ),
+          RequestInformationItem(title: "Ngày tạo", data: model.dateCreated),
           RequestInformationItem(
-              title: "Ngày tạo", data: objectData["DateCreated"]),
+              title: "Người đề xuất", data: model.userCreated),
           RequestInformationItem(
-              title: "Người đề xuất", data: objectData["UserCreated"]),
-          RequestInformationItem(
-              title: "Phòng ban",
-              data: objectData["DepartmentUserRequirement"]),
+              title: "Phòng ban", data: model.departmentUserRequirement),
           RequestInformationItem(
               title: "Tệp đính kèm",
               child: files.isEmpty
@@ -75,7 +77,7 @@ class RequestInformation extends StatelessWidget {
                           SizedBox(height: 10),
                       itemCount: files.length,
                       itemBuilder: (context, index) {
-                        AttachmentFile file = files[index];
+                        AttachmentFileModel file = files[index];
 
                         return GestureDetector(
                           onTap: () => onDownload(file),

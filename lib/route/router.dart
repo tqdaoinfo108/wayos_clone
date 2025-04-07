@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/route/screen_export.dart';
 import 'package:wayos_clone/screens/home/application/pages/notification/request_notification_page.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/preview_workflow_page.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/process_procedured_page.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/request_permission_page.dart';
 
@@ -61,6 +62,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const RequestPermissionPage(),
         settings: settings,
+      );
+    case PREVIEW_WORKFLOW_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => PreviewWorkflowPage(settings.arguments),
       );
     default:
       return MaterialPageRoute(

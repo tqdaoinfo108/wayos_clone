@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../../../model/approval_status_item.dart';
+import '../../../../../../model/workflow_approval_status_item.dart';
 
 class ProcedureStepPainter extends CustomPainter {
   final TextPainter contentPainter;
-  final ApprovalStatusItem step;
+  final WorkflowApprovalStatusItem step;
   final bool isLastStep;
 
   ProcedureStepPainter({

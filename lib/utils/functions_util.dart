@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,20 +15,7 @@ Future<PermissionStatus> getPermissionStatus(Permission permission) async {
 
 Future<bool> downloadFileFromUrl(String fileName, String filePath) async {
   try {
-    Directory directory;
-    switch (Platform.operatingSystem) {
-      case 'android':
-        directory = Directory('/storage/emulated/0/Download');
-        break;
-      case 'ios':
-      case 'linux':
-      case 'macos':
-      case 'windows':
-      case 'fuchsia':
-      default:
-        directory = await getApplicationDocumentsDirectory();
-        break;
-    }
+    Directory directory = await getStoreDirectory();
 
     log("Download file is stored in path: ${directory.path}");
     File downloadedFile = File("${directory.path}/$fileName");
@@ -38,16 +26,6 @@ Future<bool> downloadFileFromUrl(String fileName, String filePath) async {
       int lastDotIndex = fileName.lastIndexOf('.');
       String extension = fileName.substring(lastDotIndex);
       fileName = "${fileName.substring(0, lastDotIndex)}_copy$extension";
-
-      // name it with suffix (0), (1),...
-      // var regExp = RegExp(r'\(\d*\)$');
-      // if (regExp.hasMatch(fileName)) {
-      //   String index = fileName.substring(
-      //       fileName.lastIndexOf("("), fileName.lastIndexOf(")"));
-      //   var a = index;
-      // } else {
-      //   fileName = "$fileName (0)$extension";
-      // }
     }
 
     String? taskID = await FlutterDownloader.enqueue(
@@ -64,4 +42,44 @@ Future<bool> downloadFileFromUrl(String fileName, String filePath) async {
     log("Thất bại khi tải tệp $e", error: e);
     return false;
   }
+}
+
+Future<Directory> getStoreDirectory() async {
+  Directory directory;
+  switch (Platform.operatingSystem) {
+    case 'android':
+      directory = Directory('/storage/emulated/0/Download');
+      break;
+    case 'ios':
+    case 'linux':
+    case 'macos':
+    case 'windows':
+    case 'fuchsia':
+    default:
+      directory = await getApplicationDocumentsDirectory();
+      break;
+  }
+  return directory;
+}
+
+Future<String> loadPDF(Uint8List bytes) async {
+  var dir = await getApplicationDocumentsDirectory();
+  File file = File('${dir.path}/preview2.pdf');
+
+  if (await file.exists()) {
+    log('file.exists and delete');
+    await file.delete();
+  } else {
+    log('file is not exists at all');
+  }
+
+  await file.writeAsBytes(bytes);
+
+  if (await file.exists()) {
+    log('file.exists');
+  } else {
+    log('file is not exists');
+  }
+
+  return file.path;
 }

@@ -6,12 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wayos_clone/components/loading.dart';
-import 'package:wayos_clone/model/attachment_file.dart';
+import 'package:wayos_clone/model/attachment_file_model.dart';
+import 'package:wayos_clone/model/workflow_request_information_model.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/procedure_step_painter.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
 import 'package:wayos_clone/utils/constants.dart';
-import '../../../../../model/approval_status_item.dart';
+import '../../../../../model/workflow_approval_status_item.dart';
 import '../../../../../service/request/request_service.dart';
 import '../../../../../utils/functions_util.dart';
 import 'components/request_information.dart';
@@ -26,15 +27,16 @@ class ProcessProceduredPage extends StatefulWidget {
 
 class _ProcessProceduredPage extends State<ProcessProceduredPage> {
   bool isLoading = false;
-  List<ApprovalStatusItem> _steps = [];
+  List<WorkflowApprovalStatusItem> _steps = [];
   List<dynamic> listComment = [];
-  dynamic objectData;
-  List<AttachmentFile> files = [];
+
+  List<AttachmentFileModel> files = [];
   bool expandedRequestInfomation = true;
   bool expandedDiscuss = false;
   bool commentLoading = false;
   ReceivePort port = ReceivePort();
   String downloadedFileName = '';
+  WorkflowRequestInformationModel? requestInformationModel;
 
   static final String portName = 'downloader_send_port';
 
@@ -90,7 +92,8 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
           }
 
           if (results[1] != null) {
-            objectData = results[1];
+            requestInformationModel = WorkflowRequestInformationModel.fromMap(
+                results[1] as Map<String, dynamic>);
           }
 
           if (results[2]['data'] != null) {
@@ -99,7 +102,8 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
 
           if (results[3]['data'] != null) {
             files = (results[3]['data'] as List<dynamic>)
-                .map((e) => AttachmentFile.fromMap(e as Map<String, dynamic>))
+                .map((e) =>
+                    AttachmentFileModel.fromMap(e as Map<String, dynamic>))
                 .toList();
           }
         });
@@ -139,7 +143,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     }
   }
 
-  void onDownload(AttachmentFile file) async {
+  void onDownload(AttachmentFileModel file) async {
     debugPrint('print onDownload');
     PermissionStatus permissionStatus =
         await Permission.manageExternalStorage.status;
@@ -193,7 +197,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                       scrollDirection: Axis.horizontal,
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       itemBuilder: (context, index) {
-                        ApprovalStatusItem step = _steps[index];
+                        WorkflowApprovalStatusItem step = _steps[index];
                         // get content painter to calculate width of text
                         TextPainter contentPainter = getTextPainter(
                             step.title, step.name, step.statusText);
@@ -232,7 +236,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                     children: <Widget>[
                       ListTile(
                         title: RequestInformation(
-                          objectData: objectData,
+                          model: requestInformationModel!,
                           files: files,
                           onDownload: onDownload,
                         ),
