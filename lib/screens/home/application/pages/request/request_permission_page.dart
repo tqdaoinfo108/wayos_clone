@@ -82,7 +82,7 @@ class _RequestPermissionPageState extends State<RequestPermissionPage> {
                           EdgeInsets.symmetric(vertical: 12, horizontal: 10)),
                   onPressed: () async {
                     if (currentStatus == PermissionStatus.permanentlyDenied) {
-                      // open app settings
+                      openAppSettings();
                     } else {
                       await requestAccess();
                       if (mounted) {

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -48,19 +49,15 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
       String id = data[0];
       DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1]);
       int progress = data[2];
-      debugPrint("id: $id");
-      debugPrint("status: $status");
-      debugPrint("progress: $progress");
+      log("Download id: $id");
+      log("Download status: $status");
+      log("Download progress: $progress");
 
-      if (status == DownloadTaskStatus.complete ||
-          status == DownloadTaskStatus.failed) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(status == DownloadTaskStatus.complete
-                ? "$downloadedFileName downloaded successfully."
-                : "Download $downloadedFileName failed"),
-          ),
-        );
+      if (status == DownloadTaskStatus.complete) {
+        showDownloadingMessageSnackbar(
+            "$downloadedFileName downloaded successfully.");
+      } else if (status == DownloadTaskStatus.failed) {
+        showDownloadFailDialog();
       }
       setState(() {});
     });
@@ -142,6 +139,31 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     }
   }
 
+  void onDownload(AttachmentFile file) async {
+    debugPrint('print onDownload');
+    PermissionStatus permissionStatus =
+        await Permission.manageExternalStorage.status;
+    // navigator to request permission page
+    if (permissionStatus != PermissionStatus.granted && mounted) {
+      permissionStatus = (await Navigator.pushNamed(
+          context, REQUEST_PERMISSION_PAGE_ROUTE,
+          arguments: permissionStatus)) as PermissionStatus;
+      log("PermissionStatus: $permissionStatus");
+    }
+
+    if (permissionStatus == PermissionStatus.granted && mounted) {
+      showDownloadingMessageSnackbar("Downloading file...");
+      setState(() {
+        downloadedFileName = file.fileName;
+      });
+      bool startedDownloading =
+          await downloadFileFromUrl(file.fileName, file.filePath);
+      if (!startedDownloading) {
+        Future.delayed(Durations.long2, () => showDownloadFailDialog());
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
@@ -212,27 +234,7 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                         title: RequestInformation(
                           objectData: objectData,
                           files: files,
-                          onDownload: (file) async {
-                            PermissionStatus permissionStatus =
-                                await Permission.manageExternalStorage.status;
-                            // navigator to request permission page
-                            if (permissionStatus != PermissionStatus.granted &&
-                                mounted) {
-                              permissionStatus = (await Navigator.pushNamed(
-                                      context, REQUEST_PERMISSION_PAGE_ROUTE,
-                                      arguments: permissionStatus))
-                                  as PermissionStatus;
-                              debugPrint("PermissionStatus: $permissionStatus");
-                            }
-
-                            if (permissionStatus == PermissionStatus.granted) {
-                              setState(() {
-                                downloadedFileName = file.fileName;
-                              });
-                              await downloadFileFromUrl(
-                                  file.fileName, file.filePath);
-                            }
-                          },
+                          onDownload: onDownload,
                         ),
                       ),
                     ],
@@ -349,6 +351,78 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
               );
             },
           );
+  }
+
+  void showDownloadingMessageSnackbar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(bottom: 60),
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            duration: Durations.extralong4,
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(2)),
+                  color: blackColor5,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 12.0),
+                    child: Text(
+                      message,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              ],
+            )),
+      );
+    }
+  }
+
+  void showDownloadFailDialog() {
+    if (mounted) {
+      showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: whiteColor,
+          actionsPadding: EdgeInsets.only(right: 10, bottom: 10),
+          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+          title: Text(
+            'Download file error',
+            textAlign: TextAlign.center,
+          ),
+          titleTextStyle: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+          content: Text(
+            'Download file failed. Please try again later.',
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(color: blackColor60),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Close',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Colors.blue)),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override
