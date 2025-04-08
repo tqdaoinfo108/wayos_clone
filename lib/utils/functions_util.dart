@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
@@ -60,26 +59,4 @@ Future<Directory> getStoreDirectory() async {
       break;
   }
   return directory;
-}
-
-Future<String> loadPDF(Uint8List bytes) async {
-  var dir = await getApplicationDocumentsDirectory();
-  File file = File('${dir.path}/preview2.pdf');
-
-  if (await file.exists()) {
-    log('file.exists and delete');
-    await file.delete();
-  } else {
-    log('file is not exists at all');
-  }
-
-  await file.writeAsBytes(bytes);
-
-  if (await file.exists()) {
-    log('file.exists');
-  } else {
-    log('file is not exists');
-  }
-
-  return file.path;
 }
