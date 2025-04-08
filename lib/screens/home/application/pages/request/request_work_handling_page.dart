@@ -4,10 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:wayos_clone/components/expand_component.dart';
 import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/components/row_detail.dart';
+import 'package:wayos_clone/model/request_information_record_item.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/components/request_information.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 import '../../../../../service/request/request_service.dart';
+import 'components/request_information_item.dart';
 
 class RequestWorkHandlingPage extends StatefulWidget {
   const RequestWorkHandlingPage(this.workflowID, {super.key});
@@ -25,6 +28,8 @@ class _RequestWorkHandlingPageState extends State<RequestWorkHandlingPage> {
   List<String> files = [
     "report_2023.docx",
   ];
+
+  bool expandedRequestSide = true;
 
   @override
   void initState() {
@@ -71,28 +76,73 @@ class _RequestWorkHandlingPageState extends State<RequestWorkHandlingPage> {
                 padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
                 child: Column(
                   children: [
-                    ExpandComponent(
-                      title: "Bên yêu cầu",
-                      isExpanded: true,
-                      body: Container(
-                        padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
-                        child: Column(
-                          children: [
-                            RowDetail(
-                                title: "Tên đề xuất",
-                                content: objectData["Title"]),
-                            RowDetail(
-                                title: "Người đề xuất",
-                                content: objectData["UserPostName"]),
-                            RowDetail(
-                                title: "Phòng ban",
-                                content: objectData["DepartmentUserPostName"]),
-                          ],
-                        ),
+                    ExpansionTile(
+                      title: Text(
+                        'BÊN YÊU CẦU',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(color: primaryMaterialColor.shade900),
                       ),
+                      collapsedShape: Border(
+                          bottom: BorderSide(color: blackColor40, width: 0.5)),
+                      shape: Border(),
+                      initiallyExpanded: true,
+                      trailing:
+                          Icon(expandedRequestSide ? Icons.remove : Icons.add),
+                      onExpansionChanged: (isExpanded) {
+                        setState(() {
+                          expandedRequestSide = isExpanded;
+                        });
+                      },
+                      children: <Widget>[
+                        ListTile(
+                            title: RequestInformationItem(
+                                title: "Tên đề xuất",
+                                data: objectData["Title"])),
+                        ListTile(
+                            title: RequestInformationItem(
+                                title: "Người đề xuất",
+                                data: objectData["UserPostName"])),
+                        ListTile(
+                            title: RequestInformationItem(
+                                title: "Phòng ban",
+                                data: objectData["DepartmentUserPostName"])),
+                      ],
                     ),
-                    const SizedBox(
-                        height: 10), // Thêm khoảng cách giữa các hàng
+                    const SizedBox(height: 10),
+                    ExpansionTile(
+                      title: Text(
+                        'BÊN YÊU CẦU',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(color: primaryMaterialColor.shade900),
+                      ),
+                      collapsedShape: Border(
+                          bottom: BorderSide(color: blackColor40, width: 0.5)),
+                      shape: Border(),
+                      initiallyExpanded: true,
+                      trailing:
+                          Icon(expandedRequestSide ? Icons.remove : Icons.add),
+                      onExpansionChanged: (isExpanded) {
+                        setState(() {
+                          expandedRequestSide = isExpanded;
+                        });
+                      },
+                      children: <Widget>[
+                        ListTile(
+                          title: RequestInformationForm(
+                              onDownload: (value) {},
+                              items: [
+                                RequestInformationRecordItem(
+                                    label: "Người xử lý",
+                                    value: objectData["UserAssignName"]),
+                              ]),
+                        ),
+                      ],
+                    ),
+
                     ExpandComponent(
                       title: "Bên xử lý",
                       isExpanded: true,
