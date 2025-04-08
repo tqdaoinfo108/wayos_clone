@@ -1,12 +1,21 @@
+import 'dart:developer';
+import 'dart:isolate';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/components/expand_component.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:wayos_clone/components/loading.dart';
+import 'package:wayos_clone/model/attachment_file_model.dart';
+import 'package:wayos_clone/model/workflow_request_information_model.dart';
+import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/procedure_step_painter.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
 import 'package:wayos_clone/utils/constants.dart';
-import '../../../../../model/approval_status_item.dart';
+import '../../../../../model/workflow_approval_status_item.dart';
 import '../../../../../service/request/request_service.dart';
-import 'components/request_information_item.dart';
+import '../../../../../utils/functions_util.dart';
+import 'components/request_information.dart';
 
 class ProcessProceduredPage extends StatefulWidget {
   const ProcessProceduredPage(this.workflowID, this.statusID, {super.key});
@@ -18,50 +27,144 @@ class ProcessProceduredPage extends StatefulWidget {
 
 class _ProcessProceduredPage extends State<ProcessProceduredPage> {
   bool isLoading = false;
-  List<ApprovalStatusItem> _steps = [];
+  List<WorkflowApprovalStatusItem> _steps = [];
   List<dynamic> listComment = [];
-  dynamic objectData;
-  List<String> files = [
-    "report_2023.docx",
-  ];
-  bool isExpandedRequestInfomation = true;
+
+  List<AttachmentFileModel> files = [];
+  bool expandedRequestInfomation = true;
+  bool expandedDiscuss = false;
+  bool commentLoading = false;
+  ReceivePort port = ReceivePort();
+  String downloadedFileName = '';
+  WorkflowRequestInformationModel? requestInformationModel;
+
+  static final String portName = 'downloader_send_port';
 
   @override
   void initState() {
     super.initState();
     init(widget.workflowID);
+
+    // debug print download progress
+    IsolateNameServer.registerPortWithName(port.sendPort, portName);
+    port.listen((dynamic data) {
+      String id = data[0];
+      DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1]);
+      int progress = data[2];
+      log("Download id: $id");
+      log("Download status: $status");
+      log("Download progress: $progress");
+
+      if (status == DownloadTaskStatus.complete) {
+        showDownloadingMessageSnackbar(
+            "$downloadedFileName downloaded successfully.");
+      } else if (status == DownloadTaskStatus.failed) {
+        showDownloadFailDialog();
+      }
+      setState(() {});
+    });
+
+    FlutterDownloader.registerCallback(downloadCallback);
   }
 
   init(int workflowID) async {
-    var _respository = RequestService();
+    var respository = RequestService();
     try {
       setState(() {
         isLoading = true;
       });
-      var response = await _respository.getListWorkFlowApprove(workflowID);
-      if (response['data'] != null) {
-        setState(() {
-          _steps = convertJson(response, widget.statusID);
-        });
-      }
 
-      var data = await _respository.getWorkFlowByID(workflowID);
-      if (data != null) {
-        setState(() {
-          objectData = data;
-        });
-      }
+      var results = await Future.wait([
+        // workflow steps
+        respository.getListWorkFlowApprove(workflowID),
+        // request information
+        respository.getWorkFlowByID(workflowID),
+        // comments
+        respository.getWorkflowComment(workflowID),
+        // attachment files
+        respository.getAttachmentList(workflowID),
+      ]);
 
-      var _lstComment = await _respository.getWorkflowComment(workflowID);
-      if (_lstComment['data'] != null) {
+      if (results.isNotEmpty) {
         setState(() {
-          listComment = _lstComment['data'];
+          if (results[0]['data'] != null) {
+            _steps = convertJson(results[0], widget.statusID);
+          }
+
+          if (results[1] != null) {
+            requestInformationModel = WorkflowRequestInformationModel.fromMap(
+                results[1] as Map<String, dynamic>);
+          }
+
+          if (results[2]['data'] != null) {
+            listComment = results[2]['data'];
+          }
+
+          if (results[3]['data'] != null) {
+            files = (results[3]['data'] as List<dynamic>)
+                .map((e) =>
+                    AttachmentFileModel.fromMap(e as Map<String, dynamic>))
+                .toList();
+          }
         });
       }
     } finally {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> createComment(String comment) async {
+    if (comment.isEmpty) {
+      return;
+    }
+
+    try {
+      setState(() {
+        commentLoading = true;
+      });
+      var respository = RequestService();
+      var commentResult = await respository.createRequestCommentWorkflow(
+          widget.workflowID, comment);
+      if (commentResult['data'] != null) {
+        var lstComment =
+            await respository.getWorkflowComment(widget.workflowID);
+        if (lstComment['data'] != null) {
+          setState(() {
+            listComment = lstComment['data'];
+          });
+        }
+      }
+    } finally {
+      setState(() {
+        commentLoading = false;
+      });
+    }
+  }
+
+  void onDownload(AttachmentFileModel file) async {
+    debugPrint('print onDownload');
+    PermissionStatus permissionStatus =
+        await Permission.manageExternalStorage.status;
+    // navigator to request permission page
+    if (permissionStatus != PermissionStatus.granted && mounted) {
+      permissionStatus = (await Navigator.pushNamed(
+          context, REQUEST_PERMISSION_PAGE_ROUTE,
+          arguments: permissionStatus)) as PermissionStatus;
+      log("PermissionStatus: $permissionStatus");
+    }
+
+    if (permissionStatus == PermissionStatus.granted && mounted) {
+      showDownloadingMessageSnackbar("Downloading file...");
+      setState(() {
+        downloadedFileName = file.fileName;
+      });
+      bool startedDownloading =
+          await downloadFileFromUrl(file.fileName, file.filePath);
+      if (!startedDownloading) {
+        Future.delayed(Durations.long2, () => showDownloadFailDialog());
+      }
     }
   }
 
@@ -85,18 +188,16 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
           ? loadingWidget()
           : SingleChildScrollView(
               child: Column(
+                spacing: 10,
                 children: [
-                  Container(
+                  SizedBox(
                     height: width / 3.5,
-                    margin: const EdgeInsets.only(bottom: 10),
                     child: ListView.builder(
                       itemCount: _steps.length,
                       scrollDirection: Axis.horizontal,
-                      // shrinkWrap: true,
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       itemBuilder: (context, index) {
-                        ApprovalStatusItem step = _steps[index];
-
+                        WorkflowApprovalStatusItem step = _steps[index];
                         // get content painter to calculate width of text
                         TextPainter contentPainter = getTextPainter(
                             step.title, step.name, step.statusText);
@@ -114,75 +215,68 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                     ),
                   ),
                   ExpansionTile(
-                    title: Text('THÔNG TIN YÊU CẦU'),
+                    title: Text(
+                      'THÔNG TIN YÊU CẦU',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(color: primaryMaterialColor.shade900),
+                    ),
                     collapsedShape: Border(
                         bottom: BorderSide(color: blackColor40, width: 0.5)),
                     shape: Border(),
                     initiallyExpanded: true,
                     trailing: Icon(
-                        isExpandedRequestInfomation ? Icons.remove : Icons.add),
+                        expandedRequestInfomation ? Icons.remove : Icons.add),
                     onExpansionChanged: (isExpanded) {
                       setState(() {
-                        isExpandedRequestInfomation = isExpanded;
+                        expandedRequestInfomation = isExpanded;
                       });
                     },
                     children: <Widget>[
                       ListTile(
-                        title: Theme(
-                          data: Theme.of(context).copyWith(
-                            textTheme: const TextTheme(
-                              bodyMedium: TextStyle(
-                                color: blackColor,
-                              ),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Column(
-                              spacing: 15,
-                              children: [
-                                RequestInformationItem(
-                                    title: "Tên đề xuất",
-                                    data: objectData["Title"]),
-                                RequestInformationItem(
-                                    title: "Biểu mẫu",
-                                    data: objectData["TypeWorkFlowName"]),
-                                RequestInformationItem(
-                                    title: "Ngày tạo",
-                                    data: objectData["DateCreated"]),
-                                RequestInformationItem(
-                                    title: "Người đề xuất",
-                                    data: objectData["UserCreated"]),
-                                RequestInformationItem(
-                                    title: "Phòng ban",
-                                    data: objectData[
-                                        "DepartmentUserRequirement"]),
-                                RequestInformationItem(
-                                    title: "Tệp đính kèm",
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // Xử lý sự kiện mở file nhưng không đóng ExpandComponent
-                                        print("Tệp tin được nhấn!");
-                                      },
-                                      child: buildAttachmentSection(files),
-                                    )),
-                              ],
-                            ),
-                          ),
+                        title: RequestInformation(
+                          model: requestInformationModel!,
+                          files: files,
+                          onDownload: onDownload,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10), // Thêm khoảng cách giữa các hàng
-                  ExpandComponent(
-                    title: "Thảo luận",
-                    isExpanded: true,
-                    body: RequestDiscuss(listComment),
-                  )
+                  ExpansionTile(
+                    title: Text('THẢO LUẬN',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(color: primaryMaterialColor.shade900)),
+                    collapsedShape: Border(
+                        bottom: BorderSide(color: blackColor40, width: 0.5)),
+                    shape: Border(),
+                    initiallyExpanded: false,
+                    trailing: Icon(expandedDiscuss ? Icons.remove : Icons.add),
+                    onExpansionChanged: (isExpanded) {
+                      setState(() {
+                        expandedDiscuss = isExpanded;
+                      });
+                    },
+                    children: <Widget>[
+                      ListTile(
+                        title: RequestDiscuss(listComment, createComment,
+                            commentLoading: commentLoading),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
     );
+  }
+
+  /// track progress in background
+  @pragma('vm:entry-point')
+  static void downloadCallback(String id, int status, int progress) {
+    final SendPort? send = IsolateNameServer.lookupPortByName(portName);
+    send?.send([id, status, progress]);
   }
 
   TextPainter getTextPainter(String title, String name, String statusText) {
@@ -210,50 +304,134 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
   }
 
   Widget buildAttachmentSection(List<String> fileNames) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Tiêu đề "Tệp đính kèm"
-          Text(
-            "Tệp đính kèm",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+    return fileNames.isEmpty
+        ? Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: blackColor5,
             ),
-          ),
-          const SizedBox(height: 10),
-
-          // Danh sách tệp tin
-          ...fileNames.map((file) => buildFileItem(file)).toList(),
-        ],
-      ),
-    );
+            child: Text(
+              "Không có tập tin đính kèm",
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.blue,
+                  ),
+            ),
+          )
+        : ListView.separated(
+            physics: NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            separatorBuilder: (context, index) => SizedBox(height: 10),
+            itemCount: fileNames.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () {
+                  print("asdasdadsad");
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: blackColor5,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: Text("Report.docx",
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: Colors.blue,
+                                    )),
+                      ),
+                      Expanded(child: SizedBox()),
+                      Expanded(
+                          child: Image.asset(
+                        "assets/images/ic_download.png",
+                        scale: 1.7,
+                      )),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
   }
 
-  Widget buildFileItem(String fileName) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Icon(Icons.attach_file, color: Colors.blue), // Icon đính kèm
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              fileName,
-              style: TextStyle(fontSize: 14, color: Colors.black87),
-              overflow: TextOverflow.ellipsis, // Giới hạn nếu tên file quá dài
-            ),
+  void showDownloadingMessageSnackbar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(bottom: 60),
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            duration: Durations.extralong4,
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(2)),
+                  color: blackColor5,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 12.0),
+                    child: Text(
+                      message,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              ],
+            )),
+      );
+    }
+  }
+
+  void showDownloadFailDialog() {
+    if (mounted) {
+      showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: whiteColor,
+          actionsPadding: EdgeInsets.only(right: 10, bottom: 10),
+          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+          title: Text(
+            'Download file error',
+            textAlign: TextAlign.center,
           ),
-        ],
-      ),
-    );
+          titleTextStyle: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+          content: Text(
+            'Download file failed. Please try again later.',
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(color: blackColor60),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Close',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Colors.blue)),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    IsolateNameServer.removePortNameMapping(portName);
+    super.dispose();
   }
 }

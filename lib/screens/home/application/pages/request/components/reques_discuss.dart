@@ -1,82 +1,103 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_chat_content.dart';
+import 'package:wayos_clone/theme/input_decoration_theme.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestDiscuss extends StatefulWidget {
-  RequestDiscuss(
-    this.dataComment, {
-    Key? key,
-  });
-  List<dynamic> dataComment;
+  final List<dynamic> dataComment;
+  final ValueChanged<String> createComment;
+  final bool commentLoading;
+  const RequestDiscuss(this.dataComment, this.createComment,
+      {super.key, this.commentLoading = false});
   @override
   State<RequestDiscuss> createState() => _RequestDiscussState();
 }
 
 class _RequestDiscussState extends State<RequestDiscuss> {
-  int selectedButton = 0;
-
-  TextEditingController _disscussContent = TextEditingController();
+  late TextEditingController _disscussContent;
+  late FocusNode _commentFocusNode;
 
   @override
   void initState() {
     super.initState();
+    _disscussContent = TextEditingController();
+    _commentFocusNode = FocusNode();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding:
-          const EdgeInsets.all(8.0), // Thêm khoảng cách bên trong Container
-      child: Column(
-        children: [
-          Container(
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _disscussContent,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: whiteColor,
-                      hintText: 'Nhập thảo luận',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: Colors.grey, // Màu viền
-                          width: 1.0, // Độ rộng viền
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: Colors.grey, // Màu viền khi không focus
-                          width: 1.0, // Độ rộng viền
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: Colors.blue, // Màu viền khi focus
-                          width: 2.0, // Độ rộng viền khi focus
-                        ),
-                      ),
-                    ),
-                  ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 10,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 20,
+          children: [
+            Expanded(
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  inputDecorationTheme: customInputDecorationTheme,
                 ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: () {
-                    // send discuss
+                child: TextField(
+                  controller: _disscussContent,
+                  focusNode: _commentFocusNode,
+                  onTapOutside: (event) {
+                    _commentFocusNode.unfocus();
                   },
+                  decoration: InputDecoration(
+                    hintText: 'Nhập thảo luận...',
+                    suffixIcon: widget.commentLoading
+                        ? Transform.scale(
+                            scale: 0.5,
+                            child: CircularProgressIndicator(),
+                          )
+                        : null,
+                  ),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Colors.black),
                 ),
-              ],
+              ),
             ),
-          ),
-          // Chat content
-          for (var item in widget.dataComment) RequestChatContent(item)
-        ],
-      ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                color: secondaryColor,
+              ),
+              child: IconButton(
+                icon: Image.asset(
+                  "assets/images/ic_send.png",
+                  scale: 1.6,
+                  color: whiteColor,
+                ),
+                onPressed: () {
+                  widget.createComment(_disscussContent.text);
+                  _disscussContent.clear();
+                },
+              ),
+            ),
+          ],
+        ),
+        // Chat content
+        ListView.builder(
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          padding: EdgeInsets.only(bottom: 20),
+          itemCount: widget.dataComment.length,
+          itemBuilder: (context, index) {
+            return RequestChatContent(widget.dataComment[index]);
+          },
+        ),
+      ],
     );
+  }
+
+  @override
+  void dispose() {
+    _commentFocusNode.dispose();
+    _disscussContent.dispose();
+    super.dispose();
   }
 }

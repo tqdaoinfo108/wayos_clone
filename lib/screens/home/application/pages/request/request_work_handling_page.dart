@@ -63,110 +63,132 @@ class _RequestWorkHandlingPageState extends State<RequestWorkHandlingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appBar(title: "Xử lý công việc"),
-      body: isLoading ? loadingWidget() : SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0), // Thêm khoảng cách
-        child: Container(
-          padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
-          child: Column(
-            children: [
-              ExpandComponent(
-                title: "Bên yêu cầu",
-                isExpanded: true,
-                body: Container(
-                  padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
-                  child: Column(
-                    children: [
-                      RowDetail(
-                          title: "Tên đề xuất", content: objectData["Title"]),
-                      RowDetail(
-                          title: "Người đề xuất",
-                          content: objectData["UserPostName"]),
-                      RowDetail(
-                          title: "Phòng ban",
-                          content: objectData["DepartmentUserPostName"]),
-                    ],
-                  ),
+      body: isLoading
+          ? loadingWidget()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0), // Thêm khoảng cách
+              child: Container(
+                padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
+                child: Column(
+                  children: [
+                    ExpandComponent(
+                      title: "Bên yêu cầu",
+                      isExpanded: true,
+                      body: Container(
+                        padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
+                        child: Column(
+                          children: [
+                            RowDetail(
+                                title: "Tên đề xuất",
+                                content: objectData["Title"]),
+                            RowDetail(
+                                title: "Người đề xuất",
+                                content: objectData["UserPostName"]),
+                            RowDetail(
+                                title: "Phòng ban",
+                                content: objectData["DepartmentUserPostName"]),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                        height: 10), // Thêm khoảng cách giữa các hàng
+                    ExpandComponent(
+                      title: "Bên xử lý",
+                      isExpanded: true,
+                      body: Container(
+                        padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
+                        child: Column(
+                          children: [
+                            RowDetail(
+                                title: "Người xử lý",
+                                content: objectData["UserAssignName"]),
+                            RowDetail(
+                                title: "Phòng ban",
+                                content:
+                                    objectData["DepartmentUserAssignName"]),
+                            RowDetail(
+                                title: "Người giám sát",
+                                content: objectData["UserForwardName"] ?? ""),
+                            RowDetail(
+                                title: "Trạng thái",
+                                content: getStringStatusGlobal(
+                                    objectData["StatusID"])),
+                            RowDetail(
+                                title: "Độ ưu tiên", content: "11/11/2019"),
+                            RowDetail(
+                                title: "Ngày tạo",
+                                content: DateFormat("HH:mm dd/MM/yyyy").format(
+                                    DateTime.parse(objectData["DatePost"]))),
+                            RowDetail(
+                                title: "Ngày hoàn thành",
+                                content: DateFormat("HH:mm dd/MM/yyyy").format(
+                                    DateTime.parse(objectData["DatePost"]))),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width:
+                                      150, // Đặt chiều rộng cố định cho Text đầu tiên
+                                  child: Text(
+                                    "Mô tả chi tiết",
+                                    style: TextStyle(
+                                      color: blackColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Html(data: objectData["Description"]),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(
+                                height: 20), // Thêm khoảng cách giữa các hàng
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width:
+                                      150, // Đặt chiều rộng cố định cho Text đầu tiên
+                                  child: Text(
+                                    "Đính kèm",
+                                    style: TextStyle(
+                                      color: blackColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "Không có",
+                                    style: TextStyle(
+                                      color: blackColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    softWrap: true,
+                                  ), // Chiếm toàn bộ không gian còn lại
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                        height: 10), // Thêm khoảng cách giữa các hàng
+                    ExpandComponent(
+                      title: "Thảo luận",
+                      isExpanded: true,
+                      body: RequestDiscuss(
+                        listComment,
+                        (value) {},
+                      ),
+                    )
+                  ],
                 ),
               ),
-              const SizedBox(height: 10), // Thêm khoảng cách giữa các hàng
-              ExpandComponent(
-                title: "Bên xử lý",
-                isExpanded: true,
-                body: Container(
-                  padding: const EdgeInsets.all(0.0), // Thêm khoảng cách
-                  child: Column(
-                    children: [
-                      RowDetail(title: "Người xử lý", content: objectData["UserAssignName"]),
-                      RowDetail(title: "Phòng ban", content: objectData["DepartmentUserAssignName"]),
-                      RowDetail(title: "Người giám sát", content:
-                      objectData["UserForwardName"] ?? ""),
-                      RowDetail(title: "Trạng thái", content: getStringStatusGlobal(objectData["StatusID"])),
-                      RowDetail(title: "Độ ưu tiên", content: "11/11/2019"),
-                      RowDetail(title: "Ngày tạo", content: DateFormat
-                        ("HH:mm dd/MM/yyyy").format(DateTime.parse(objectData["DatePost"]))),
-                      RowDetail(title: "Ngày hoàn thành", content: DateFormat
-                        ("HH:mm dd/MM/yyyy").format(DateTime.parse(objectData["DatePost"]))),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width:
-                                150, // Đặt chiều rộng cố định cho Text đầu tiên
-                            child: Text(
-                              "Mô tả chi tiết",
-                              style: TextStyle(
-                                color: blackColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Html(data: objectData["Description"]),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                          height: 20), // Thêm khoảng cách giữa các hàng
-                      Row(
-                        children: [
-                          SizedBox(
-                            width:
-                                150, // Đặt chiều rộng cố định cho Text đầu tiên
-                            child: Text(
-                              "Đính kèm",
-                              style: TextStyle(
-                                color: blackColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Không có",
-                              style: TextStyle(
-                                color: blackColor,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                            ), // Chiếm toàn bộ không gian còn lại
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10), // Thêm khoảng cách giữa các hàng
-              ExpandComponent(
-                title: "Thảo luận",
-                isExpanded: true,
-                body: RequestDiscuss(listComment),
-              )
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

@@ -1,58 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:wayos_clone/utils/app_date_format.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 class RequestChatContent extends StatelessWidget {
-  const RequestChatContent(this.data, {
-    super.key,
-  });
-final dynamic data;
+  final dynamic data;
+  const RequestChatContent(this.data, {super.key});
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding:
-          const EdgeInsets.all(8.0), // Thêm khoảng cách bên trong Container
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey,
-            width: 0.5,
-          ),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         textDirection: TextDirection.ltr,
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 10,
         children: [
-           Row(
+          Row(
             children: [
-              Flexible(
-                child: Text(
-                  data['UserComment'],
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: blackColor,
-                      fontSize: 16),
-                    overflow: TextOverflow.ellipsis,
-                  softWrap: true,
-                
-                ),
+              Text(
+                data['UserComment'],
+                style: Theme.of(context).textTheme.labelLarge,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
               ),
               Flexible(
                 child: Text(
-                  " - ${data['DateCreated']}",
-                  style: TextStyle(color: Colors.grey),
+                  " - ${AppDateFormat.formatDate(data['DateCreated'])}",
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: blackColor40, fontWeight: FontWeight.normal),
                   softWrap: true,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(0.0),
-            child:  Text(data['ContentComment'],
-                style: TextStyle(color: blackColor),
-                softWrap: true,),
+          Text(
+            data['ContentComment'],
+            style: Theme.of(context)
+                .textTheme
+                .labelLarge
+                ?.copyWith(fontWeight: FontWeight.normal),
+            softWrap: true,
           ),
         ],
       ),

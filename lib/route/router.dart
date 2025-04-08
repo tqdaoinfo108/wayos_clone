@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/route/screen_export.dart';
-import 'package:wayos_clone/screens/home/application/pages/hr/request_hr_page.dart';
 import 'package:wayos_clone/screens/home/application/pages/notification/request_notification_page.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/preview_workflow_page.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/process_procedured_page.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/request_permission_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -41,7 +42,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
     case REQUEST_WORK_HANDLING_PAGE_ROUTE:
       final args = settings.arguments as int;
-
       return MaterialPageRoute(
         builder: (context) => RequestWorkHandlingPage(args),
       );
@@ -57,6 +57,15 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case REQUEST_NOTIFICATION_PAGE_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const RequestNotificationPage(),
+      );
+    case REQUEST_PERMISSION_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const RequestPermissionPage(),
+        settings: settings,
+      );
+    case PREVIEW_WORKFLOW_PAGE_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => PreviewWorkflowPage(settings.arguments),
       );
     default:
       return MaterialPageRoute(
