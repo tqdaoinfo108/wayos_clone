@@ -59,10 +59,10 @@ class RequestService extends ApiService {
     }
   }
 
-  Future<dynamic> getWorkFlowWorkByID(int workFlowID) async {
+  Future<dynamic> getProcessByID(int processID) async {
     try {
       var rs = await request(HttpMethod.get,
-          '/requestprocess/getprocessbyid/$workFlowID?processID=$workFlowID');
+          '/requestprocess/getprocessbyid/$processID?processID=$processID');
       return rs;
     } catch (e) {
       print('Lấy danh sách yêu cầu thất bại: $e');
@@ -107,13 +107,38 @@ class RequestService extends ApiService {
     }
   }
 
-  Future<dynamic> getAttachmentList(int workFlowID) async {
+  Future<dynamic> getAttachmentList({int? processID, int? workFlowID}) async {
     try {
       var rs = await request(HttpMethod.get,
-          '/requestattachment/listattachments?processID=null&workFlowID=$workFlowID');
+          '/requestattachment/listattachments?processID=$processID&workFlowID=$workFlowID');
       return rs;
     } catch (e) {
       print('Lấy danh sách tệp đính kèm thất bại: $e');
+    }
+  }
+
+  Future<dynamic> getRequestProcessComment(int processID) async {
+    try {
+      var rs = await request(HttpMethod.get,
+          '/requestcomment/getrequestcommentchat?ProcessID=$processID&CommentID=1');
+      return rs;
+    } catch (e) {
+      print('Lấy danh sách yêu cầu thất bại: $e');
+    }
+  }
+
+  Future<dynamic> createRequestProcessComment(
+      int processID, String comment, int staffInforID) async {
+    try {
+      var rs = await request(HttpMethod.post,
+          '/requestcomment/createrequestcomment?RequestProcessID=$processID',
+          body: {
+            'Comment': comment,
+            'staffInforID': staffInforID,
+          });
+      return rs;
+    } catch (e) {
+      print('Tạo comment thất bại: $e');
     }
   }
 }
