@@ -9,4 +9,8 @@ export 'package:wayos_clone/screens/home/personal/pages/change_password_page.dar
 export 'package:wayos_clone/screens/home/personal/pages/personal_detail_page.dart';
 export 'package:wayos_clone/screens/home/personal/personal.dart';
 export 'package:wayos_clone/screens/home/application/pages/hr/request_hr_page.dart';
-
+export 'package:wayos_clone/screens/home/application/pages/notification/request_notification_page.dart';
+export 'package:wayos_clone/screens/home/application/pages/request/preview_request_process_page.dart';
+export 'package:wayos_clone/screens/home/application/pages/request/preview_workflow_page.dart';
+export 'package:wayos_clone/screens/home/application/pages/request/process_procedured_page.dart';
+export 'package:wayos_clone/screens/home/application/pages/request/request_permission_page.dart';

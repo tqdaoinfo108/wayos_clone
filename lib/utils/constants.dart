@@ -25,6 +25,15 @@ String getStringStatusInWorkProcessing(int statusID) {
   }
 }
 
+String getPriority(int priorityID) {
+  switch (priorityID) {
+    case 1:
+      return 'Thấp';
+    default:
+      return '';
+  }
+}
+
 String getStringStatusGlobal(int statusID) {
   switch (statusID) {
     case -1:

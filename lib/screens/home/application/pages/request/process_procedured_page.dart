@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:wayos_clone/components/custom_expansion_tile.dart';
 import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/model/attachment_file_model.dart';
 import 'package:wayos_clone/model/workflow_request_information_model.dart';
@@ -12,6 +13,7 @@ import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/procedure_step_painter.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
 import 'package:wayos_clone/utils/constants.dart';
+import '../../../../../model/request_information_item_model.dart';
 import '../../../../../model/workflow_approval_status_item.dart';
 import '../../../../../service/request/request_service.dart';
 import '../../../../../utils/functions_util.dart';
@@ -119,7 +121,6 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
     if (comment.isEmpty) {
       return;
     }
-
     try {
       setState(() {
         commentLoading = true;
@@ -214,57 +215,49 @@ class _ProcessProceduredPage extends State<ProcessProceduredPage> {
                       },
                     ),
                   ),
-                  ExpansionTile(
-                    title: Text(
-                      'THÔNG TIN YÊU CẦU',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(color: primaryMaterialColor.shade900),
-                    ),
-                    collapsedShape: Border(
-                        bottom: BorderSide(color: blackColor40, width: 0.5)),
-                    shape: Border(),
+                  CustomExpansionTile(
+                    title: 'THÔNG TIN YÊU CẦU',
                     initiallyExpanded: true,
-                    trailing: Icon(
-                        expandedRequestInfomation ? Icons.remove : Icons.add),
-                    onExpansionChanged: (isExpanded) {
-                      setState(() {
-                        expandedRequestInfomation = isExpanded;
-                      });
-                    },
-                    children: <Widget>[
-                      ListTile(
-                        title: RequestInformation(
-                          model: requestInformationModel!,
-                          files: files,
-                          onDownload: onDownload,
+                    child: RequestInformation(
+                      onDownload: onDownload,
+                      items: [
+                        RequestInformationItemModel(
+                            label: "Tên đề xuất",
+                            value: requestInformationModel!.title),
+                        RequestInformationItemModel(
+                          label: "Biểu mẫu",
+                          value: requestInformationModel!.typeWorkFlowName,
+                          suffix: IconButton(
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                  context, PREVIEW_WORKFLOW_PAGE_ROUTE,
+                                  arguments: requestInformationModel!);
+                            },
+                            icon: Image.asset(
+                              "assets/images/ic_goto.png",
+                              scale: 1.6,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        RequestInformationItemModel(
+                            label: "Ngày tạo",
+                            value: requestInformationModel!.dateCreated),
+                        RequestInformationItemModel(
+                            label: "Người đề xuất",
+                            value: requestInformationModel!.userCreated),
+                        RequestInformationItemModel(
+                            label: "Phòng ban",
+                            value: requestInformationModel!
+                                .departmentUserRequirement),
+                        RequestInformationItemModel(
+                            label: "Tệp đính kèm", files: files),
+                      ],
+                    ),
                   ),
-                  ExpansionTile(
-                    title: Text('THẢO LUẬN',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(color: primaryMaterialColor.shade900)),
-                    collapsedShape: Border(
-                        bottom: BorderSide(color: blackColor40, width: 0.5)),
-                    shape: Border(),
-                    initiallyExpanded: false,
-                    trailing: Icon(expandedDiscuss ? Icons.remove : Icons.add),
-                    onExpansionChanged: (isExpanded) {
-                      setState(() {
-                        expandedDiscuss = isExpanded;
-                      });
-                    },
-                    children: <Widget>[
-                      ListTile(
-                        title: RequestDiscuss(listComment, createComment,
-                            commentLoading: commentLoading),
-                      ),
-                    ],
+                  CustomExpansionTile(
+                    title: 'THẢO LUẬN',
+                    child: RequestDiscuss(listComment, createComment,
+                        commentLoading: commentLoading),
                   ),
                 ],
               ),
