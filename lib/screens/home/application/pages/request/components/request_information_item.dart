@@ -16,9 +16,7 @@ class RequestInformationItem extends StatelessWidget {
     this.value,
     this.child,
     this.suffixIcon,
-  })  : assert(value != null || child != null,
-            'Either data or child must be provided.'),
-        assert(!(value != null && child != null),
+  }) : assert(!(value != null && child != null),
             'Only one of data or child can be provided.');
 
   @override

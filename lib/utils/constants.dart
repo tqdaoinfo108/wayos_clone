@@ -29,6 +29,10 @@ String getPriority(int priorityID) {
   switch (priorityID) {
     case 1:
       return 'Thấp';
+    case 2:
+      return 'Trung bình';
+    case 3:
+      return 'Cao';
     default:
       return '';
   }

@@ -107,10 +107,10 @@ class RequestService extends ApiService {
     }
   }
 
-  Future<dynamic> getAttachmentList(int workFlowID) async {
+  Future<dynamic> getAttachmentList({int? processID, int? workFlowID}) async {
     try {
       var rs = await request(HttpMethod.get,
-          '/requestattachment/listattachments?processID=null&workFlowID=$workFlowID');
+          '/requestattachment/listattachments?processID=$processID&workFlowID=$workFlowID');
       return rs;
     } catch (e) {
       print('Lấy danh sách tệp đính kèm thất bại: $e');

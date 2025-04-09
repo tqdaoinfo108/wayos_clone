@@ -70,7 +70,7 @@ class _PreviewWorkflowPageState extends State<PreviewWorkflowPage> {
                         "Tiêu đề (Title):", model.title, boldFont),
                     pw.SizedBox(height: 5),
                     getInformationRow("Người đề nghị (Requester):",
-                        model.userCreated, boldFont),
+                        model.userRequirementName, boldFont),
                     pw.SizedBox(height: 5),
                     getInformationRow("Bộ phận (Department):",
                         model.departmentUserRequirement, boldFont),
