@@ -1,4 +1,5 @@
-import 'package:intl/intl.dart';
+import 'dart:developer';
+
 import 'package:wayos_clone/service/api_service.dart';
 
 class RequestService extends ApiService {
@@ -9,23 +10,18 @@ class RequestService extends ApiService {
           '/workflow/listWorkflowsearch?typeWorkFlowID=&keySearch=$searchText&statusID=$status');
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
   Future<dynamic> getRequestWorkList(
       {int status = -100, String searchText = ''}) async {
-    var dateStart = DateFormat('dd/MM/yyyy')
-        .format(DateTime.now().subtract(Duration(days: 30)));
-    var dateEnd = DateFormat('dd/MM/yyyy').format(DateTime.now());
     try {
-      // dateStart = '30/03/2022';
-      // dateEnd = '05/04/2025';
       var rs = await request(HttpMethod.get,
-          '/requestprocess/listprocess?keySearch=$searchText&statusID=$status&fromDate=$dateStart&toDate=$dateEnd&userID=null');
+          '/requestprocess/listprocess?keySearch=$searchText&statusID=$status&fromDate=&toDate=&userID=null');
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
@@ -35,7 +31,7 @@ class RequestService extends ApiService {
           '/workflow/listworkflowapprove/$workFlowID?workFlowID=$workFlowID');
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
@@ -45,7 +41,7 @@ class RequestService extends ApiService {
           '/workflow/getworkflowbyid/$workFlowID?workFlowID=$workFlowID');
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
@@ -55,7 +51,7 @@ class RequestService extends ApiService {
           '/requestcomment/getlistrequestcommentbyworkflowid/$workFlowID?workFlowID=$workFlowID');
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
@@ -65,7 +61,7 @@ class RequestService extends ApiService {
           '/requestprocess/getprocessbyid/$processID?processID=$processID');
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
@@ -79,7 +75,7 @@ class RequestService extends ApiService {
           });
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
@@ -89,7 +85,7 @@ class RequestService extends ApiService {
           '/requestprocess/listprocesscreatedbyme?keySearch=$searchText');
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
@@ -103,7 +99,7 @@ class RequestService extends ApiService {
           });
       return rs;
     } catch (e) {
-      print('Tạo comment thất bại: $e');
+      log('Tạo comment thất bại: $e');
     }
   }
 
@@ -113,7 +109,7 @@ class RequestService extends ApiService {
           '/requestattachment/listattachments?processID=$processID&workFlowID=$workFlowID');
       return rs;
     } catch (e) {
-      print('Lấy danh sách tệp đính kèm thất bại: $e');
+      log('Lấy danh sách tệp đính kèm thất bại: $e');
     }
   }
 
@@ -123,7 +119,7 @@ class RequestService extends ApiService {
           '/requestcomment/getrequestcommentchat?ProcessID=$processID&CommentID=1');
       return rs;
     } catch (e) {
-      print('Lấy danh sách yêu cầu thất bại: $e');
+      log('Lấy danh sách yêu cầu thất bại: $e');
     }
   }
 
@@ -138,7 +134,7 @@ class RequestService extends ApiService {
           });
       return rs;
     } catch (e) {
-      print('Tạo comment thất bại: $e');
+      log('Tạo comment thất bại: $e');
     }
   }
 }

@@ -25,6 +25,20 @@ String getStringStatusInWorkProcessing(int statusID) {
   }
 }
 
+Color getColorInWorkProcessing(int statusID) {
+  switch (statusID) {
+    case -100:
+    case -10:
+    case 0:
+    case 1:
+      return secondaryColor;
+    case 2:
+      return Colors.lightGreen.shade600;
+    default:
+      return secondaryColor;
+  }
+}
+
 String getPriority(int priorityID) {
   switch (priorityID) {
     case 1:
@@ -60,11 +74,10 @@ Color getColorStatusGlobal(int statusID) {
     case 200:
       return Colors.redAccent;
     case 0:
+    case 2:
       return secondaryColor;
-    case -1:
-      return Colors.amberAccent;
     default:
-      return Colors.yellowAccent;
+      return secondaryColor;
   }
 }
 

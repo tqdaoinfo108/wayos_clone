@@ -20,53 +20,47 @@ class ChoiceOptionBar extends StatefulWidget {
 class _ChoiceOptionBarState extends State<ChoiceOptionBar> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8.0), // Thêm khoảng cách bên trong Container
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: whiteColor, // Màu nền cho Row
-        // Bottom border
-        border: Border(
-          bottom: BorderSide(
-            color: greyColor, // Màu viền
-            width: 1.0, // Độ rộng viền
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: blackColor5, width: 2)),
       ),
-      constraints: BoxConstraints(maxWidth: double.infinity), // Đặt kích thước tối đa cho Container
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal, // Cuộn theo chiều ngang
+        scrollDirection: Axis.horizontal,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.start, // Căn trái các button
+          mainAxisAlignment: MainAxisAlignment.start,
+          spacing: 20,
           children: widget.options.map((String option) {
             int index = widget.options.indexOf(option);
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0), // Thêm khoảng cách giữa các mục
-              child: GestureDetector(
-                onTap: () {
-                  widget.onTap(index);
-                  setState(() {
-                    // Cập nhật trạng thái khi một nút được chọn
-                  });
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      option,
-                      style: TextStyle(
-                        color: index == widget.value ? primaryColor : greyColor, // Màu chữ cho button
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4.0), // Tạo khoảng cách giữa text và underline
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300), // Thời gian chuyển đổi
-                      curve: Curves.easeInOut, // Đường cong chuyển đổi
-                      height: 2.0, // Chiều cao của underline
-                      width: index == widget.value ? 60.0 : 0.0, // Độ rộng của underline
-                      color: index == widget.value ? primaryColor : Colors.transparent, // Màu của underline
-                    ),
-                  ],
+            bool isSelected = index == widget.value;
+            Color color = isSelected ? primaryColor : greyColor;
+
+            EdgeInsetsGeometry? margin;
+            if (index == 0) {
+              margin = EdgeInsets.only(left: 20);
+            } else if (index == widget.options.length - 1) {
+              margin = EdgeInsets.only(right: 20);
+            }
+            return GestureDetector(
+              onTap: () {
+                widget.onTap(index);
+                setState(() {
+                  // Cập nhật trạng thái khi một nút được chọn
+                });
+              },
+              child: Container(
+                margin: margin,
+                padding: EdgeInsets.symmetric(vertical: 15),
+                decoration: isSelected
+                    ? BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: color, width: 1.5)))
+                    : null,
+                child: Text(
+                  option,
+                  style: TextStyle(
+                    color: color, // Màu chữ cho button
+                    fontSize: 16,
+                  ),
                 ),
               ),
             );
