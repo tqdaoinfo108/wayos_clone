@@ -38,6 +38,7 @@ const InputDecorationTheme customInputDecorationTheme = InputDecorationTheme(
     ),
   ),
   contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+  suffixIconColor: blackColor60,
 );
 
 const OutlineInputBorder outlineInputBorder = OutlineInputBorder(
