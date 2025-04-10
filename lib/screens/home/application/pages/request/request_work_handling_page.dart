@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/model/request_information_item_model.dart';
 import 'package:wayos_clone/model/request_process_model.dart';
-import 'package:wayos_clone/screens/home/application/pages/request/components/reques_discuss.dart';
+import 'package:wayos_clone/screens/home/application/pages/request/components/request_discuss.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_information.dart';
 import 'package:wayos_clone/utils/app_date_format.dart';
 import 'package:wayos_clone/utils/constants.dart';

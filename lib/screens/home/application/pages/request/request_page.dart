@@ -3,6 +3,8 @@ import 'package:wayos_clone/components/select_menu.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_process.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_work_handling.dart';
 
+import '../../../../../theme/input_decoration_theme.dart';
+
 class RequestPage extends StatefulWidget {
   const RequestPage({super.key});
 
@@ -36,24 +38,29 @@ class _RequestPageState extends State<RequestPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: requestController, // Lấy dữ liệu nhập vào
-              focusNode: requestFocusNode,
-              onTapOutside: (event) {
-                requestFocusNode.unfocus();
-              },
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm',
-                border: OutlineInputBorder(), // Viền cho TextField
-                contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () {
-                    setState(() {
-                      searchText = requestController.text;
-                    });
-                    requestFocusNode.unfocus();
-                  },
+            Theme(
+              data: Theme.of(context).copyWith(
+                inputDecorationTheme: customInputDecorationTheme,
+              ),
+              child: TextField(
+                controller: requestController, // Lấy dữ liệu nhập vào
+                focusNode: requestFocusNode,
+                onTapOutside: (event) {
+                  requestFocusNode.unfocus();
+                },
+                decoration: InputDecoration(
+                  hintText: 'Tìm kiếm',
+                  border: OutlineInputBorder(), // Viền cho TextField
+                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () {
+                      setState(() {
+                        searchText = requestController.text;
+                      });
+                      requestFocusNode.unfocus();
+                    },
+                  ),
                 ),
               ),
             ),
