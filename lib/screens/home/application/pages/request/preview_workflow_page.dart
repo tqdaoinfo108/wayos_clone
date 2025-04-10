@@ -1,15 +1,9 @@
-import 'dart:async';
-import 'dart:developer';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:wayos_clone/utils/constants.dart';
 import '../../../../../model/workflow_request_information_model.dart';
-import '../../../../../utils/app_date_format.dart';
 import '../../../../../utils/pdf_builder.dart';
 
 class PreviewWorkflowPage extends StatefulWidget {
@@ -20,14 +14,11 @@ class PreviewWorkflowPage extends StatefulWidget {
   State<PreviewWorkflowPage> createState() => _PreviewWorkflowPageState();
 }
 
-class _PreviewWorkflowPageState extends State<PreviewWorkflowPage> {
-  late PdfBuilder pdfBuilder;
-
+class _PreviewWorkflowPageState extends State<PreviewWorkflowPage>
+    with PdfBuilder {
   @override
   void initState() {
     super.initState();
-
-    pdfBuilder = PdfBuilder(widget.data as WorkflowRequestInformationModel);
   }
 
   @override
@@ -37,7 +28,7 @@ class _PreviewWorkflowPageState extends State<PreviewWorkflowPage> {
         body: SfPdfViewerTheme(
             data: SfPdfViewerThemeData(backgroundColor: blackColor20),
             child: FutureBuilder<Uint8List>(
-              future: pdfBuilder.buildPDF(),
+              future: buildPDF(widget.data as WorkflowRequestInformationModel),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return SfPdfViewer.memory(

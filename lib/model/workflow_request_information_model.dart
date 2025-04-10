@@ -1,5 +1,6 @@
 class WorkflowRequestInformationModel {
   final String title;
+  final int typeWorkFlowID;
   final String typeWorkFlowName;
   final String departmentUserRequirement;
   final String userRequirementName;
@@ -8,6 +9,7 @@ class WorkflowRequestInformationModel {
 
   WorkflowRequestInformationModel(
       {required this.title,
+      required this.typeWorkFlowID,
       required this.typeWorkFlowName,
       required this.departmentUserRequirement,
       required this.userRequirementName,
@@ -17,6 +19,7 @@ class WorkflowRequestInformationModel {
   factory WorkflowRequestInformationModel.fromMap(Map<String, dynamic> json) =>
       WorkflowRequestInformationModel(
         title: json['Title'],
+        typeWorkFlowID: json['TypeWorkFlowID'] as int,
         typeWorkFlowName: json['TypeWorkFlowName'],
         departmentUserRequirement: json['DepartmentUserRequirement'],
         userRequirementName: json['UserRequirementName'],
