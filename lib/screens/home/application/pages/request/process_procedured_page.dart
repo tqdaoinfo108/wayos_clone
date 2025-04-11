@@ -110,6 +110,27 @@ class _ProcessProceduredPage
     }
   }
 
+  Future<void> updateWorkflowIsApprove() async {
+    var respository = RequestService();
+    try {
+      loading(true);
+      int workFlowApproveID =
+          _steps.firstWhere((step) => step.isNotApprove).workFlowApproveID!;
+      var result = await respository.updateWorkflowIsApprove(
+          workFlowApproveID, widget.statusID);
+
+      if (result.isNotEmpty) {
+        setState(() {
+          if (result != null) {
+            // _steps = convertJson(result, widget.statusID);
+          }
+        });
+      }
+    } finally {
+      loading(false);
+    }
+  }
+
   @override
   Widget buildContent(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
@@ -223,48 +244,16 @@ class _ProcessProceduredPage
                       child: Row(
                         spacing: 10,
                         children: [
-                          Expanded(
-                            child: TextButton(
-                                style: getTextStyle(Colors.lightGreen.shade600),
-                                onPressed: () {},
-                                child: Text(
-                                  "Duyệt",
-                                  style: TextStyle(color: whiteColor),
-                                )),
-                          ),
-                          Expanded(
-                            child: TextButton(
-                                style: getTextStyle(Colors.redAccent.shade100),
-                                onPressed: () {},
-                                child: Text(
-                                  "Không Duyệt",
-                                  style: TextStyle(color: whiteColor),
-                                )),
-                          ),
-                          Expanded(
-                            child: TextButton(
-                                style: getTextStyle(Colors.amberAccent),
-                                onPressed: () {},
-                                child: Text(
-                                  "Tạo lại",
-                                  style: TextStyle(color: whiteColor),
-                                )),
-                          )
+                          Expanded(child: getTextButton("Duyệt", 100)),
+                          Expanded(child: getTextButton("Không Duyệt", 200)),
+                          Expanded(child: getTextButton("Tạo lại", 2))
                         ],
                       ),
                     ),
                     Expanded(
                       child: Row(
                         children: [
-                          Expanded(
-                            child: TextButton(
-                                style: getTextStyle(greyColor),
-                                onPressed: () {},
-                                child: Text(
-                                  "Chuyển tiếp",
-                                  style: TextStyle(color: whiteColor),
-                                )),
-                          )
+                          Expanded(child: getTextButton("Chuyển tiếp", -20))
                         ],
                       ),
                     )
@@ -273,6 +262,19 @@ class _ProcessProceduredPage
               ))
       ],
     );
+  }
+
+  TextButton getTextButton(String label, int statusID) {
+    return TextButton(
+        style: getTextStyle(getBackgroundColor(statusID)),
+        onPressed: () {
+          if (statusID == -20) {
+          } else {}
+        },
+        child: Text(
+          label,
+          style: TextStyle(color: whiteColor),
+        ));
   }
 
   ButtonStyle getTextStyle(Color color) {

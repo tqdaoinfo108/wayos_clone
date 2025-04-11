@@ -151,4 +151,16 @@ class RequestService extends ApiService {
       log('Tạo comment thất bại: $e');
     }
   }
+
+  Future<dynamic> updateWorkflowIsApprove(
+      int workFlowApproveID, int statusID) async {
+    try {
+      var rs = await request(HttpMethod.put,
+          '/workflow/updateworkflowisapprove?workFlowApproveID=$workFlowApproveID',
+          body: {'IsApprove': statusID});
+      return rs;
+    } catch (e) {
+      log('Cập nhật appove workflow thất bại: $e');
+    }
+  }
 }

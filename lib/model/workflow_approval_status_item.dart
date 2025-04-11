@@ -11,6 +11,7 @@ class WorkflowApprovalStatusItem extends ApprovalItem {
   final String statusText;
   final bool isNotApprove;
   final int? userApproveID;
+  final int? workFlowApproveID;
 
   WorkflowApprovalStatusItem({
     super.title = '',
@@ -23,6 +24,7 @@ class WorkflowApprovalStatusItem extends ApprovalItem {
     this.statusText = '',
     this.isNotApprove = false,
     this.userApproveID,
+    this.workFlowApproveID,
   });
 }
 
@@ -37,12 +39,13 @@ List<WorkflowApprovalStatusItem> convertJson(
     DateTime dateTime = DateTime.parse(item['DateCreated']);
     String timestamp = DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
 
-    int statusStepID = int.parse(item['IsApprove'] ?? '0');
+    int statusStepID = item['IsApprove'] ?? 0;
     String statusText = _getStatusText(statusStepID, timestamp, isNotApprove);
 
     IconData icon = _getIconStepByStatusID(statusStepID);
 
-    Color backgroundColor = _getBackgroundColor(statusStepID, isNotApprove);
+    Color backgroundColor =
+        getBackgroundColor(statusStepID, isNotApprove: isNotApprove);
     Color pipelineColor = backgroundColor;
 
     // set pipeline color to grey if next step is not approve AND
@@ -58,17 +61,17 @@ List<WorkflowApprovalStatusItem> convertJson(
     }
 
     var approveStatusItem = WorkflowApprovalStatusItem(
-      title: item['DepartmentApproveName'],
-      name: item['UserApproveName'],
-      timestamp: timestamp,
-      statusStepID: statusStepID,
-      backgroundColor: backgroundColor,
-      pipelineColor: pipelineColor,
-      icon: icon,
-      statusText: statusText,
-      isNotApprove: isNotApprove,
-      userApproveID: item['UserApproveID'],
-    );
+        title: item['DepartmentApproveName'],
+        name: item['UserApproveName'],
+        timestamp: timestamp,
+        statusStepID: statusStepID,
+        backgroundColor: backgroundColor,
+        pipelineColor: pipelineColor,
+        icon: icon,
+        statusText: statusText,
+        isNotApprove: statusStepID == 0,
+        userApproveID: item['UserApproveID'],
+        workFlowApproveID: item['WorkFlowApproveID']);
 
     result.add(approveStatusItem);
   }
@@ -82,6 +85,8 @@ IconData _getIconStepByStatusID(int statusID) {
       return Icons.block;
     case 0:
       return Icons.radio_button_checked;
+    case 2:
+      return Icons.arrow_circle_left_outlined;
     case 100:
       return Icons.check_circle_outline;
     case 200:
@@ -100,6 +105,9 @@ String _getStatusText(int statusID, String time, bool isNotApprove) {
     case 0:
       message = "Trạng Thái | Đang chờ duyệt";
       break;
+    case 2:
+      message = "Trạng Thái | Tạo lại";
+      break;
     case 100:
       message = time;
       break;
@@ -117,7 +125,7 @@ String _getStatusText(int statusID, String time, bool isNotApprove) {
   return message;
 }
 
-Color _getBackgroundColor(int statusID, bool isNotApprove) {
+Color getBackgroundColor(int statusID, {bool isNotApprove = false}) {
   if (isNotApprove) {
     return Colors.grey;
   }
@@ -127,11 +135,13 @@ Color _getBackgroundColor(int statusID, bool isNotApprove) {
       return Colors.amberAccent;
     case 0:
       return secondaryColor;
+    case 2:
+      return Colors.amber.shade600;
     case 100:
       return Colors.lightGreen.shade600;
     case 200:
-      return Colors.redAccent;
+      return Colors.red.shade300;
     default:
-      return Colors.yellowAccent;
+      return Colors.grey;
   }
 }
