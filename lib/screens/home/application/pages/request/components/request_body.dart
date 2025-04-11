@@ -24,10 +24,13 @@ class RequestBody extends StatefulWidget {
 
 class _RequestBodyState extends State<RequestBody> {
   late StreamController<bool> _loadingController;
+  late ScrollController _scrollController;
   int selectedButton = 0;
   List<dynamic> listRequest = [];
   int statusID = -100;
   int totals = 0; // để sau này load more
+  int page = 1;
+  final ValueNotifier<bool> _loadmoreNotifier = ValueNotifier(false);
 
   /// statusID, label
   Map<int, String> requestProcessingMap = {
@@ -53,29 +56,61 @@ class _RequestBodyState extends State<RequestBody> {
   void initState() {
     super.initState();
     _loadingController = StreamController();
+    _scrollController = ScrollController()
+      ..addListener(
+        () {
+          if (_scrollController.position.pixels ==
+                  _scrollController.position.maxScrollExtent &&
+              !_loadmoreNotifier.value &&
+              listRequest.length < totals) {
+            _loadmoreNotifier.value = true;
+            initData(statusID, widget.searchText);
+          }
+        },
+      );
     initData(statusID, widget.searchText);
   }
 
-  initData(int statusID, String searchText) async {
+  Future<void> initData(int statusID, String searchText) async {
     try {
-      loading(true);
+      // with loadmore: increate page 1
+      // without loadmore: page = 0
+      if (_loadmoreNotifier.value) {
+        setState(() {
+          page++;
+        });
+      } else {
+        loading(true);
+        setState(() {
+          page = 1;
+        });
+      }
 
       await (widget.isRequestProcessing
           ? initRequestProcessingData(statusID, searchText)
           : initRequestWorkHandlingData(statusID, searchText));
     } finally {
-      loading(false);
+      // end of fetch data: stop loadmore (if existed), loading
+      if (_loadmoreNotifier.value) {
+        _loadmoreNotifier.value = false;
+      } else {
+        loading(false);
+      }
     }
   }
 
   Future<void> initRequestProcessingData(
       int statusID, String searchText) async {
     var response = await RequestService()
-        .getRequestList(status: statusID, searchText: searchText);
+        .getRequestList(status: statusID, searchText: searchText, page: page);
     if (response['data'] != null) {
       setState(() {
-        listRequest = response['data'];
-        totals = response['totals'];
+        if (_loadmoreNotifier.value) {
+          listRequest.addAll(response['data']);
+        } else {
+          listRequest = response['data'];
+          totals = response['totals'];
+        }
       });
     }
   }
@@ -86,23 +121,33 @@ class _RequestBodyState extends State<RequestBody> {
     switch (statusID) {
       case -100:
         response = await RequestService()
-            .getNeedToHandleProcessList(searchText: searchText);
+            .getNeedToHandleProcessList(searchText: searchText, page: page);
         break;
       case -10:
         response = await RequestService()
-            .getMyProposalProcessList(searchText: searchText);
+            .getMyProposalProcessList(searchText: searchText, page: page);
         break;
       default:
-        response = await RequestService()
-            .getRequestWorkList(status: statusID, searchText: searchText);
+        response = await RequestService().getRequestWorkList(
+            status: statusID, searchText: searchText, page: page++);
         break;
     }
 
     if (response['data'] != null) {
       setState(() {
-        listRequest = response['data'];
-        totals = response['totals'];
+        if (_loadmoreNotifier.value) {
+          listRequest.addAll(response['data']);
+        } else {
+          listRequest = response['data'];
+          totals = response['totals'];
+        }
       });
+    }
+  }
+
+  void jumpToInitialScroll() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
     }
   }
 
@@ -125,6 +170,7 @@ class _RequestBodyState extends State<RequestBody> {
                 .elementAt(index);
           });
           initData(statusID, widget.searchText);
+          jumpToInitialScroll();
         },
       ),
       Expanded(
@@ -132,33 +178,61 @@ class _RequestBodyState extends State<RequestBody> {
           children: [
             listRequest.isEmpty
                 ? UnavailableData()
-                : ListView.builder(
-                    itemCount: listRequest.length,
-                    itemBuilder: (context, index) {
-                      return RequestRowDetail(
-                          data: listRequest[index],
-                          color: widget.isRequestProcessing
-                              ? getColorStatusGlobal(statusID)
-                              : getColorInWorkProcessing(statusID),
-                          status: widget.isRequestProcessing
-                              ? getStringStatusGlobal(
-                                  listRequest[index]['StatusID'])
-                              : getStringStatusInWorkProcessing(
-                                  listRequest[index]['StatusID']),
-                          onTap: () {
-                            widget.isRequestProcessing
-                                ? Navigator.pushNamed(
-                                    context, PROCESS_PROCEDURED_PAGE_ROUTE,
-                                    arguments: (
-                                        listRequest[index]["WorkFlowID"],
-                                        statusID
-                                      ))
-                                : Navigator.pushNamed(
-                                    context, REQUEST_WORK_HANDLING_PAGE_ROUTE,
-                                    arguments: listRequest[index]['ProcessID']);
-                          });
-                    },
+                : RefreshIndicator(
+                    color: blackColor,
+                    backgroundColor: whiteColor,
+                    elevation: 4,
+                    displacement: 20,
+                    onRefresh: () => Future.delayed(Duration(seconds: 1),
+                        () => initData(statusID, widget.searchText)),
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: listRequest.length,
+                      itemBuilder: (context, index) {
+                        return RequestRowDetail(
+                            data: listRequest[index],
+                            color: widget.isRequestProcessing
+                                ? getColorStatusGlobal(statusID)
+                                : getColorInWorkProcessing(statusID),
+                            status: widget.isRequestProcessing
+                                ? getStringStatusGlobal(
+                                    listRequest[index]['StatusID'])
+                                : getStringStatusInWorkProcessing(
+                                    listRequest[index]['StatusID']),
+                            onTap: () {
+                              widget.isRequestProcessing
+                                  ? Navigator.pushNamed(
+                                      context, PROCESS_PROCEDURED_PAGE_ROUTE,
+                                      arguments: (
+                                          listRequest[index]["WorkFlowID"],
+                                          statusID
+                                        ))
+                                  : Navigator.pushNamed(
+                                      context, REQUEST_WORK_HANDLING_PAGE_ROUTE,
+                                      arguments: listRequest[index]
+                                          ['ProcessID']);
+                            });
+                      },
+                    ),
                   ),
+            ValueListenableBuilder(
+              valueListenable: _loadmoreNotifier,
+              builder: (context, value, child) {
+                return value ? child! : SizedBox();
+              },
+              child: Positioned.fill(
+                bottom: 20,
+                child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                        width: 25,
+                        height: 25,
+                        child: CircularProgressIndicator(
+                          color: primaryColor,
+                          strokeWidth: 3,
+                        ))),
+              ),
+            ),
             StreamBuilder<bool>(
               stream: _loadingController.stream,
               builder: (context, snapshot) {
@@ -193,10 +267,18 @@ class _RequestBodyState extends State<RequestBody> {
     } else if (oldWidget.searchText != widget.searchText) {
       initData(statusID, widget.searchText);
     }
+
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        jumpToInitialScroll();
+      },
+    );
   }
 
   @override
   void dispose() {
+    _loadmoreNotifier.dispose();
+    _scrollController.dispose();
     _loadingController.close();
     super.dispose();
   }
