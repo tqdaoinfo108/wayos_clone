@@ -9,16 +9,20 @@ class WorkflowApprovalStatusItem extends ApprovalItem {
   final Color pipelineColor;
   final IconData icon;
   final String statusText;
+  final bool isNotApprove;
+  final int? userApproveID;
 
   WorkflowApprovalStatusItem({
-    required super.title,
-    required super.name,
-    required super.timestamp,
-    required super.statusStepID,
-    required this.backgroundColor,
-    required this.pipelineColor,
-    required this.icon,
-    required this.statusText,
+    super.title = '',
+    super.name = '',
+    super.timestamp = '',
+    super.statusStepID,
+    this.backgroundColor = Colors.grey,
+    this.pipelineColor = Colors.grey,
+    this.icon = Icons.block,
+    this.statusText = '',
+    this.isNotApprove = false,
+    this.userApproveID,
   });
 }
 
@@ -33,7 +37,7 @@ List<WorkflowApprovalStatusItem> convertJson(
     DateTime dateTime = DateTime.parse(item['DateCreated']);
     String timestamp = DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
 
-    int statusStepID = item['IsApprove'] as int;
+    int statusStepID = int.parse(item['IsApprove'] ?? '0');
     String statusText = _getStatusText(statusStepID, timestamp, isNotApprove);
 
     IconData icon = _getIconStepByStatusID(statusStepID);
@@ -49,6 +53,10 @@ List<WorkflowApprovalStatusItem> convertJson(
       pipelineColor = Colors.grey;
     }
 
+    if (statusStepID == 200 || statusStepID == 0) {
+      isNotApprove = true;
+    }
+
     var approveStatusItem = WorkflowApprovalStatusItem(
       title: item['DepartmentApproveName'],
       name: item['UserApproveName'],
@@ -58,11 +66,9 @@ List<WorkflowApprovalStatusItem> convertJson(
       pipelineColor: pipelineColor,
       icon: icon,
       statusText: statusText,
+      isNotApprove: isNotApprove,
+      userApproveID: item['UserApproveID'],
     );
-
-    if (statusStepID == 200 || statusStepID == 0) {
-      isNotApprove = true;
-    }
 
     result.add(approveStatusItem);
   }
