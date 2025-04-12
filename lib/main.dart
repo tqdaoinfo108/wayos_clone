@@ -24,6 +24,8 @@ void main() async {
   );
 }
 
+final RouteObserverService routeObserver = RouteObserverService();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -40,7 +42,30 @@ class MyApp extends StatelessWidget {
         initialRoute: GetStorage().read(tokenID) == null
             ? LOG_IN_SCREEN_ROUTE
             : HOME_NAVIGATION_ROUTE,
+        navigatorObservers: [routeObserver],
       ),
     );
+  }
+}
+
+class RouteObserverService extends NavigatorObserver {
+  String? currentRoute;
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    super.didPush(route, previousRoute);
+    currentRoute = route.settings.name;
+  }
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    super.didRemove(route, previousRoute);
+    currentRoute = route.settings.name;
+  }
+
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    super.didPop(route, previousRoute);
+    currentRoute = route.settings.name;
   }
 }

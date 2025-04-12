@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/home/application/application.dart';
 import 'package:wayos_clone/screens/home/dashboard.dart';
@@ -24,6 +26,15 @@ class _BottomNavigationBarStateApp extends State<BottomNavigationBarApp> {
     InformPage(),
     PersonalPage(),
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    RouteSettings settings = ModalRoute.of(context)!.settings;
+    if (settings.arguments == null) {
+      _selectedIndex = 0;
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {

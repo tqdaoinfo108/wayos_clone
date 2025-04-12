@@ -31,12 +31,16 @@ class _ProcessProceduredPage
   bool commentLoading = false;
 
   List<AttachmentFileModel> files = [];
+  late ValueNotifier<bool> isWorkflowApproveUser;
+  late ValueNotifier<int> approvalStatusConfirmationNotifier;
 
   @override
   void initState() {
     super.initState();
     init(widget.workflowID);
     super.title = "Quy Trình Xét Duyệt";
+    isWorkflowApproveUser = ValueNotifier(false);
+    approvalStatusConfirmationNotifier = ValueNotifier(-1000);
   }
 
   init(int workflowID) async {
@@ -59,6 +63,13 @@ class _ProcessProceduredPage
         setState(() {
           if (results[0]['data'] != null) {
             _steps = convertJson(results[0], widget.statusID);
+
+            // show approve bottom bar
+            isWorkflowApproveUser.value = _steps
+                    .firstWhere((step) => step.isNotApprove,
+                        orElse: () => WorkflowApprovalStatusItem())
+                    .userApproveID ==
+                GetStorage().read(staffID);
           }
 
           if (results[1] != null) {
@@ -110,19 +121,20 @@ class _ProcessProceduredPage
     }
   }
 
-  Future<void> updateWorkflowIsApprove() async {
+  Future<void> updateWorkflowIsApprove(int confirmStatusID) async {
     var respository = RequestService();
     try {
       loading(true);
       int workFlowApproveID =
           _steps.firstWhere((step) => step.isNotApprove).workFlowApproveID!;
-      var result = await respository.updateWorkflowIsApprove(
-          workFlowApproveID, widget.statusID);
-
+      // var result = await respository.updateWorkflowIsApprove(
+      //     workFlowApproveID, widget.statusID);
+      var result = ['sa'];
       if (result.isNotEmpty) {
         setState(() {
           if (result != null) {
             // _steps = convertJson(result, widget.statusID);
+            approvalStatusConfirmationNotifier.value = confirmStatusID;
           }
         });
       }
@@ -214,74 +226,32 @@ class _ProcessProceduredPage
             ],
           ),
         ),
-        if (_steps
-                .firstWhere((step) => step.isNotApprove,
-                    orElse: () => WorkflowApprovalStatusItem())
-                .userApproveID ==
-            GetStorage().read(staffID))
-          Positioned(
-              bottom: 0,
-              height: height / 6,
-              width: width,
-              child: Container(
-                padding:
-                    EdgeInsets.only(top: 15, right: 15, bottom: 20, left: 15),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5.0),
-                  color: whiteColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey,
-                      offset: Offset(0.0, 2.0), //(x,y)
-                      blurRadius: 5.0,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  spacing: 10,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        spacing: 10,
-                        children: [
-                          Expanded(child: getTextButton("Duyệt", 100)),
-                          Expanded(child: getTextButton("Không Duyệt", 200)),
-                          Expanded(child: getTextButton("Tạo lại", 2))
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(child: getTextButton("Chuyển tiếp", -20))
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ))
+        ValueListenableBuilder<bool>(
+          valueListenable: isWorkflowApproveUser,
+          builder: (context, showApproveBottomBar, child) {
+            return showApproveBottomBar ? child! : SizedBox();
+          },
+          child: ApprovalBottomBar(
+            height: height / 6,
+            width: width,
+            onConfirmApprovalStatus: (confirmStatusID) {
+              updateWorkflowIsApprove(confirmStatusID);
+            },
+          ),
+        ),
+        ValueListenableBuilder(
+            valueListenable: approvalStatusConfirmationNotifier,
+            builder: (context, statusID, child) {
+              switch (statusID) {
+                case 100:
+                  return child!;
+                default:
+                  return SizedBox();
+              }
+            },
+            child: CompletedApprovalStatusConfirmation(
+                height: height, width: width))
       ],
-    );
-  }
-
-  TextButton getTextButton(String label, int statusID) {
-    return TextButton(
-        style: getTextStyle(getBackgroundColor(statusID)),
-        onPressed: () {
-          if (statusID == -20) {
-          } else {}
-        },
-        child: Text(
-          label,
-          style: TextStyle(color: whiteColor),
-        ));
-  }
-
-  ButtonStyle getTextStyle(Color color) {
-    return TextButton.styleFrom(
-      backgroundColor: color,
-      minimumSize: Size.fromHeight(80),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
     );
   }
 
@@ -307,5 +277,265 @@ class _ProcessProceduredPage
       textDirection: TextDirection.ltr,
       textWidthBasis: TextWidthBasis.longestLine,
     );
+  }
+
+  @override
+  void dispose() {
+    approvalStatusConfirmationNotifier.dispose();
+    isWorkflowApproveUser.dispose();
+    super.dispose();
+  }
+}
+
+class ApprovalBottomBar extends StatelessWidget {
+  const ApprovalBottomBar({
+    super.key,
+    required this.height,
+    required this.width,
+    required this.onConfirmApprovalStatus,
+  });
+
+  final double height;
+  final double width;
+  final ValueChanged<int> onConfirmApprovalStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        bottom: 0,
+        height: height,
+        width: width,
+        child: Container(
+          padding: EdgeInsets.only(top: 15, right: 15, bottom: 20, left: 15),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5.0),
+            color: whiteColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey,
+                offset: Offset(0.0, 2.0), //(x,y)
+                blurRadius: 5.0,
+              ),
+            ],
+          ),
+          child: Column(
+            spacing: 10,
+            children: [
+              Expanded(
+                child: Row(
+                  spacing: 10,
+                  children: [
+                    Expanded(
+                        child: StatusButton(
+                      label: "Duyệt",
+                      confirmStatusID: 100,
+                      onConfirmApprovalStatus: onConfirmApprovalStatus,
+                    )),
+                    Expanded(
+                        child: StatusButton(
+                      label: "Không Duyệt",
+                      confirmStatusID: 200,
+                      onConfirmApprovalStatus: onConfirmApprovalStatus,
+                    )),
+                    Expanded(
+                        child: StatusButton(
+                      label: "Tạo lại",
+                      confirmStatusID: 2,
+                      onConfirmApprovalStatus: onConfirmApprovalStatus,
+                    ))
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: StatusButton(
+                      label: "Chuyển tiếp",
+                      confirmStatusID: -20,
+                      onConfirmApprovalStatus: onConfirmApprovalStatus,
+                    ))
+                  ],
+                ),
+              )
+            ],
+          ),
+        ));
+  }
+}
+
+class StatusButton extends StatelessWidget {
+  final String label;
+  final int confirmStatusID;
+  final ValueChanged<int> onConfirmApprovalStatus;
+  final ValueNotifier<bool> onPressdNotifier = ValueNotifier(false);
+  StatusButton(
+      {super.key,
+      required this.label,
+      required this.confirmStatusID,
+      required this.onConfirmApprovalStatus});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      style: TextButton.styleFrom(
+        backgroundColor: getBackgroundColor(confirmStatusID),
+        minimumSize: Size.fromHeight(80),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+      ),
+      onPressed: () {
+        onPressdNotifier.value = true;
+        Future.delayed(
+          Duration(seconds: 1),
+          () => onConfirmApprovalStatus(confirmStatusID),
+        );
+      },
+      child: ValueListenableBuilder(
+        valueListenable: onPressdNotifier,
+        builder: (context, isPressed, child) {
+          if (!isPressed) {
+            return child!;
+          } else {
+            return SizedBox(
+                width: 25,
+                height: 25,
+                child: CircularProgressIndicator(
+                  color: whiteColor,
+                  strokeWidth: 3,
+                ));
+          }
+        },
+        child: Text(
+          label,
+          style: TextStyle(color: whiteColor),
+        ),
+      ),
+    );
+  }
+}
+
+class CompletedApprovalStatusConfirmation extends StatelessWidget {
+  const CompletedApprovalStatusConfirmation({
+    super.key,
+    required this.height,
+    required this.width,
+  });
+
+  final double height;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        height: height - 2 * width / 3.5,
+        width: width,
+        bottom: 0,
+        child: Container(
+          color: whiteColor,
+          child: Column(
+            children: [
+              Expanded(
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 20,
+                children: [
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: getBackgroundColor(100),
+                    size: width / 5,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text(
+                      "BẠN ĐÃ DUYỆT ĐỀ XUẤT",
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontSize: 20),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 40),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                              Text(
+                                "Tên đề xuất",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontSize: 15),
+                              )
+                            ])),
+                        Expanded(
+                            flex: 2,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [Text("Xét tuyển nhân viên")]))
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 40),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [Text("Thời gian")])),
+                        Expanded(
+                            flex: 2,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [Text("12/04/2025 08:59")]))
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 40),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [Text("Người đề xuất")])),
+                        Expanded(
+                            flex: 2,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [Text("admin")]))
+                      ],
+                    ),
+                  )
+                ],
+              )),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 15.0, horizontal: 10),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.blue.shade600,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(3)),
+                    ),
+                    onPressed: () {
+                      Navigator.popUntil(
+                          context, ModalRoute.withName(HOME_NAVIGATION_ROUTE));
+                    },
+                    child: Text(
+                      "QUAY VỀ TRANG CHÍNH",
+                      style: TextStyle(color: whiteColor),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ));
   }
 }
