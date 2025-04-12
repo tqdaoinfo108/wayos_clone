@@ -5,6 +5,7 @@ import 'package:wayos_clone/components/choice_option_bar.dart';
 import 'package:wayos_clone/components/loading.dart';
 import 'package:wayos_clone/components/unavailable_data.dart';
 import 'package:wayos_clone/route/route_constants.dart';
+import 'package:wayos_clone/route/screen_export.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_row_detail.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
@@ -199,8 +200,8 @@ class _RequestBodyState extends State<RequestBody> {
                                     listRequest[index]['StatusID'])
                                 : getStringStatusInWorkProcessing(
                                     listRequest[index]['StatusID']),
-                            onTap: () {
-                              widget.isRequestProcessing
+                            onTap: () async {
+                              dynamic result = await (widget.isRequestProcessing
                                   ? Navigator.pushNamed(
                                       context, PROCESS_PROCEDURED_PAGE_ROUTE,
                                       arguments: (
@@ -210,7 +211,11 @@ class _RequestBodyState extends State<RequestBody> {
                                   : Navigator.pushNamed(
                                       context, REQUEST_WORK_HANDLING_PAGE_ROUTE,
                                       arguments: listRequest[index]
-                                          ['ProcessID']);
+                                          ['ProcessID']));
+                              if (result is ConfirmNotApprovalEvent) {
+                                showNotApprovalConfirmationSnackbar(
+                                    "Yêu cầu của bạn đã thực hiện thành công");
+                              }
                             });
                       },
                     ),
@@ -273,6 +278,39 @@ class _RequestBodyState extends State<RequestBody> {
         jumpToInitialScroll();
       },
     );
+  }
+
+  void showNotApprovalConfirmationSnackbar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(bottom: 60),
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            duration: Durations.extralong4,
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(2)),
+                  color: blackColor5,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 12.0),
+                    child: Text(
+                      message,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              ],
+            )),
+      );
+    }
   }
 
   @override

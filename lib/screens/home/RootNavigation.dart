@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/home/application/application.dart';
 import 'package:wayos_clone/screens/home/dashboard.dart';

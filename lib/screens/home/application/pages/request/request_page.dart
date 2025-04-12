@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/components/select_menu.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_body.dart';
 import '../../../../../theme/input_decoration_theme.dart';
 import '../../../../../utils/constants.dart';
+import 'process_procedured_page.dart';
 
 class RequestPage extends StatefulWidget {
   const RequestPage({super.key});
@@ -11,7 +14,7 @@ class RequestPage extends StatefulWidget {
   State<RequestPage> createState() => _RequestPageState();
 }
 
-class _RequestPageState extends State<RequestPage> {
+class _RequestPageState extends State<RequestPage> with RouteAware {
   late TextEditingController requestController;
   late FocusNode requestFocusNode;
   int selectedButton = 0;

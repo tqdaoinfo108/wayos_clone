@@ -12,6 +12,7 @@ class WorkflowApprovalStatusItem extends ApprovalItem {
   final bool isNotApprove;
   final int? userApproveID;
   final int? workFlowApproveID;
+  final int? workFlowID;
 
   WorkflowApprovalStatusItem({
     super.title = '',
@@ -25,6 +26,7 @@ class WorkflowApprovalStatusItem extends ApprovalItem {
     this.isNotApprove = false,
     this.userApproveID,
     this.workFlowApproveID,
+    this.workFlowID,
   });
 }
 
@@ -61,17 +63,19 @@ List<WorkflowApprovalStatusItem> convertJson(
     }
 
     var approveStatusItem = WorkflowApprovalStatusItem(
-        title: item['DepartmentApproveName'],
-        name: item['UserApproveName'],
-        timestamp: timestamp,
-        statusStepID: statusStepID,
-        backgroundColor: backgroundColor,
-        pipelineColor: pipelineColor,
-        icon: icon,
-        statusText: statusText,
-        isNotApprove: statusStepID == 0,
-        userApproveID: item['UserApproveID'],
-        workFlowApproveID: item['WorkFlowApproveID']);
+      title: item['DepartmentApproveName'],
+      name: item['UserApproveName'],
+      timestamp: timestamp,
+      statusStepID: statusStepID,
+      backgroundColor: backgroundColor,
+      pipelineColor: pipelineColor,
+      icon: icon,
+      statusText: statusText,
+      isNotApprove: statusStepID == 0,
+      userApproveID: item['UserApproveID'],
+      workFlowApproveID: item['WorkFlowApproveID'],
+      workFlowID: item['WorkFlowID'],
+    );
 
     result.add(approveStatusItem);
   }

@@ -163,4 +163,14 @@ class RequestService extends ApiService {
       log('Cập nhật appove workflow thất bại: $e');
     }
   }
+
+  Future<dynamic> forwardWorkflow(int workFlowID, int userForwardID) async {
+    try {
+      var rs = await request(HttpMethod.put,
+          '/workflow/forwardworkflow/4620?workFlowID=$workFlowID&userForwardID=$userForwardID');
+      return rs;
+    } catch (e) {
+      log('Chuyển tiếp workflow thất bại: $e');
+    }
+  }
 }
