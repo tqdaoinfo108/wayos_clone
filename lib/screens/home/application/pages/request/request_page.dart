@@ -11,7 +11,7 @@ class RequestPage extends StatefulWidget {
   State<RequestPage> createState() => _RequestPageState();
 }
 
-class _RequestPageState extends State<RequestPage> {
+class _RequestPageState extends State<RequestPage> with RouteAware {
   late TextEditingController requestController;
   late FocusNode requestFocusNode;
   int selectedButton = 0;

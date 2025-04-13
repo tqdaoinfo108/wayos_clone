@@ -151,4 +151,36 @@ class RequestService extends ApiService {
       log('Tạo comment thất bại: $e');
     }
   }
+
+  Future<dynamic> updateWorkflowIsApprove(
+      int workFlowApproveID, int statusID) async {
+    try {
+      var rs = await request(HttpMethod.put,
+          '/workflow/updateworkflowisapprove?workFlowApproveID=$workFlowApproveID',
+          body: {'IsApprove': statusID});
+      return rs;
+    } catch (e) {
+      log('Cập nhật appove workflow thất bại: $e');
+    }
+  }
+
+  Future<dynamic> forwardWorkflow(int workFlowID, int staffID) async {
+    try {
+      var rs = await request(HttpMethod.put,
+          '/workflow/forwardworkflow/4620?workFlowID=$workFlowID&userForwardID=$staffID');
+      return rs;
+    } catch (e) {
+      log('Chuyển tiếp workflow thất bại: $e');
+    }
+  }
+
+  Future<dynamic> getListStaffByDepartmentID(int departmentID) async {
+    try {
+      var rs = await request(HttpMethod.get,
+          '/staff/getlistcompanystaffs?departmentID=$departmentID');
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách staff thất bại: $e');
+    }
+  }
 }

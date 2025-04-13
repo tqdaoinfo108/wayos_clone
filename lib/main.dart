@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,7 @@ import 'package:wayos_clone/theme/app_theme.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 import './route/router.dart' as router;
+import 'route/screen_export.dart';
 
 void main() async {
   await GetStorage.init();
@@ -23,6 +26,8 @@ void main() async {
     ),
   );
 }
+
+final RouteObserverService routeObserver = RouteObserverService();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -40,7 +45,30 @@ class MyApp extends StatelessWidget {
         initialRoute: GetStorage().read(tokenID) == null
             ? LOG_IN_SCREEN_ROUTE
             : HOME_NAVIGATION_ROUTE,
+        navigatorObservers: [routeObserver],
       ),
     );
+  }
+}
+
+class RouteObserverService extends NavigatorObserver {
+  String? currentRoute;
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    super.didPush(route, previousRoute);
+    currentRoute = route.settings.name;
+  }
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    super.didRemove(route, previousRoute);
+    currentRoute = route.settings.name;
+  }
+
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    super.didPop(route, previousRoute);
+    currentRoute = route.settings.name;
   }
 }

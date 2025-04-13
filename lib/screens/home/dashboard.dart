@@ -16,31 +16,26 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   bool isLoading = false;
 
-
-
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color.fromRGBO(204, 202, 198,0.4),
-
-      appBar: appBar(title: "Dashboard"),
-      body: ListView(
-        padding: EdgeInsets.only(left: 8),
-        children: [ Column(
-
-          spacing: 10,
+        backgroundColor: Color.fromRGBO(204, 202, 198, 0.4),
+        appBar: appBar(title: "Dashboard"),
+        body: ListView(
+          padding: EdgeInsets.only(left: 8),
           children: [
-            ListViewTaskDashboard(),
-            TaskDashboardComponent(),
-            InformDashboard(),
-            NewEmployeeDashboard(),
-            ListBirthdayDashboard(),
-            Padding(padding: EdgeInsets.only(bottom: 20))
+            Column(
+              spacing: 10,
+              children: [
+                ListViewTaskDashboard(),
+                TaskDashboardComponent(),
+                InformDashboard(),
+                NewEmployeeDashboard(),
+                ListBirthdayDashboard(),
+                Padding(padding: EdgeInsets.only(bottom: 20))
+              ],
+            ),
           ],
-        ),],
-      )
-    );
+        ));
   }
 }
-

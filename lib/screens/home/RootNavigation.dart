@@ -25,6 +25,15 @@ class _BottomNavigationBarStateApp extends State<BottomNavigationBarApp> {
     PersonalPage(),
   ];
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    RouteSettings settings = ModalRoute.of(context)!.settings;
+    if (settings.arguments == null) {
+      _selectedIndex = 0;
+    }
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
