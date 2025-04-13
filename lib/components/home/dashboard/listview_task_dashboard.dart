@@ -44,8 +44,7 @@ class ItemTotalDashboard extends StatelessWidget {
           color: Colors.white,
           border: Border.all(color: Color.fromRGBO(0, 0, 0, 0.4), width: 1),
           borderRadius: BorderRadius.circular(6)),
-      child: Expanded(
-          child: SingleChildScrollView(
+      child: SingleChildScrollView(
         child: Column(
           // mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -103,7 +102,7 @@ class ItemTotalDashboard extends StatelessWidget {
             )
           ],
         ),
-      )),
+      ),
     );
   }
 }

@@ -13,21 +13,24 @@ class WorkflowApprovalStatusItem extends ApprovalItem {
   final int? userApproveID;
   final int? workFlowApproveID;
   final int? workFlowID;
+  final int userForwardID;
+  final String? userForwardName;
 
-  WorkflowApprovalStatusItem({
-    super.title = '',
-    super.name = '',
-    super.timestamp = '',
-    super.statusStepID,
-    this.backgroundColor = Colors.grey,
-    this.pipelineColor = Colors.grey,
-    this.icon = Icons.block,
-    this.statusText = '',
-    this.isNotApprove = false,
-    this.userApproveID,
-    this.workFlowApproveID,
-    this.workFlowID,
-  });
+  WorkflowApprovalStatusItem(
+      {super.title = '',
+      super.name = '',
+      super.timestamp = '',
+      super.statusStepID,
+      this.backgroundColor = Colors.grey,
+      this.pipelineColor = Colors.grey,
+      this.icon = Icons.block,
+      this.statusText = '',
+      this.isNotApprove = false,
+      this.userApproveID,
+      this.workFlowApproveID,
+      this.workFlowID,
+      this.userForwardID = 0,
+      this.userForwardName});
 }
 
 List<WorkflowApprovalStatusItem> convertJson(
@@ -75,6 +78,8 @@ List<WorkflowApprovalStatusItem> convertJson(
       userApproveID: item['UserApproveID'],
       workFlowApproveID: item['WorkFlowApproveID'],
       workFlowID: item['WorkFlowID'],
+      userForwardID: item['UserForwardID'] as int,
+      userForwardName: item['UserForwardName'],
     );
 
     result.add(approveStatusItem);

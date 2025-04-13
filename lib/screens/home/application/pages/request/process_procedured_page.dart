@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/components/custom_expansion_tile.dart';
 import 'package:wayos_clone/model/attachment_file_model.dart';
+import 'package:wayos_clone/model/department_staff.dart';
 import 'package:wayos_clone/model/workflow_request_information_model.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/procedure_step_painter.dart';
 import 'package:wayos_clone/screens/home/application/pages/request/components/request_discuss.dart';
-import 'package:wayos_clone/theme/input_decoration_theme.dart';
 import 'package:wayos_clone/utils/constants.dart';
+import '../../../../../components/custom_dialog.dart';
 import '../../../../../model/request_information_item_model.dart';
 import '../../../../../model/workflow_approval_status_item.dart';
 import '../../../../../service/request/request_service.dart';
+import '../../../../../utils/app_date_format.dart';
 import 'components/approval_bottom_bar.dart';
 import 'components/confirm_approval.dart';
 import 'components/request_information.dart';
@@ -127,7 +129,7 @@ class _ProcessProceduredPage
   }
 
   Future<void> updateWorkflowIsApprove(int confirmStatusID,
-      {String reason = ''}) async {
+      {String reason = '', int? staffID}) async {
     var respository = RequestService();
     try {
       loading(true);
@@ -142,8 +144,9 @@ class _ProcessProceduredPage
             respository.createRequestCommentWorkflow(
                 _steps[0].workFlowID!, reason),
             respository.updateWorkflowIsApprove(
-                workFlowApproveID, 1111111111111111111),
+                workFlowApproveID, confirmStatusID),
           ]);
+          // results = ['1']; // dump to test
 
           if (results.isNotEmpty && mounted) {
             Navigator.pop(context, ConfirmNotApprovalEvent());
@@ -154,8 +157,9 @@ class _ProcessProceduredPage
           var results = await Future.wait([
             respository.createRequestCommentWorkflow(
                 _steps[0].workFlowID!, reason),
-            respository.forwardWorkflow(_steps[0].workFlowID!, confirmStatusID),
+            respository.forwardWorkflow(_steps[0].workFlowID!, staffID!),
           ]);
+          // results = ['1']; // dump to test
 
           if (results.isNotEmpty && mounted) {
             Navigator.pop(context, ConfirmNotApprovalEvent());
@@ -163,6 +167,7 @@ class _ProcessProceduredPage
           break;
         // Duyệt
         case 100:
+          // Map result = {'id': 0}; // dump to test
           var result = await respository.updateWorkflowIsApprove(
               workFlowApproveID, confirmStatusID);
 
@@ -177,10 +182,20 @@ class _ProcessProceduredPage
     }
   }
 
+  Future<List<DepartmentStaff>> getListStaffsInDepartment() async {
+    var respository = RequestService();
+    var list = await respository
+        .getListStaffByDepartmentID(GetStorage().read(departmentID));
+    return list != null && list['data'] != null
+        ? convertDepartmentStaffList(list['data'])
+        : [];
+  }
+
   @override
   Widget buildContent(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     double height = MediaQuery.sizeOf(context).height;
+    double workflowHeight = width / 2.8;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -189,7 +204,7 @@ class _ProcessProceduredPage
             spacing: 10,
             children: [
               SizedBox(
-                height: width / 3.5,
+                height: workflowHeight,
                 child: ListView.builder(
                   itemCount: _steps.length,
                   scrollDirection: Axis.horizontal,
@@ -197,12 +212,12 @@ class _ProcessProceduredPage
                   itemBuilder: (context, index) {
                     WorkflowApprovalStatusItem step = _steps[index];
                     // get content painter to calculate width of text
-                    TextPainter contentPainter =
-                        getTextPainter(step.title, step.name, step.statusText);
+                    TextPainter contentPainter = getTextPainter(step.title,
+                        step.userForwardName ?? step.name, step.statusText);
                     contentPainter.layout();
 
                     return CustomPaint(
-                      size: Size(contentPainter.width + 40, width / 3.5),
+                      size: Size(contentPainter.width + 40, workflowHeight),
                       painter: ProcedureStepPainter(
                         contentPainter: contentPainter,
                         step: step,
@@ -238,7 +253,8 @@ class _ProcessProceduredPage
                     ),
                     RequestInformationItemModel(
                         label: "Ngày tạo",
-                        value: requestInformationModel?.dateCreated),
+                        value: AppDateFormat.formatDate(
+                            requestInformationModel?.dateCreated)),
                     RequestInformationItemModel(
                         label: "Người đề xuất",
                         value: requestInformationModel?.userRequirementName),
@@ -273,12 +289,28 @@ class _ProcessProceduredPage
               onConfirmApprovalStatus: (confirmStatusID) async {
                 // case Không duyệt, show dialog to confirm
                 if (confirmStatusID == 200 || confirmStatusID == 2) {
-                  String reason = await showNotApprovalDialog();
+                  String reason = await showNotApprovalDialog(
+                      confirmStatusID == 200
+                          ? 'Lý do không duyệt'
+                          : 'Lý do tạo lại');
                   if (reason.isNotEmpty) {
                     updateWorkflowIsApprove(confirmStatusID, reason: reason);
                   }
-                } else {
+                } else if (confirmStatusID == 100) {
+                  // case Duyệt
                   updateWorkflowIsApprove(confirmStatusID);
+                } else {
+                  // case Chuyển tiếp
+                  // forward to anyone in the same department
+                  List<DepartmentStaff> staffs =
+                      await getListStaffsInDepartment();
+
+                  ForwardReason? result = await showForwardDialog(staffs);
+                  if (result != null) {
+                    updateWorkflowIsApprove(confirmStatusID,
+                        reason: result.reason!,
+                        staffID: result.forwardStaff!.staffID);
+                  }
                 }
               },
             ),
@@ -296,7 +328,7 @@ class _ProcessProceduredPage
               }
             },
             child:
-                ConfirmApproval(height: height - 2 * width / 3.5, width: width))
+                ConfirmApproval(height: height - 2 * width / 3, width: width))
       ],
     );
   }
@@ -304,7 +336,7 @@ class _ProcessProceduredPage
   TextPainter getTextPainter(String title, String name, String statusText) {
     return TextPainter(
       text: TextSpan(
-        style: TextStyle(height: 1.5, fontSize: 12, color: Colors.white),
+        style: TextStyle(height: 2, fontSize: 13, color: Colors.white),
         children: [
           TextSpan(
             text: title,
@@ -325,59 +357,158 @@ class _ProcessProceduredPage
     );
   }
 
-  Future<String> showNotApprovalDialog() async {
+  Future<String> showNotApprovalDialog(String label) async {
     String result = '';
     if (mounted) {
       result = await showDialog<String>(
             context: context,
             builder: (BuildContext context) {
               var textController = TextEditingController();
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                backgroundColor: whiteColor,
-                actionsPadding: EdgeInsets.only(right: 10, bottom: 10),
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-                title: Text(
-                  'Lý do không duyệt',
-                  textAlign: TextAlign.center,
-                ),
-                titleTextStyle: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
-                content: Theme(
-                  data: Theme.of(context).copyWith(
-                    inputDecorationTheme: customInputDecorationTheme,
-                  ),
-                  child: TextField(
-                    controller: textController,
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text('Hủy',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: Colors.blue)),
-                  ),
-                  TextButton(
-                    onPressed: () =>
-                        Navigator.pop(context, textController.text),
-                    child: Text('Lưu',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: Colors.blue)),
-                  ),
-                ],
-              );
+              return CustomDialog(
+                  label: label,
+                  content: TextField(controller: textController),
+                  buttons: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Hủy'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        if (textController.text.isNotEmpty) {
+                          Navigator.pop(context, textController.text);
+                        }
+                      },
+                      child: Text('Lưu'),
+                    )
+                  ]);
             },
           ) ??
           '';
+    }
+    return result;
+  }
+
+  Future<ForwardReason?> showForwardDialog(List<DepartmentStaff> staffs) async {
+    ForwardReason? result;
+    if (mounted) {
+      result = await showDialog<ForwardReason>(
+        context: context,
+        builder: (BuildContext context) {
+          DepartmentStaff selectedStaff = staffs[0];
+          var reasonController = TextEditingController();
+          var approvalUserController =
+              TextEditingController(text: selectedStaff.fullName);
+          return CustomDialog(
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 20,
+                children: [
+                  Text(
+                    "Lý do chuyển tiếp",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  TextField(controller: reasonController),
+                  Text(
+                    "Phòng ban",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  TextField(
+                      controller:
+                          TextEditingController(text: staffs[0].departmentName),
+                      enabled: false),
+                  Text(
+                    "Người duyệt",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  TextField(
+                    controller: approvalUserController,
+                    readOnly: true,
+                    onTap: () async {
+                      // default get the first staff
+                      selectedStaff = (await showDialog<DepartmentStaff>(
+                            context: context,
+                            builder: (context) {
+                              return CustomDialog(
+                                label: "Chọn người duyệt",
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      color: Colors.red,
+                                    ),
+                                content: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 10,
+                                  children: staffs
+                                      .map((e) => InkWell(
+                                            onTap: () =>
+                                                Navigator.pop(context, e),
+                                            child: SizedBox(
+                                              width: 1000,
+                                              height: 50,
+                                              child: Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  e.fullName,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyLarge,
+                                                ),
+                                              ),
+                                            ),
+                                          ))
+                                      .toList(),
+                                ),
+                                buttons: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Cancel'),
+                                  )
+                                ],
+                              );
+                            },
+                          )) ??
+                          staffs[0];
+
+                      approvalUserController.text = selectedStaff.fullName;
+                    },
+                  ),
+                ],
+              ),
+              buttons: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Hủy'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (reasonController.text.isNotEmpty) {
+                      Navigator.pop(
+                          context,
+                          ForwardReason(
+                            reason: reasonController.text,
+                            forwardStaff: selectedStaff,
+                          ));
+                    }
+                  },
+                  child: Text('Lưu'),
+                )
+              ]);
+        },
+      );
     }
     return result;
   }
@@ -388,4 +519,11 @@ class _ProcessProceduredPage
     isWorkflowApproveUser.dispose();
     super.dispose();
   }
+}
+
+class ForwardReason {
+  String? reason;
+  DepartmentStaff? forwardStaff;
+
+  ForwardReason({this.reason, this.forwardStaff});
 }

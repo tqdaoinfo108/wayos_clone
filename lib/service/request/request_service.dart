@@ -164,13 +164,23 @@ class RequestService extends ApiService {
     }
   }
 
-  Future<dynamic> forwardWorkflow(int workFlowID, int userForwardID) async {
+  Future<dynamic> forwardWorkflow(int workFlowID, int staffID) async {
     try {
       var rs = await request(HttpMethod.put,
-          '/workflow/forwardworkflow/4620?workFlowID=$workFlowID&userForwardID=$userForwardID');
+          '/workflow/forwardworkflow/4620?workFlowID=$workFlowID&userForwardID=$staffID');
       return rs;
     } catch (e) {
       log('Chuyển tiếp workflow thất bại: $e');
+    }
+  }
+
+  Future<dynamic> getListStaffByDepartmentID(int departmentID) async {
+    try {
+      var rs = await request(HttpMethod.get,
+          '/staff/getlistcompanystaffs?departmentID=$departmentID');
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách staff thất bại: $e');
     }
   }
 }
