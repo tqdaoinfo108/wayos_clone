@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/route/screen_export.dart';
 
+import '../screens/camera/camera_page.dart';
+
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
     case LOG_IN_SCREEN_ROUTE:
       return MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
+        builder: (context) => const PhotoScreen(),
         settings: settings,
       );
     case HOME_NAVIGATION_ROUTE:

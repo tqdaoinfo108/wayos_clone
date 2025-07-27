@@ -11,7 +11,6 @@ import 'package:wayos_clone/theme/app_theme.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
 import './route/router.dart' as router;
-import 'route/screen_export.dart';
 
 void main() async {
   await GetStorage.init();
