@@ -9,11 +9,10 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class PhotoScreen extends StatefulWidget {
-  const PhotoScreen({super.key});
-
+  const PhotoScreen( { required this.title, super.key });
+  final String title;
   @override
   State<PhotoScreen> createState() => _PhotoScreenState();
 }
@@ -147,29 +146,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
 
   Future<void> _saveImageToGallery() async {
     if (_image == null) return;
-
-    final status = await Permission.storage.request();
-    if (!status.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không có quyền lưu ảnh')),
-      );
-      return;
-    }
-
-    try {
-      final directory = await getExternalStorageDirectory();
-      final String path =
-          '${directory!.path}/saved_${DateTime.now().millisecondsSinceEpoch}.png';
-      final File newImage = await _image!.copy(path);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã lưu ảnh vào bộ nhớ')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi lưu ảnh: $e')),
-      );
-    }
+    Navigator.pop(context, _image);
   }
 
   @override
@@ -188,76 +165,81 @@ class _PhotoScreenState extends State<PhotoScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // Camera + overlay info (RepaintBoundary)
             Expanded(
-              child: Container(
-                color: Colors.black,
-                child: RepaintBoundary(
-                  key: _previewContainerKey,
-                  child: _image != null
-                      ? Image.file(_image!, fit: BoxFit.contain)
-                      : FutureBuilder<void>(
-                          future: _initializeControllerFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.done) {
-                              if (_isInitialized) {
-                                return AspectRatio(
-                                  aspectRatio: _controller!.value.aspectRatio,
-                                  child: Stack(
-                                    alignment: Alignment.bottomCenter,
-                                    children: [
-                                      CameraPreview(_controller!),
-                                      Container(
-                                        width: double.infinity,
-                                        color: Colors.black54,
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              _time,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              _location,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14,
-                                              ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
+              child: RepaintBoundary(
+                key: _previewContainerKey,
+                child: _image != null
+                    ? Image.file(_image!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                    : FutureBuilder<void>(
+                        future: _initializeControllerFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.done) {
+                            if (_isInitialized) {
+                              return Stack(
+                                alignment: Alignment.bottomCenter,
+                                children: [
+                                  CameraPreview(_controller!),
+                                  Container(
+                                    width: double.infinity,
+                                    color: Colors.black54,
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          _time,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          widget.title,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _location,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                );
-                              } else {
-                                return const Center(
-                                  child: Text(
-                                    'Không thể khởi tạo camera',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                );
-                              }
+                                ],
+                              );
                             } else {
                               return const Center(
-                                  child: CircularProgressIndicator());
+                                child: Text(
+                                  'Không thể khởi tạo camera',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              );
                             }
-                          },
-                        ),
-                ),
+                          } else {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                        },
+                      ),
               ),
             ),
+            // Nút chức năng luôn ở dưới cùng
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
               child: _isProcessing
                   ? const Center(child: CircularProgressIndicator())
                   : Wrap(
