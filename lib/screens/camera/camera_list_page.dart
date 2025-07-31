@@ -1,29 +1,74 @@
 // filepath: c:\Users\daotq\Documents\Source_daotq\Git\wayos_clone\lib\screens\home\application\pages\item_list_page.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../../service/bill_tracking/bill_tracking_service.dart';
 import 'camera_create_page.dart';
+import 'camera_update_page.dart';
 
-class CameraListPage extends StatelessWidget {
-  final List<Map<String, dynamic>> items = [
-    {
-      'Title': 'Item 1',
-      'Date': '2023-10-01',
-      'Status': 'In',
-    },
-    {
-      'Title': 'Item 2',
-      'Date': '2023-10-02',
-      'Status': 'Out',
-    },
-    {
-      'Title': 'Item 3',
-      'Date': '2023-10-03',
-      'Status': 'In/Out',
-    },
-    // Add more items as needed
-  ];
+class CameraListPage extends StatefulWidget {
+  const CameraListPage({super.key});
 
-  CameraListPage({super.key});
+  @override
+  State<CameraListPage> createState() => _CameraListPageState();
+}
+
+class _CameraListPageState extends State<CameraListPage> {
+  List<dynamic> items = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    final response = await BillRequestService().getRequestList();
+    final data = response?['data'] as List<dynamic>? ?? [];
+    setState(() {
+      items = data.map<Map<String, dynamic>>((item) {
+        // Xử lý Title
+        final title = item['TitleBill'] ?? '';
+        // Xử lý Date
+        final dateRaw = item['DateBill'];
+        String date = '';
+        if (dateRaw != null && dateRaw != '') {
+          final dt = DateTime.tryParse(dateRaw as String);
+          if (dt != null) {
+            date = DateFormat('HH:mm dd/MM/yyyy').format(dt);
+          }
+        }
+        // Xử lý Status
+        bool hasIn = [item['ImageIn1'], item['ImageIn2'], item['ImageIn3']]
+            .any((v) => v != null && v.toString().isNotEmpty);
+        bool hasOut = [item['ImageOut1'], item['ImageOut2'], item['ImageOut3']]
+            .any((v) => v != null && v.toString().isNotEmpty);
+        bool hasReceiver = item['FileReceive'] != null &&
+            item['FileReceive'].toString().isNotEmpty;
+        String status = '';
+        if (hasIn && hasOut && hasReceiver) {
+          status = 'Vào / Ra / Ký nhận';
+        } else if (hasIn && hasOut) {
+          status = 'Vào / Ra';
+        } else if (hasIn) {
+          status = 'Vào';
+        } else if (hasOut) {
+          status = 'Ra';
+        } else if (hasReceiver) {
+          status = 'Ký nhận';
+        } else {
+          status = '';
+        }
+        // Trả về map gồm cả property gốc và các trường mới
+        return {
+          ...item,
+          'Title': title,
+          'Date': date,
+          'Status': status,
+        };
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +78,13 @@ class CameraListPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.add),
-            onPressed: () {
+            onPressed: () async {
               // Xử lý khi nhấn Thêm mới
-              Navigator.of(context).push(MaterialPageRoute(
+              var result = await Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => const CreateItemPage(),
               ));
+
+              if (result != null) await fetchData();
             },
           ),
         ],
@@ -47,10 +94,14 @@ class CameraListPage extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = items[index];
           return ItemRowDetail(
-            data: item,
+            data: item as Map<String, dynamic>,
             color: Colors.blue,
-            onTap: () {
-              print('Tapped on ${item['Title']}');
+            onTap: () async {
+              var result = await Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) =>
+                    UpdateItemPage(data: item as Map<String, dynamic>),
+              ));
+              if (result != null) await fetchData();
             },
             status: item['Status'],
           );
@@ -107,7 +158,7 @@ class ItemRowDetail extends StatelessWidget {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            'Date: ${data['Date']}',
+                            'Ngày: ${data['Date']}',
                             style: TextStyle(color: Colors.black54),
                           ),
                           const SizedBox(height: 5),
@@ -132,7 +183,7 @@ class ItemRowDetail extends StatelessWidget {
                                   // );
                                 },
                                 child: Text(
-                                  'Status: $status',
+                                  'Trạng thái: $status',
                                   style: TextStyle(fontSize: 13, color: color),
                                 ),
                               ),

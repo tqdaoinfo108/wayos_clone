@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/camera/camera_page.dart';
 
+import '../../service/bill_tracking/bill_tracking_service.dart';
+
 class CreateItemPage extends StatefulWidget {
   const CreateItemPage({super.key});
 
@@ -12,8 +14,13 @@ class CreateItemPage extends StatefulWidget {
 class _CreateItemPageState extends State<CreateItemPage> {
   final TextEditingController _titleController = TextEditingController();
   List<File?> inImages = List.generate(3, (_) => null);
+  List<String?> inImagePaths = List.generate(3, (_) => null);
+
   List<File?> outImages = List.generate(3, (_) => null);
+  List<String?> outImagePaths = List.generate(3, (_) => null);
+
   List<File?> signatureImages = List.generate(1, (_) => null);
+  List<String?> signatureImagePaths = List.generate(1, (_) => null);
 
   Future<void> _pickImage(bool isIn, int index) async {
     if (_titleController.text.isEmpty) {
@@ -23,16 +30,24 @@ class _CreateItemPageState extends State<CreateItemPage> {
       return;
     }
 
-    final image = await Navigator.push<File>(
+    final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => PhotoScreen(title: _titleController.text)),
+      MaterialPageRoute(
+          builder: (_) => PhotoScreen(title: _titleController.text)),
     );
-    if (image != null) {
+
+    if (result != null &&
+        result['file'] != null &&
+        result['publicPath'] != null) {
+      File image = result['file'];
+      String publicPath = result['publicPath'];
       setState(() {
         if (isIn) {
           inImages[index] = image;
+          inImagePaths[index] = publicPath;
         } else {
           outImages[index] = image;
+          outImagePaths[index] = publicPath;
         }
       });
     }
@@ -60,7 +75,7 @@ class _CreateItemPageState extends State<CreateItemPage> {
     );
   }
 
-    Widget _buildSignatureImageRow(List<File?> images, bool isIn) {
+  Widget _buildSignatureImageRow(List<File?> images, bool isIn) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(1, (i) {
@@ -123,7 +138,61 @@ class _CreateItemPageState extends State<CreateItemPage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
+                      if (_titleController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Vui lòng nhập tiêu đề')),
+                        );
+                        return;
+                      }
+                      // Kiểm tra ít nhất 1 ảnh In
+                      bool hasIn =
+                          inImagePaths.any((e) => e != null && e.isNotEmpty);
+                      if (!hasIn) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Vui lòng chọn ít nhất 1 ảnh vào')),
+                        );
+                        return;
+                      }
+                      // // Kiểm tra ít nhất 1 ảnh Out
+                      // bool hasOut =
+                      //     outImagePaths.any((e) => e != null && e.isNotEmpty);
+                      // if (!hasOut) {
+                      //   ScaffoldMessenger.of(context).showSnackBar(
+                      //     const SnackBar(
+                      //         content: Text('Vui lòng chọn ít nhất 1 ảnh ra')),
+                      //   );
+                      //   return;
+                      // }
+
                       // Xử lý lưu dữ liệu ở đây
+                      final data = {
+                        "TitleBill": _titleController.text,
+                        "DateBill": DateTime.now().toIso8601String(),
+                        "ImageIn1": inImagePaths[0] ?? "",
+                        "ImageIn2": inImagePaths[1] ?? "",
+                        "ImageIn3": inImagePaths[2] ?? "",
+                        "ImageOut1": outImagePaths[0] ?? "",
+                        "ImageOut2": outImagePaths[1] ?? "",
+                        "ImageOut3": outImagePaths[2] ?? "",
+                        "FileReceive": signatureImagePaths[0] ?? "",
+                      };
+
+                      BillRequestService()
+                          .createTrackingBill(data)
+                          .then((response) {
+                        if (response != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Lưu thành công')),
+                          );
+                          Navigator.pop(context, true);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Lưu thất bại')),
+                          );
+                        }
+                      });
                     },
                     child: const Text('Lưu'),
                   ),

@@ -3,9 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wayos_clone/components/network_image_with_loader.dart';
 import 'package:wayos_clone/utils/constants.dart';
 
-
-
-
 class ProfileCard extends StatelessWidget {
   const ProfileCard({
     super.key,

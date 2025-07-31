@@ -22,3 +22,6 @@ const String REQUEST_NOTIFICATION_PAGE_ROUTE = "requestNotificationPage";
 const String REQUEST_PERMISSION_PAGE_ROUTE = "requestPermissionPage";
 const String PREVIEW_WORKFLOW_PAGE_ROUTE = "previewWorkflowPage";
 const String PREVIEW_REQUEST_PROCESS_PAGE_ROUTE = "previewRequestProcessPage";
+
+const String CAMERA_LIST_ROUTE = "cameraList";
+

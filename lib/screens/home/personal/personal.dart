@@ -19,7 +19,7 @@ class PersonalPage extends StatelessWidget {
             name: GetStorage().read(staffFullName),
             department: GetStorage().read(departmentName),
             company: GetStorage().read(companyName),
-            imageSrc: GetStorage().read(imagesPath),
+            imageSrc: GetStorage().read(imagesPath) ?? "",
             isShowArrow: false,
             isShowHi: false,
           ),

@@ -10,8 +10,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../service/bill_tracking/bill_tracking_service.dart';
+
 class PhotoScreen extends StatefulWidget {
-  const PhotoScreen( { required this.title, super.key });
+  const PhotoScreen({required this.title, super.key});
   final String title;
   @override
   State<PhotoScreen> createState() => _PhotoScreenState();
@@ -145,9 +147,21 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   Future<void> _saveImageToGallery() async {
-    if (_image == null) return;
-    Navigator.pop(context, _image);
+  if (_image == null) return;
+  final result = await BillRequestService().uploadFileHttp(file: _image!);
+  if (result != null && result['publicPath'] != null) {
+    Navigator.pop(context, {
+      'file': _image,
+      'publicPath': result['publicPath'],
+    });
+  } else {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Upload file thất bại!')),
+      );
+    }
   }
+}
 
   @override
   void dispose() {
@@ -170,11 +184,15 @@ class _PhotoScreenState extends State<PhotoScreen> {
               child: RepaintBoundary(
                 key: _previewContainerKey,
                 child: _image != null
-                    ? Image.file(_image!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                    ? Image.file(_image!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity)
                     : FutureBuilder<void>(
                         future: _initializeControllerFuture,
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
                             if (_isInitialized) {
                               return Stack(
                                 alignment: Alignment.bottomCenter,
@@ -231,7 +249,8 @@ class _PhotoScreenState extends State<PhotoScreen> {
                               );
                             }
                           } else {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                                child: CircularProgressIndicator());
                           }
                         },
                       ),
@@ -239,7 +258,8 @@ class _PhotoScreenState extends State<PhotoScreen> {
             ),
             // Nút chức năng luôn ở dưới cùng
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
               child: _isProcessing
                   ? const Center(child: CircularProgressIndicator())
                   : Wrap(

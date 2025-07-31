@@ -18,8 +18,7 @@ class RequestService extends ApiService {
     }
   }
 
-  Future<dynamic> getRequestWorkList(
-      {int status = -100, String searchText = '', int page = 1}) async {
+  Future<dynamic> getRequestWorkList({int status = -100, String searchText = '', int page = 1}) async {
     try {
       var rs = await request(HttpMethod.get,
           '/requestprocess/listprocess?keySearch=$searchText&statusID=$status&fromDate=&toDate=&userID=null',

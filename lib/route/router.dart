@@ -9,12 +9,12 @@ Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
     case LOG_IN_SCREEN_ROUTE:
       return MaterialPageRoute(
-        builder: (context) =>  CameraListPage(),
+        builder: (context) => LoginScreen(),
         settings: settings,
       );
     case HOME_NAVIGATION_ROUTE:
       return MaterialPageRoute(
-        builder: (context) => const BottomNavigationBarApp(),
+        builder: (context) => const ApplicationPage(),
         settings: settings,
       );
     case PERSONAL_ROUTE:
@@ -83,6 +83,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) =>
             PreviewRequestProcessPage(settings.arguments as String),
+        settings: settings,
+      );
+    case CAMERA_LIST_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => CameraListPage(),
         settings: settings,
       );
     default:
