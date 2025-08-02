@@ -9,6 +9,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:get_storage/get_storage.dart';
 
 import '../../service/bill_tracking/bill_tracking_service.dart';
 
@@ -20,6 +21,8 @@ class PhotoScreen extends StatefulWidget {
 }
 
 class _PhotoScreenState extends State<PhotoScreen> {
+  final box = GetStorage();
+
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
   File? _image;
@@ -33,7 +36,26 @@ class _PhotoScreenState extends State<PhotoScreen> {
   void initState() {
     super.initState();
     _initializeCamera();
-    _getLocation();
+    _loadOrGetLocation();
+  }
+
+  void _loadOrGetLocation() {
+    final cachedLocation = box.read<String>('cached_location');
+    final cachedTimeStr = box.read<String>('cached_location_time');
+    DateTime? cachedTime =
+        cachedTimeStr != null ? DateTime.tryParse(cachedTimeStr) : null;
+
+    if (cachedLocation != null &&
+        cachedTime != null &&
+        DateTime.now().difference(cachedTime).inMinutes < 5) {
+      setState(() {
+        _location = cachedLocation;
+        _time = DateFormat('dd/MM/yyyy HH:mm:ss')
+            .format(DateTime.now()); // Luôn cập nhật lại thời gian mới
+      });
+    } else {
+      _getLocation();
+    }
   }
 
   Future<void> _initializeCamera() async {
@@ -92,12 +114,16 @@ class _PhotoScreenState extends State<PhotoScreen> {
         place.country
       ].where((e) => e != null && e.isNotEmpty).join(', ');
 
+      final now = DateTime.now();
       if (mounted) {
         setState(() {
           _location = address.isEmpty ? 'Không xác định vị trí' : address;
-          _time = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
+          _time = DateFormat('dd/MM/yyyy HH:mm:ss').format(now);
         });
       }
+      // Lưu cache vào GetStorage
+      box.write('cached_location', _location);
+      box.write('cached_location_time', now.toIso8601String());
     } catch (e) {
       if (mounted) {
         setState(() => _location = 'Lỗi khi lấy vị trí: $e');
@@ -147,21 +173,21 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   Future<void> _saveImageToGallery() async {
-  if (_image == null) return;
-  final result = await BillRequestService().uploadFileHttp(file: _image!);
-  if (result != null && result['publicPath'] != null) {
-    Navigator.pop(context, {
-      'file': _image,
-      'publicPath': result['publicPath'],
-    });
-  } else {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Upload file thất bại!')),
-      );
+    if (_image == null) return;
+    final result = await BillRequestService().uploadFileHttp(file: _image!);
+    if (result != null && result['publicPath'] != null) {
+      Navigator.pop(context, {
+        'file': _image,
+        'publicPath': result['publicPath'],
+      });
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Upload file thất bại!')),
+        );
+      }
     }
   }
-}
 
   @override
   void dispose() {
@@ -267,29 +293,30 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       runSpacing: 8.0,
                       alignment: WrapAlignment.center,
                       children: [
-                        ElevatedButton.icon(
-                          onPressed: _image == null
-                              ? _takePhoto
-                              : () {
-                                  setState(() {
-                                    _image = null;
-                                    _time = DateFormat('dd/MM/yyyy HH:mm:ss')
-                                        .format(DateTime.now());
-                                    _getLocation();
-                                  });
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                _image == null ? Colors.blue : Colors.green,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 12),
-                            minimumSize: const Size(140, 48),
+                        if (_location != 'Đang lấy vị trí...')
+                          ElevatedButton.icon(
+                            onPressed: _image == null
+                                ? _takePhoto
+                                : () {
+                                    setState(() {
+                                      _image = null;
+                                      _time = DateFormat('dd/MM/yyyy HH:mm:ss')
+                                          .format(DateTime.now());
+                                    });
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  _image == null ? Colors.blue : Colors.green,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 12),
+                              minimumSize: const Size(140, 48),
+                            ),
+                            icon: Icon(_image == null
+                                ? Icons.camera_alt
+                                : Icons.refresh),
+                            label:
+                                Text(_image == null ? 'Chụp ảnh' : 'Chụp lại'),
                           ),
-                          icon: Icon(_image == null
-                              ? Icons.camera_alt
-                              : Icons.refresh),
-                          label: Text(_image == null ? 'Chụp ảnh' : 'Chụp lại'),
-                        ),
                         if (_image != null)
                           ElevatedButton.icon(
                             onPressed: _saveImageToGallery,
