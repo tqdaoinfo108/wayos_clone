@@ -33,41 +33,41 @@ class BillRequestService extends ApiService {
   }
 
   Future<dynamic> uploadFileHttp({
-  required File file,
-  String subDirectory = 'RequestAttachment',
-}) async {
-  try {
+    required File file,
+    String subDirectory = 'RequestAttachment',
+  }) async {
+    try {
+      var uri = Uri.parse('http://freeofficefile.gvbsoft.vn/api/publicupload');
+      var request = http.MultipartRequest('POST', uri)
+        ..headers.addAll({
+          'Accept': '*/*',
+          'Accept-Language': 'vi',
+          'Authorization': token ?? '',
+          'Connection': 'keep-alive',
+          'Origin': 'http://freeoffice.gvbsoft.vn',
+          'Referer': 'http://freeoffice.gvbsoft.vn/',
+        })
+        ..fields['SubDirectory'] = subDirectory
+        ..files.add(await http.MultipartFile.fromPath('File', file.path));
 
-    var uri = Uri.parse('http://freeofficefile.gvbsoft.vn/api/publicupload');
-    var request = http.MultipartRequest('POST', uri)
-      ..headers.addAll({
-        'Accept': '*/*',
-        'Accept-Language': 'vi',
-        'Authorization': token ?? '',
-        'Connection': 'keep-alive',
-        'Origin': 'http://freeoffice.gvbsoft.vn',
-        'Referer': 'http://freeoffice.gvbsoft.vn/',
-      })
-      ..fields['SubDirectory'] = subDirectory
-      ..files.add(await http.MultipartFile.fromPath('File', file.path));
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
 
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      log('Upload file thất bại: ${response.statusCode} - ${response.body}');
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        log('Upload file thất bại: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      log('Upload file thất bại: $e');
       return null;
     }
-  } catch (e) {
-    log('Upload file thất bại: $e');
-    return null;
   }
-}
 
-  Future<dynamic> updateTrackingBill(int trackingBillID,  Map<String, Object> data)  async {
-     try {
+  Future<dynamic> updateTrackingBill(
+      int trackingBillID, Map<String, Object> data) async {
+    try {
       var rs = await request(
           HttpMethod.put, '/trackingbill/update-tracking-bill/$trackingBillID',
           body: data);
@@ -79,18 +79,32 @@ class BillRequestService extends ApiService {
   }
 
   Future<dynamic> getTrackingBillById(int id) async {
-  try {
-    var rs = await request(
-      HttpMethod.get,
-      '/trackingbill/traking-by-id/$id',
-      headers: {
-        'accept': 'application/json',
-      },
-    );
-    return rs;
-  } catch (e) {
-    log('Lấy chi tiết tracking bill thất bại: $e');
-    return null;
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/trackingbill/traking-by-id/$id',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy chi tiết tracking bill thất bại: $e');
+      return null;
+    }
   }
-}
+
+  Future<dynamic> getTypeBillTracking() async {
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/typetrackingbill/list-type-tracking-bill?keySearch=',
+        headers: {'limit': '10000'},
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy chi tiết tracking bill thất bại: $e');
+      return null;
+    }
+  }
 }
