@@ -214,174 +214,182 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Dropdown với loading
-            Column(
-              children: [
-                // Project Dropdown
-                DropdownButtonFormField<int>(
-                  value: selectedProjectId,
-                  items: projectList
-                      .map((item) => DropdownMenuItem<int>(
-                            value: item['ProjectID'],
-                            child: Text(item['ProjectName'] ?? ''),
-                          ))
-                      .toList(),
-                  onChanged: isEdit
-                      ? (value) {
-                          setState(() {
-                            selectedProjectId = value;
-                          });
-                        }
-                      : null,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  hint: const Text('Chọn dự án'),
-                ),
-                const SizedBox(height: 16),
-                // Delivery Dropdown
-                DropdownButtonFormField<int>(
-                  value: selectedDeliveryId,
-                  items: deliveryList
-                      .map((item) => DropdownMenuItem<int>(
-                            value: item['DeliveryVehicleID'],
-                            child: Text((item['NumberVehicle'] ?? '') +
-                                ' - ' +
-                                (item['TypeVehicleName'] ?? '')),
-                          ))
-                      .toList(),
-                  onChanged: isEdit
-                      ? (value) {
-                          setState(() {
-                            selectedDeliveryId = value;
-                          });
-                        }
-                      : null,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  hint: const Text('Chọn phương tiện'),
-                ),
-                const SizedBox(height: 16),
-                isLoadingTypeBill
-                    ? Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(4),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Dropdown với loading
+                    Column(
+                      children: [
+                        // Project Dropdown
+                        DropdownButtonFormField<int>(
+                          value: selectedProjectId,
+                          items: projectList
+                              .map((item) => DropdownMenuItem<int>(
+                                    value: item['ProjectID'],
+                                    child: Text(item['ProjectName'] ?? ''),
+                                  ))
+                              .toList(),
+                          onChanged: isEdit
+                              ? (value) {
+                                  setState(() {
+                                    selectedProjectId = value;
+                                  });
+                                }
+                              : null,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          hint: const Text('Chọn dự án'),
                         ),
-                        child: const Center(
-                          child: CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        // Delivery Dropdown
+                        DropdownButtonFormField<int>(
+                          value: selectedDeliveryId,
+                          items: deliveryList
+                              .map((item) => DropdownMenuItem<int>(
+                                    value: item['DeliveryVehicleID'],
+                                    child: Text((item['NumberVehicle'] ?? '') +
+                                        ' - ' +
+                                        (item['TypeVehicleName'] ?? '')),
+                                  ))
+                              .toList(),
+                          onChanged: isEdit
+                              ? (value) {
+                                  setState(() {
+                                    selectedDeliveryId = value;
+                                  });
+                                }
+                              : null,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          hint: const Text('Chọn phương tiện'),
                         ),
-                      )
-                    : DropdownButtonFormField<int>(
-                        value: selectedTypeBillId,
-                        items: typeBillList
-                            .map((item) => DropdownMenuItem<int>(
-                                  value: item['TypeTrackingBillID'],
-                                  child: Text(item['TypeName'] ?? ''),
-                                ))
-                            .toList(),
-                        onChanged: isEdit
-                            ? (value) {
+                        const SizedBox(height: 16),
+                        isLoadingTypeBill
+                            ? Container(
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            : DropdownButtonFormField<int>(
+                                value: selectedTypeBillId,
+                                items: typeBillList
+                                    .map((item) => DropdownMenuItem<int>(
+                                          value: item['TypeTrackingBillID'],
+                                          child: Text(item['TypeName'] ?? ''),
+                                        ))
+                                    .toList(),
+                                onChanged: isEdit
+                                    ? (value) {
+                                        setState(() {
+                                          selectedTypeBillId = value;
+                                        });
+                                      }
+                                    : null,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                                hint: const Text('Chọn loại công việc'),
+                              ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Công việc: $title',
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    const Text('Ảnh Vào'),
+                    _buildImageRow(inImages, inImagePaths, true),
+                    const SizedBox(height: 16),
+                    const Text('Ảnh Ra'),
+                    _buildImageRow(outImages, outImagePaths, false),
+                    const SizedBox(height: 16),
+                    const Text('Ký nhận'),
+                    _buildSignatureImageRow(signatureImages, signatureImagePaths),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isError,
+                          onChanged: !isEdit ? null : (val) {
+                            setState(() {
+                              isError = val ?? false;
+                            });
+                          },
+                        ),
+                        const Text('Vi phạm lỗi'),
+                      ],
+                    ),
+                    if (isError) ...[
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _reasonController,
+                        maxLines: 3,
+                        enabled: isEdit,
+                        decoration: const InputDecoration(
+                          labelText: 'Lý do',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Ảnh vi phạm'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          GestureDetector(
+                            onTap: !isEdit ? null : () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PhotoScreen(title: title),
+                                ),
+                              );
+                              if (result != null && result['file'] != null && result['publicPath'] != null) {
                                 setState(() {
-                                  selectedTypeBillId = value;
+                                  exactImage = result['file'];
+                                  exactImagePath = result['publicPath'];
                                 });
                               }
-                            : null,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        ),
-                        hint: const Text('Chọn loại công việc'),
+                            },
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: exactImage != null
+                                  ? Image.file(exactImage!, fit: BoxFit.cover)
+                                  : (exactImagePath != null && exactImagePath!.isNotEmpty
+                                      ? Image.network(
+                                          'http://freeofficefile.gvbsoft.vn/api/file/$exactImagePath',
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Icon(Icons.broken_image, color: Colors.grey),
+                                        )
+                                      : Icon(Icons.add, size: 36, color: Colors.grey)),
+                            ),
+                          ),
+                        ],
                       ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text('Công việc: $title',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            const Text('Ảnh Vào'),
-            _buildImageRow(inImages, inImagePaths, true),
-            const SizedBox(height: 16),
-            const Text('Ảnh Ra'),
-            _buildImageRow(outImages, outImagePaths, false),
-            const SizedBox(height: 16),
-            const Text('Ký nhận'),
-            _buildSignatureImageRow(signatureImages, signatureImagePaths),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Checkbox(
-                  value: isError,
-                  onChanged: !isEdit ? null : (val) {
-                    setState(() {
-                      isError = val ?? false;
-                    });
-                  },
-                ),
-                const Text('Vi phạm lỗi'),
-              ],
-            ),
-            if (isError) ...[
-              const SizedBox(height: 8),
-              TextField(
-                controller: _reasonController,
-                maxLines: 3,
-                enabled: isEdit,
-                decoration: const InputDecoration(
-                  labelText: 'Lý do',
-                  border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                    ],
+                    
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text('Ảnh vi phạm'),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    onTap: !isEdit ? null : () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PhotoScreen(title: title),
-                        ),
-                      );
-                      if (result != null && result['file'] != null && result['publicPath'] != null) {
-                        setState(() {
-                          exactImage = result['file'];
-                          exactImagePath = result['publicPath'];
-                        });
-                      }
-                    },
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: exactImage != null
-                          ? Image.file(exactImage!, fit: BoxFit.cover)
-                          : (exactImagePath != null && exactImagePath!.isNotEmpty
-                              ? Image.network(
-                                  'http://freeofficefile.gvbsoft.vn/api/file/$exactImagePath',
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Icon(Icons.broken_image, color: Colors.grey),
-                                )
-                              : Icon(Icons.add, size: 36, color: Colors.grey)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-            const Spacer(),
+            ),
             Row(
               children: [
                 Expanded(

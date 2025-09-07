@@ -165,154 +165,162 @@ class _CreateItemPageState extends State<CreateItemPage> {
       resizeToAvoidBottomInset: true, // Thêm dòng này
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            spacing: 5,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  
-                  DropdownButtonFormField<int>(
-                    value: selectedProjectId,
-                    items: projectList
-                        .map((item) => DropdownMenuItem<int>(
-                              value: item['ProjectID'],
-                              child: Text(item['ProjectName'] ?? ''),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedProjectId = value;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                    hint: const Text('Chọn dự án'),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
-                    value: selectedTypeBillId,
-                    items: typeBillList
-                        .map((item) => DropdownMenuItem<int>(
-                              value: item['TypeTrackingBillID'],
-                              child: Text(item['TypeName'] ?? ''),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedTypeBillId = value;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                    hint: const Text('Chọn loại công việc'),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
-                    value: selectedDeliveryId,
-                    items: deliveryList
-                        .map((item) => DropdownMenuItem<int>(
-                              value: item['DeliveryVehicleID'],
-                              // ignore: prefer_interpolation_to_compose_strings
-                              child: Text(item['NumberVehicle'] + ' - ' + item['TypeVehicleName'] ?? ''),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedDeliveryId = value;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                    hint: const Text('Chọn phương tiện'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Tiêu đề'),
-              ),
-              const SizedBox(height: 16),
-              const Text('Ảnh In'),
-              _buildImageRow(inImages, true),
-              const SizedBox(height: 16),
-              const Text('Ảnh Out'),
-              _buildImageRow(outImages, false),
-              const SizedBox(height: 16),
-              const Text('Ký nhận'),
-              _buildSignatureImageRow(signatureImages, false),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Checkbox(
-                    value: isError,
-                    onChanged: (val) {
-                      setState(() {
-                        isError = val ?? false;
-                      });
-                    },
-                  ),
-                  const Text('Vi phạm lỗi'),
-                ],
-              ),
-              if (isError) ...[
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _reasonController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Lý do',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text('Ảnh vi phạm'),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  spacing: 5,
                   children: [
-                    GestureDetector(
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => PhotoScreen(title: _titleController.text),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        
+                        DropdownButtonFormField<int>(
+                          value: selectedProjectId,
+                          items: projectList
+                              .map((item) => DropdownMenuItem<int>(
+                                    value: item['ProjectID'],
+                                    child: Text(item['ProjectName'] ?? ''),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedProjectId = value;
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           ),
-                        );
-                        if (result != null && result['file'] != null && result['publicPath'] != null) {
-                          setState(() {
-                            exactImage = result['file'];
-                            exactImagePath = result['publicPath'];
-                          });
-                        }
-                      },
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
+                          hint: const Text('Chọn dự án'),
                         ),
-                        child: exactImage != null
-                            ? Image.file(exactImage!, fit: BoxFit.cover)
-                            : Icon(Icons.add, size: 36, color: Colors.grey),
-                      ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<int>(
+                          value: selectedTypeBillId,
+                          items: typeBillList
+                              .map((item) => DropdownMenuItem<int>(
+                                    value: item['TypeTrackingBillID'],
+                                    child: Text(item['TypeName'] ?? ''),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedTypeBillId = value;
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          hint: const Text('Chọn loại công việc'),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<int>(
+                          value: selectedDeliveryId,
+                          items: deliveryList
+                              .map((item) => DropdownMenuItem<int>(
+                                    value: item['DeliveryVehicleID'],
+                                    // ignore: prefer_interpolation_to_compose_strings
+                                    child: Text(item['NumberVehicle'] + ' - ' + item['TypeVehicleName'] ?? ''),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedDeliveryId = value;
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          hint: const Text('Chọn phương tiện'),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(labelText: 'Tiêu đề'),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Ảnh In'),
+                    _buildImageRow(inImages, true),
+                    const SizedBox(height: 16),
+                    const Text('Ảnh Out'),
+                    _buildImageRow(outImages, false),
+                    const SizedBox(height: 16),
+                    const Text('Ký nhận'),
+                    _buildSignatureImageRow(signatureImages, false),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isError,
+                          onChanged: (val) {
+                            setState(() {
+                              isError = val ?? false;
+                            });
+                          },
+                        ),
+                        const Text('Vi phạm lỗi'),
+                      ],
+                    ),
+                    if (isError) ...[
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _reasonController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Lý do',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Ảnh vi phạm'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PhotoScreen(title: _titleController.text),
+                                ),
+                              );
+                              if (result != null && result['file'] != null && result['publicPath'] != null) {
+                                setState(() {
+                                  exactImage = result['file'];
+                                  exactImagePath = result['publicPath'];
+                                });
+                              }
+                            },
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: exactImage != null
+                                  ? Image.file(exactImage!, fit: BoxFit.cover)
+                                  : Icon(Icons.add, size: 36, color: Colors.grey),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 100),
+                    ],
+                    
                   ],
                 ),
-                const SizedBox(height: 16),
-              ],
-              Row(
+              ),
+            ),
+            Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
@@ -410,8 +418,7 @@ class _CreateItemPageState extends State<CreateItemPage> {
                   ),
                 ],
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
