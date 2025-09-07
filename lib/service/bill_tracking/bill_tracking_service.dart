@@ -9,7 +9,7 @@ class BillRequestService extends ApiService {
       {int status = -100, String searchText = '', int page = 1}) async {
     try {
       var rs = await request(HttpMethod.get,
-          '/trackingbill/list-tracking-bill?keySearch=$searchText&timeStart=$timeStart&timeEnd=$timeEnd',
+          '/trackingbill/list-tracking-bill-search?keySearch=$searchText&timeStart=$timeStart&timeEnd=$timeEnd',
           headers: {
             'limit': '20',
             'page': '$page',

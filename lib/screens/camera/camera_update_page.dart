@@ -13,6 +13,11 @@ class UpdateItemPage extends StatefulWidget {
 }
 
 class _UpdateItemPageState extends State<UpdateItemPage> {
+  // Vi phạm lỗi
+  bool isError = false;
+  final TextEditingController _reasonController = TextEditingController();
+  File? exactImage;
+  String? exactImagePath;
   Future<void> fetchProjectList() async {
     final response = await ProjectService().getProjectList();
     if (response != null && response['data'] != null) {
@@ -52,6 +57,9 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
 
   @override
   void initState() {
+  isError = (widget.data['IsError'] ?? 0) == 1;
+  _reasonController.text = widget.data['Reason'] ?? '';
+  exactImagePath = widget.data['FileExact'] as String?;
     selectedProjectId = widget.data['ProjectID'];
     selectedDeliveryId = widget.data['DeliveryVehicleID'];
     isEdit = widget.data['IsEdit'] ?? true;
@@ -306,6 +314,73 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
             const SizedBox(height: 16),
             const Text('Ký nhận'),
             _buildSignatureImageRow(signatureImages, signatureImagePaths),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Checkbox(
+                  value: isError,
+                  onChanged: !isEdit ? null : (val) {
+                    setState(() {
+                      isError = val ?? false;
+                    });
+                  },
+                ),
+                const Text('Vi phạm lỗi'),
+              ],
+            ),
+            if (isError) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _reasonController,
+                maxLines: 3,
+                enabled: isEdit,
+                decoration: const InputDecoration(
+                  labelText: 'Lý do',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Ảnh vi phạm'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GestureDetector(
+                    onTap: !isEdit ? null : () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PhotoScreen(title: title),
+                        ),
+                      );
+                      if (result != null && result['file'] != null && result['publicPath'] != null) {
+                        setState(() {
+                          exactImage = result['file'];
+                          exactImagePath = result['publicPath'];
+                        });
+                      }
+                    },
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: exactImage != null
+                          ? Image.file(exactImage!, fit: BoxFit.cover)
+                          : (exactImagePath != null && exactImagePath!.isNotEmpty
+                              ? Image.network(
+                                  'http://freeofficefile.gvbsoft.vn/api/file/$exactImagePath',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(Icons.broken_image, color: Colors.grey),
+                                )
+                              : Icon(Icons.add, size: 36, color: Colors.grey)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
             const Spacer(),
             Row(
               children: [
@@ -368,6 +443,21 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                               );
                               return;
                             }
+                            // Nếu có vi phạm lỗi thì cần lý do và ảnh vi phạm
+                            if (isError) {
+                              if (_reasonController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Vui lòng nhập lý do vi phạm')),
+                                );
+                                return;
+                              }
+                              if (exactImagePath == null || exactImagePath!.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Vui lòng chọn ảnh vi phạm')),
+                                );
+                                return;
+                              }
+                            }
 
                             // Xử lý lưu dữ liệu cập nhật ở đây
                             Map<String, Object> data = {
@@ -383,6 +473,9 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                               "ImageOut2": outImagePaths[1] ?? "",
                               "ImageOut3": outImagePaths[2] ?? "",
                               "FileReceive": signatureImagePaths[0] ?? "",
+                              "IsError": isError ? 1 : 0,
+                              "Reason": _reasonController.text,
+                              "FileExact": exactImagePath ?? "",
                             };
 
                             // Gọi API update

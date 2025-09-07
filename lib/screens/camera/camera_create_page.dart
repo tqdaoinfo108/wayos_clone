@@ -1,3 +1,4 @@
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/camera/camera_page.dart';
@@ -35,6 +36,12 @@ class _CreateItemPageState extends State<CreateItemPage> {
   List<Map<String, dynamic>> deliveryList = [];
   int? selectedDeliveryId;
 
+    // Vi phạm lỗi
+  bool isError = false;
+  final TextEditingController _reasonController = TextEditingController();
+  File? exactImage;
+  String? exactImagePath;
+  
   @override
   void initState() {
   super.initState();
@@ -245,7 +252,66 @@ class _CreateItemPageState extends State<CreateItemPage> {
               const SizedBox(height: 16),
               const Text('Ký nhận'),
               _buildSignatureImageRow(signatureImages, false),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Checkbox(
+                    value: isError,
+                    onChanged: (val) {
+                      setState(() {
+                        isError = val ?? false;
+                      });
+                    },
+                  ),
+                  const Text('Vi phạm lỗi'),
+                ],
+              ),
+              if (isError) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _reasonController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Lý do',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Ảnh vi phạm'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PhotoScreen(title: _titleController.text),
+                          ),
+                        );
+                        if (result != null && result['file'] != null && result['publicPath'] != null) {
+                          setState(() {
+                            exactImage = result['file'];
+                            exactImagePath = result['publicPath'];
+                          });
+                        }
+                      },
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: exactImage != null
+                            ? Image.file(exactImage!, fit: BoxFit.cover)
+                            : Icon(Icons.add, size: 36, color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
               Row(
                 children: [
                   Expanded(
@@ -290,17 +356,21 @@ class _CreateItemPageState extends State<CreateItemPage> {
                           );
                           return;
                         }
-                        // // Kiểm tra ít nhất 1 ảnh Out
-                        // bool hasOut =
-                        //     outImagePaths.any((e) => e != null && e.isNotEmpty);
-                        // if (!hasOut) {
-                        //   ScaffoldMessenger.of(context).showSnackBar(
-                        //     const SnackBar(
-                        //         content: Text('Vui lòng chọn ít nhất 1 ảnh ra')),
-                        //   );
-                        //   return;
-                        // }
-
+                        // Nếu có vi phạm lỗi thì cần lý do và ảnh vi phạm
+                        if (isError) {
+                          if (_reasonController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Vui lòng nhập lý do vi phạm')),
+                            );
+                            return;
+                          }
+                          if (exactImagePath == null || exactImagePath!.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Vui lòng chọn ảnh vi phạm')),
+                            );
+                            return;
+                          }
+                        }
                         // Xử lý lưu dữ liệu ở đây
                         final data = {
                           "TitleBill": _titleController.text,
@@ -315,6 +385,9 @@ class _CreateItemPageState extends State<CreateItemPage> {
                           "ImageOut2": outImagePaths[1] ?? "",
                           "ImageOut3": outImagePaths[2] ?? "",
                           "FileReceive": signatureImagePaths[0] ?? "",
+                          "IsError": isError ? 1 : 0,
+                          "Reason": _reasonController.text,
+                          "FileExact": exactImagePath ?? "",
                         };
 
                         BillRequestService()
