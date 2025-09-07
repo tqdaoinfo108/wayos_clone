@@ -14,18 +14,32 @@ class CameraListPage extends StatefulWidget {
 }
 
 class _CameraListPageState extends State<CameraListPage> {
+  final TextEditingController _searchController = TextEditingController();
+  DateTime timeStart = DateTime.now().subtract(const Duration(days: 30));
+  DateTime timeEnd = DateTime.now();
   List<dynamic> items = [];
+  int currentPage = 1;
+  int totalPages = 1;
 
   @override
   void initState() {
-    super.initState();
-    fetchData();
+  super.initState();
+  fetchData(page: 1);
   }
 
-  Future<void> fetchData() async {
-    final response = await BillRequestService().getRequestList();
+  Future<void> fetchData({int page = 1}) async {
+    final response = await BillRequestService().getRequestList(
+      DateFormat('yyyy-MM-dd').format(timeStart),
+      DateFormat('yyyy-MM-dd').format(timeEnd),
+      searchText: _searchController.text.trim(),
+      page: page
+    );
     final data = response?['data'] as List<dynamic>? ?? [];
+    final int total = response?['totals'] as int? ?? data.length;
+    final int pageSize = 20;
     setState(() {
+      currentPage = page;
+      totalPages = (total / pageSize).ceil();
       items = data.map<Map<String, dynamic>>((item) {
         // Xử lý Title
         final title = item['TitleBill'] ?? '';
@@ -79,38 +93,155 @@ class _CameraListPageState extends State<CameraListPage> {
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () async {
-              // Xử lý khi nhấn Thêm mới
               var result = await Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => const CreateItemPage(),
               ));
-
-              if (result != null) await fetchData();
+              if (result != null) await fetchData(page: currentPage);
             },
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return ItemRowDetail(
-            data: item as Map<String, dynamic>,
-            color: Colors.blue,
-            onTap: () async {
-              var result = await Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) =>
-                    UpdateItemPage(data: item as Map<String, dynamic>),
-              ));
-              if (result != null) await fetchData();
-            },
-            status: item['Status'],
-          );
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      hintText: 'Tìm kiếm...',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    onSubmitted: (_) => fetchData(page: 1),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () => fetchData(page: 1),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: timeStart,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                        locale: const Locale('vi'),
+                      );
+                      if (picked != null) {
+                        setState(() => timeStart = picked);
+                        fetchData(page: 1);
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Từ ngày',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      child: Text(DateFormat('dd/MM/yyyy').format(timeStart)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: timeEnd,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                        locale: const Locale('vi'),
+                      );
+                      if (picked != null) {
+                        setState(() => timeEnd = picked);
+                        fetchData(page: 1);
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Đến ngày',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      child: Text(DateFormat('dd/MM/yyyy').format(timeEnd)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return ItemRowDetail(
+                  data: item as Map<String, dynamic>,
+                  color: Colors.blue,
+                  onTap: () async {
+                    var result = await Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) =>
+                          UpdateItemPage(data: item as Map<String, dynamic>),
+                    ));
+                    if (result != null) await fetchData(page: currentPage);
+                  },
+                  status: item['Status'],
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 90,
+                  child: ElevatedButton(
+                    onPressed: currentPage > 1 ? () => fetchData(page: currentPage - 1) : null,
+                    child: const Text('Trước'),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text('Trang $currentPage / $totalPages'),
+                ),
+                SizedBox(
+                  width: 90,
+                  child: ElevatedButton(
+                    onPressed: currentPage < totalPages ? () => fetchData(page: currentPage + 1) : null,
+                    child: const Text('Sau'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
+// Di chuyển class ItemRowDetail ra ngoài để tránh lỗi khai báo class bên trong class khác
 class ItemRowDetail extends StatelessWidget {
   const ItemRowDetail({
     Key? key,

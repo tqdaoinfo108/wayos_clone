@@ -5,13 +5,13 @@ import 'package:http/http.dart' as http;
 import 'package:wayos_clone/service/api_service.dart';
 
 class BillRequestService extends ApiService {
-  Future<dynamic> getRequestList(
+  Future<dynamic> getRequestList(String timeStart, String timeEnd,
       {int status = -100, String searchText = '', int page = 1}) async {
     try {
       var rs = await request(HttpMethod.get,
-          '/trackingbill/list-tracking-bill?keySearch=$searchText',
+          '/trackingbill/list-tracking-bill?keySearch=$searchText&timeStart=$timeStart&timeEnd=$timeEnd',
           headers: {
-            'limit': '100',
+            'limit': '20',
             'page': '$page',
           });
       return rs;

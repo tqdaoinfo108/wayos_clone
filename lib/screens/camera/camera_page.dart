@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -10,7 +9,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:get_storage/get_storage.dart';
-
 import '../../service/bill_tracking/bill_tracking_service.dart';
 
 class PhotoScreen extends StatefulWidget {
@@ -21,6 +19,8 @@ class PhotoScreen extends StatefulWidget {
 }
 
 class _PhotoScreenState extends State<PhotoScreen> {
+  double _currentZoom = 1.0;
+  double _baseZoom = 1.0;
   final box = GetStorage();
 
   CameraController? _controller;
@@ -217,54 +217,69 @@ class _PhotoScreenState extends State<PhotoScreen> {
                     : FutureBuilder<void>(
                         future: _initializeControllerFuture,
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.done) {
+                          if (snapshot.connectionState == ConnectionState.done) {
                             if (_isInitialized) {
-                              return Stack(
-                                alignment: Alignment.bottomCenter,
-                                children: [
-                                  CameraPreview(_controller!),
-                                  Container(
-                                    width: double.infinity,
-                                    color: Colors.black54,
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          _time,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
+                              return GestureDetector(
+                                onScaleStart: (details) {
+                                  _baseZoom = _currentZoom;
+                                },
+                                onScaleUpdate: (details) async {
+                                  if (_controller != null && details.scale != 1.0) {
+                                    double minZoom = await _controller!.getMinZoomLevel();
+                                    double maxZoom = await _controller!.getMaxZoomLevel();
+                                    double newZoom = (_baseZoom * details.scale).clamp(minZoom, maxZoom);
+                                    setState(() {
+                                      _currentZoom = newZoom;
+                                    });
+                                    await _controller!.setZoomLevel(_currentZoom);
+                                  }
+                                },
+                                child: Stack(
+                                  alignment: Alignment.bottomCenter,
+                                  children: [
+                                    CameraPreview(_controller!),
+                                    Container(
+                                      width: double.infinity,
+                                      color: Colors.black54,
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            _time,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          widget.title,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            widget.title,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _location,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _location,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               );
                             } else {
                               return const Center(
@@ -275,8 +290,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                               );
                             }
                           } else {
-                            return const Center(
-                                child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           }
                         },
                       ),

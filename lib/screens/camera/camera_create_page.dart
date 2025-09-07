@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/camera/camera_page.dart';
 
 import '../../service/bill_tracking/bill_tracking_service.dart';
+import '../../service/project_service.dart';
 
 class CreateItemPage extends StatefulWidget {
   const CreateItemPage({super.key});
@@ -22,14 +23,24 @@ class _CreateItemPageState extends State<CreateItemPage> {
   List<File?> signatureImages = List.generate(1, (_) => null);
   List<String?> signatureImagePaths = List.generate(1, (_) => null);
 
-  // Thêm biến cho dropdown
+  // Dropdown loại công việc
   List<Map<String, dynamic>> typeBillList = [];
   int? selectedTypeBillId;
 
+  // Dropdown Project
+  List<Map<String, dynamic>> projectList = [];
+  int? selectedProjectId;
+
+  // Dropdown DeliveryVehicle
+  List<Map<String, dynamic>> deliveryList = [];
+  int? selectedDeliveryId;
+
   @override
   void initState() {
-    super.initState();
-    fetchTypeBillList();
+  super.initState();
+  fetchTypeBillList();
+  fetchProjectList();
+  fetchDeliveryList();
   }
 
   Future<void> fetchTypeBillList() async {
@@ -37,6 +48,24 @@ class _CreateItemPageState extends State<CreateItemPage> {
     if (response != null && response['data'] != null) {
       setState(() {
         typeBillList = List<Map<String, dynamic>>.from(response['data']);
+      });
+    }
+  }
+
+  Future<void> fetchProjectList() async {
+    final response = await ProjectService().getProjectList();
+    if (response != null && response['data'] != null) {
+      setState(() {
+        projectList = List<Map<String, dynamic>>.from(response['data']);
+      });
+    }
+  }
+
+  Future<void> fetchDeliveryList() async {
+    final response = await DeliveryVehicleService().getDeliveryVehicleList();
+    if (response != null && response['data'] != null) {
+      setState(() {
+        deliveryList = List<Map<String, dynamic>>.from(response['data']);
       });
     }
   }
@@ -136,6 +165,28 @@ class _CreateItemPageState extends State<CreateItemPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  
+                  DropdownButtonFormField<int>(
+                    value: selectedProjectId,
+                    items: projectList
+                        .map((item) => DropdownMenuItem<int>(
+                              value: item['ProjectID'],
+                              child: Text(item['ProjectName'] ?? ''),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedProjectId = value;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    hint: const Text('Chọn dự án'),
+                  ),
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<int>(
                     value: selectedTypeBillId,
                     items: typeBillList
@@ -156,8 +207,31 @@ class _CreateItemPageState extends State<CreateItemPage> {
                     ),
                     hint: const Text('Chọn loại công việc'),
                   ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    value: selectedDeliveryId,
+                    items: deliveryList
+                        .map((item) => DropdownMenuItem<int>(
+                              value: item['DeliveryVehicleID'],
+                              // ignore: prefer_interpolation_to_compose_strings
+                              child: Text(item['NumberVehicle'] + ' - ' + item['TypeVehicleName'] ?? ''),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDeliveryId = value;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    hint: const Text('Chọn phương tiện'),
+                  ),
                 ],
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Tiêu đề'),
@@ -186,27 +260,33 @@ class _CreateItemPageState extends State<CreateItemPage> {
                       onPressed: () {
                         if (_titleController.text.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Vui lòng nhập tiêu đề')),
+                            const SnackBar(content: Text('Vui lòng nhập tiêu đề')),
                           );
                           return;
                         }
-
+                        if (selectedProjectId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Vui lòng chọn dự án')),
+                          );
+                          return;
+                        }
+                        if (selectedDeliveryId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Vui lòng chọn phương tiện')),
+                          );
+                          return;
+                        }
                         if (selectedTypeBillId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Vui lòng chọn loại công việc')),
+                            const SnackBar(content: Text('Vui lòng chọn loại công việc')),
                           );
                           return;
                         }
                         // Kiểm tra ít nhất 1 ảnh In
-                        bool hasIn =
-                            inImagePaths.any((e) => e != null && e.isNotEmpty);
+                        bool hasIn = inImagePaths.any((e) => e != null && e.isNotEmpty);
                         if (!hasIn) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Vui lòng chọn ít nhất 1 ảnh vào')),
+                            const SnackBar(content: Text('Vui lòng chọn ít nhất 1 ảnh vào')),
                           );
                           return;
                         }
@@ -225,6 +305,8 @@ class _CreateItemPageState extends State<CreateItemPage> {
                         final data = {
                           "TitleBill": _titleController.text,
                           "TypeTrackingBillID": selectedTypeBillId,
+                          "ProjectID": selectedProjectId,
+                          "DeliveryVehicleID": selectedDeliveryId,
                           "DateBill": DateTime.now().toIso8601String(),
                           "ImageIn1": inImagePaths[0] ?? "",
                           "ImageIn2": inImagePaths[1] ?? "",

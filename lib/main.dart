@@ -4,6 +4,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:toastification/toastification.dart';
 import 'package:wayos_clone/route/route_constants.dart';
@@ -45,6 +46,13 @@ class MyApp extends StatelessWidget {
             ? LOG_IN_SCREEN_ROUTE
             : HOME_NAVIGATION_ROUTE,
         navigatorObservers: [routeObserver],
+        locale: const Locale('vi'),
+        supportedLocales: [Locale('vi')],
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
       ),
     );
   }

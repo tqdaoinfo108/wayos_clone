@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/camera/camera_page.dart';
 import '../../service/bill_tracking/bill_tracking_service.dart';
+import '../../service/project_service.dart';
 
 class UpdateItemPage extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -12,12 +13,36 @@ class UpdateItemPage extends StatefulWidget {
 }
 
 class _UpdateItemPageState extends State<UpdateItemPage> {
+  Future<void> fetchProjectList() async {
+    final response = await ProjectService().getProjectList();
+    if (response != null && response['data'] != null) {
+      setState(() {
+        projectList = List<Map<String, dynamic>>.from(response['data']);
+      });
+    }
+  }
+
+  Future<void> fetchDeliveryList() async {
+    final response = await DeliveryVehicleService().getDeliveryVehicleList();
+    if (response != null && response['data'] != null) {
+      setState(() {
+        deliveryList = List<Map<String, dynamic>>.from(response['data']);
+      });
+    }
+  }
+
+  // Project/Delivery
+  List<Map<String, dynamic>> projectList = [];
+  int? selectedProjectId;
+  List<Map<String, dynamic>> deliveryList = [];
+  int? selectedDeliveryId;
+  bool isEdit = true;
   late String title;
   late int trackingBillId;
   late int? selectedTypeBillId;
   List<Map<String, dynamic>> typeBillList = [];
   bool isLoadingTypeBill = true; // Thêm biến loading
-  
+
   List<File?> inImages = List.generate(3, (_) => null);
   late List<String?> inImagePaths;
   List<File?> outImages = List.generate(3, (_) => null);
@@ -27,11 +52,17 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
 
   @override
   void initState() {
+    selectedProjectId = widget.data['ProjectID'];
+    selectedDeliveryId = widget.data['DeliveryVehicleID'];
+    isEdit = widget.data['IsEdit'] ?? true;
+    fetchProjectList();
+    fetchDeliveryList();
+
     super.initState();
     title = widget.data['TitleBill'] ?? '';
     trackingBillId = widget.data['TrackingBillID'] ?? 0;
     selectedTypeBillId = widget.data['TypeTrackingBillID']; // Lấy giá trị cũ
-    
+
     inImagePaths = [
       widget.data['ImageIn1'] as String?,
       widget.data['ImageIn2'] as String?,
@@ -45,7 +76,7 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
     signatureImagePaths = [
       widget.data['FileReceive'] as String?,
     ];
-    
+
     fetchTypeBillList(); // Gọi API lấy danh sách loại công việc
   }
 
@@ -53,7 +84,7 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
     setState(() {
       isLoadingTypeBill = true;
     });
-    
+
     final response = await BillRequestService().getTypeBillTracking();
     if (response != null && response['data'] != null) {
       setState(() {
@@ -67,13 +98,16 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
     }
   }
 
-  Future<void> _pickImage(bool isIn, int index, {bool isSignature = false}) async {
+  Future<void> _pickImage(bool isIn, int index,
+      {bool isSignature = false}) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => PhotoScreen(title: title)),
     );
 
-    if (result != null && result['file'] != null && result['publicPath'] != null) {
+    if (result != null &&
+        result['file'] != null &&
+        result['publicPath'] != null) {
       File image = result['file'];
       String publicPath = result['publicPath'];
       setState(() {
@@ -103,7 +137,8 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
           imageWidget = Image.network(
             'http://freeofficefile.gvbsoft.vn/api/file/${paths[i]}',
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Icon(Icons.broken_image, color: Colors.grey),
+            errorBuilder: (_, __, ___) =>
+                Icon(Icons.broken_image, color: Colors.grey),
           );
         } else {
           imageWidget = Icon(Icons.add, size: 36, color: Colors.grey);
@@ -135,7 +170,8 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
           imageWidget = Image.network(
             'http://freeofficefile.gvbsoft.vn/api/file/${paths[i]}',
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Icon(Icons.broken_image, color: Colors.grey),
+            errorBuilder: (_, __, ___) =>
+                Icon(Icons.broken_image, color: Colors.grey),
           );
         } else {
           imageWidget = Icon(Icons.add, size: 36, color: Colors.grey);
@@ -173,6 +209,56 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
             // Dropdown với loading
             Column(
               children: [
+                // Project Dropdown
+                DropdownButtonFormField<int>(
+                  value: selectedProjectId,
+                  items: projectList
+                      .map((item) => DropdownMenuItem<int>(
+                            value: item['ProjectID'],
+                            child: Text(item['ProjectName'] ?? ''),
+                          ))
+                      .toList(),
+                  onChanged: isEdit
+                      ? (value) {
+                          setState(() {
+                            selectedProjectId = value;
+                          });
+                        }
+                      : null,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  hint: const Text('Chọn dự án'),
+                ),
+                const SizedBox(height: 16),
+                // Delivery Dropdown
+                DropdownButtonFormField<int>(
+                  value: selectedDeliveryId,
+                  items: deliveryList
+                      .map((item) => DropdownMenuItem<int>(
+                            value: item['DeliveryVehicleID'],
+                            child: Text((item['NumberVehicle'] ?? '') +
+                                ' - ' +
+                                (item['TypeVehicleName'] ?? '')),
+                          ))
+                      .toList(),
+                  onChanged: isEdit
+                      ? (value) {
+                          setState(() {
+                            selectedDeliveryId = value;
+                          });
+                        }
+                      : null,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  hint: const Text('Chọn phương tiện'),
+                ),
+                const SizedBox(height: 16),
                 isLoadingTypeBill
                     ? Container(
                         height: 48,
@@ -192,11 +278,13 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                                   child: Text(item['TypeName'] ?? ''),
                                 ))
                             .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedTypeBillId = value;
-                          });
-                        },
+                        onChanged: isEdit
+                            ? (value) {
+                                setState(() {
+                                  selectedTypeBillId = value;
+                                });
+                              }
+                            : null,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           contentPadding:
@@ -207,7 +295,8 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
               ],
             ),
             const SizedBox(height: 16),
-            Text('Công việc: $title', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Công việc: $title',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             const Text('Ảnh Vào'),
             _buildImageRow(inImages, inImagePaths, true),
@@ -229,62 +318,91 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: isLoadingTypeBill ? null : () {
-                      // Kiểm tra loại công việc
-                      if (selectedTypeBillId == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Vui lòng chọn loại công việc')),
-                        );
-                        return;
-                      }
-                      
-                      // Kiểm tra ít nhất 1 ảnh In
-                      bool hasIn = inImagePaths.any((e) => e != null && e.isNotEmpty);
-                      if (!hasIn) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Vui lòng chọn ít nhất 1 ảnh vào')),
-                        );
-                        return;
-                      }
-                      // Kiểm tra ít nhất 1 ảnh Out
-                      bool hasOut = outImagePaths.any((e) => e != null && e.isNotEmpty);
-                      if (!hasOut) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Vui lòng chọn ít nhất 1 ảnh ra')),
-                        );
-                        return;
-                      }
+                    onPressed: isLoadingTypeBill || !isEdit
+                        ? null
+                        : () {
+                            // Kiểm tra Project
+                            if (selectedProjectId == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Vui lòng chọn dự án')),
+                              );
+                              return;
+                            }
+                            // Kiểm tra Delivery
+                            if (selectedDeliveryId == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Vui lòng chọn phương tiện')),
+                              );
+                              return;
+                            }
+                            // Kiểm tra loại công việc
+                            if (selectedTypeBillId == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Vui lòng chọn loại công việc')),
+                              );
+                              return;
+                            }
+                            // Kiểm tra ít nhất 1 ảnh In
+                            bool hasIn = inImagePaths
+                                .any((e) => e != null && e.isNotEmpty);
+                            if (!hasIn) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Vui lòng chọn ít nhất 1 ảnh vào')),
+                              );
+                              return;
+                            }
+                            // Kiểm tra ít nhất 1 ảnh Out
+                            bool hasOut = outImagePaths
+                                .any((e) => e != null && e.isNotEmpty);
+                            if (!hasOut) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Vui lòng chọn ít nhất 1 ảnh ra')),
+                              );
+                              return;
+                            }
 
-                      // Xử lý lưu dữ liệu cập nhật ở đây
-                      Map<String, Object> data = {
-                        "TrackingBillID": trackingBillId,
-                        "TitleBill": title,
-                        "TypeTrackingBillID": selectedTypeBillId!, // Thêm dòng này
-                        "ImageIn1": inImagePaths[0] ?? "",
-                        "ImageIn2": inImagePaths[1] ?? "",
-                        "ImageIn3": inImagePaths[2] ?? "",
-                        "ImageOut1": outImagePaths[0] ?? "",
-                        "ImageOut2": outImagePaths[1] ?? "",
-                        "ImageOut3": outImagePaths[2] ?? "",
-                        "FileReceive": signatureImagePaths[0] ?? "",
-                      };
+                            // Xử lý lưu dữ liệu cập nhật ở đây
+                            Map<String, Object> data = {
+                              "TrackingBillID": trackingBillId,
+                              "TitleBill": title,
+                              "TypeTrackingBillID": selectedTypeBillId!,
+                              "ProjectID": selectedProjectId ?? 0,
+                              "DeliveryVehicleID": selectedDeliveryId ?? 0,
+                              "ImageIn1": inImagePaths[0] ?? "",
+                              "ImageIn2": inImagePaths[1] ?? "",
+                              "ImageIn3": inImagePaths[2] ?? "",
+                              "ImageOut1": outImagePaths[0] ?? "",
+                              "ImageOut2": outImagePaths[1] ?? "",
+                              "ImageOut3": outImagePaths[2] ?? "",
+                              "FileReceive": signatureImagePaths[0] ?? "",
+                            };
 
-                      // Gọi API update
-                      BillRequestService()
-                          .updateTrackingBill(trackingBillId, data)
-                          .then((response) {
-                        if (response != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cập nhật thành công')),
-                          );
-                          Navigator.pop(context, true);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cập nhật thất bại')),
-                          );
-                        }
-                      });
-                    },
+                            // Gọi API update
+                            BillRequestService()
+                                .updateTrackingBill(trackingBillId, data)
+                                .then((response) {
+                              if (response != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Cập nhật thành công')),
+                                );
+                                Navigator.pop(context, true);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Cập nhật thất bại')),
+                                );
+                              }
+                            });
+                          },
                     child: const Text('Cập nhật'),
                   ),
                 ),
