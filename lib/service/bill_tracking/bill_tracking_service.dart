@@ -6,17 +6,66 @@ import 'package:wayos_clone/service/api_service.dart';
 
 class BillRequestService extends ApiService {
   Future<dynamic> getRequestList(String timeStart, String timeEnd,
-      {int status = -100, String searchText = '', int page = 1}) async {
+      {int status = -100,
+      String searchText = '',
+      int? projectID,
+      int? providerID,
+      int? typeTrackingBillID,
+      int? typeVehicleID,
+      int? deliveryVehicleID,
+      int page = 1}) async {
     try {
-      var rs = await request(HttpMethod.get,
-          '/trackingbill/list-tracking-bill-search?keySearch=$searchText&timeStart=$timeStart&timeEnd=$timeEnd',
-          headers: {
-            'limit': '20',
-            'page': '$page',
-          });
+      // Format dates to ISO format as required by the API
+      var timeStartFormatted = Uri.encodeComponent('$timeStart');
+      var timeEndFormatted = Uri.encodeComponent('$timeEnd');
+      var keySearchFormatted = Uri.encodeComponent(searchText);
+
+      // Build URL with ID parameters
+      String url = '/trackingbill/list-tracking-bill-search'
+          '?timeStart=$timeStartFormatted '
+          '&timeEnd=$timeEndFormatted '
+          '&keySearch=$keySearchFormatted '
+          '&projectID=${projectID ?? ''}'
+          '&providerID=${providerID ?? ''}'
+          '&typeTrackingBillID=${typeTrackingBillID ?? ''}'
+          '&typeVehicleID=${typeVehicleID ?? ''}'
+          '&deliveryVehicleID=${deliveryVehicleID ?? ''}';
+
+      log("request: $url");
+      var rs = await request(HttpMethod.get, url, headers: {
+        'limit': '20',
+        'page': '$page',
+        'accept': 'application/json',
+      });
       return rs;
     } catch (e) {
       log('Lấy danh sách yêu cầu thất bại: $e');
+    }
+  }
+
+  Future<dynamic> getExportRequestList(String timeStart, String timeEnd,
+      {String searchText = '',
+      int page = 1,
+      String? projectIdFrom,
+      String? projectIdTo}) async {
+    try {
+      // Format dates to ISO format as required by the API
+      var timeStartFormatted = Uri.encodeComponent('$timeStart');
+      var timeEndFormatted = Uri.encodeComponent('$timeEnd');
+      var keySearchFormatted = Uri.encodeComponent(searchText);
+
+      // Build URL with project filtering
+      String url =
+          '/exporttrackingbill/list-export-tracking-bill-search?timeStart=$timeStartFormatted&timeEnd=$timeEndFormatted&keySearch=$keySearchFormatted&projectIdFrom=$projectIdFrom&projectIDTo=$projectIdTo';
+
+      var rs = await request(HttpMethod.get, url, headers: {
+        'limit': '20',
+        'page': '$page',
+        'accept': 'application/json',
+      });
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách xuất vật tư thất bại: $e');
     }
   }
 
@@ -104,6 +153,111 @@ class BillRequestService extends ApiService {
       return rs;
     } catch (e) {
       log('Lấy chi tiết tracking bill thất bại: $e');
+      return null;
+    }
+  }
+
+  // API cho Export Tracking Bill với body structure mới
+  Future<dynamic> createExportTrackingBill(data) async {
+    try {
+      var rs = await request(
+        HttpMethod.post,
+        '/exporttrackingbill/create-export-tracking-bill',
+        body: data,
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Tạo export tracking bill thất bại: $e');
+      return null;
+    }
+  }
+
+  // API lấy danh sách lỗi vi phạm
+  Future<dynamic> getViolationRuleList() async {
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/violationrule/getlistviolationrule',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách lỗi vi phạm thất bại: $e');
+      return null;
+    }
+  }
+
+  // API lấy danh sách phương án xử lý
+  Future<dynamic> getHandlingPlanList() async {
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/handingplan/getlisthandlingplan',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách phương án xử lý thất bại: $e');
+      return null;
+    }
+  }
+
+  // API lấy danh sách nhà cung cấp phương tiện
+  Future<dynamic> getProviderVehicles({String keyword = ''}) async {
+    try {
+      var keywordFormatted = Uri.encodeComponent(keyword);
+      var rs = await request(
+        HttpMethod.get,
+        '/providervehicles/search?keyword=$keywordFormatted',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách nhà cung cấp phương tiện thất bại: $e');
+      return null;
+    }
+  }
+
+  // API lấy danh sách loại phương tiện
+  Future<dynamic> getTypeVehicleList() async {
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/typevehicles/all',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách loại phương tiện thất bại: $e');
+      return null;
+    }
+  }
+
+  // API lấy danh sách phương tiện giao hàng
+  Future<dynamic> getDeliveryVehicleList() async {
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/deliveryvehicles/list',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách phương tiện giao hàng thất bại: $e');
       return null;
     }
   }

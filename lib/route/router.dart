@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:wayos_clone/route/route_constants.dart';
 import 'package:wayos_clone/route/screen_export.dart';
 
-import '../screens/camera/camera_list_page.dart';
-import '../screens/camera/camera_page.dart';
+import '../screens/home/application/pages/report/material_create_page.dart';
+import '../screens/home/application/pages/report/report_page.dart';
+import '../screens/home/application/pages/report/camera_page.dart';
+import '../screens/home/application/pages/support/support_page.dart';
+import '../screens/home/application/pages/export_material/export_material_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -85,9 +88,24 @@ Route<dynamic> generateRoute(RouteSettings settings) {
             PreviewRequestProcessPage(settings.arguments as String),
         settings: settings,
       );
-    case CAMERA_LIST_ROUTE:
+    case REPORT_ROUTE:
       return MaterialPageRoute(
-        builder: (context) => CameraListPage(),
+        builder: (context) => ReportPage(),
+        settings: settings,
+      );
+    case IMPORT_MATERIAL_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => CreateMaterialPage(),
+        settings: settings,
+      );
+    case EXPORT_MATERIAL_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const ExportMaterialPage(),
+        settings: settings,
+      );
+    case SUPPORT_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const SupportPage(),
         settings: settings,
       );
     default:

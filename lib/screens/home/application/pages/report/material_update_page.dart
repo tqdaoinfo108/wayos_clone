@@ -1,23 +1,30 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:wayos_clone/screens/camera/camera_page.dart';
-import '../../service/bill_tracking/bill_tracking_service.dart';
-import '../../service/project_service.dart';
+import 'package:wayos_clone/screens/home/application/pages/report/camera_page.dart';
+import '../../../../../service/bill_tracking/bill_tracking_service.dart';
+import '../../../../../service/project_service.dart';
 
-class UpdateItemPage extends StatefulWidget {
+class MaterialUpdatePage extends StatefulWidget {
   final Map<String, dynamic> data;
-  const UpdateItemPage({super.key, required this.data});
+  const MaterialUpdatePage({super.key, required this.data});
 
   @override
-  State<UpdateItemPage> createState() => _UpdateItemPageState();
+  State<MaterialUpdatePage> createState() => _MaterialUpdatePageState();
 }
 
-class _UpdateItemPageState extends State<UpdateItemPage> {
+class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
   // Vi phạm lỗi
   bool isError = false;
   final TextEditingController _reasonController = TextEditingController();
-  File? exactImage;
-  String? exactImagePath;
+  final TextEditingController _amountController = TextEditingController();
+  
+  // Dropdown vi phạm
+  List<Map<String, dynamic>> violationRuleList = [];
+  int? selectedViolationRuleId;
+  
+  // Dropdown phương án xử lý
+  List<Map<String, dynamic>> handlingPlanList = [];
+  int? selectedHandlingPlanId;
   Future<void> fetchProjectList() async {
     final response = await ProjectService().getProjectList();
     if (response != null && response['data'] != null) {
@@ -28,10 +35,28 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
   }
 
   Future<void> fetchDeliveryList() async {
-    final response = await DeliveryVehicleService().getDeliveryVehicleList();
+    final response = await BillRequestService().getDeliveryVehicleList();
     if (response != null && response['data'] != null) {
       setState(() {
         deliveryList = List<Map<String, dynamic>>.from(response['data']);
+      });
+    }
+  }
+
+  Future<void> fetchViolationRuleList() async {
+    final response = await BillRequestService().getViolationRuleList();
+    if (response != null && response['data'] != null) {
+      setState(() {
+        violationRuleList = List<Map<String, dynamic>>.from(response['data']);
+      });
+    }
+  }
+
+  Future<void> fetchHandlingPlanList() async {
+    final response = await BillRequestService().getHandlingPlanList();
+    if (response != null && response['data'] != null) {
+      setState(() {
+        handlingPlanList = List<Map<String, dynamic>>.from(response['data']);
       });
     }
   }
@@ -57,16 +82,23 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
 
   @override
   void initState() {
-  isError = (widget.data['IsError'] ?? 0) == 1;
-  _reasonController.text = widget.data['Reason'] ?? '';
-  exactImagePath = widget.data['FileExact'] as String?;
+    super.initState();
+    
+    isError = (widget.data['IsError'] ?? 0) == 1;
+    _reasonController.text = (widget.data['Violate'] ?? 0).toString();
+    _amountController.text = (widget.data['Amount'] ?? 0).toString();
+    selectedViolationRuleId = widget.data['ViolationRuleID'];
+    selectedHandlingPlanId = widget.data['HandlingPlanID'];
+    
     selectedProjectId = widget.data['ProjectID'];
     selectedDeliveryId = widget.data['DeliveryVehicleID'];
     isEdit = widget.data['IsEdit'] ?? true;
+    
     fetchProjectList();
     fetchDeliveryList();
-
-    super.initState();
+    fetchViolationRuleList();
+    fetchHandlingPlanList();
+    
     title = widget.data['TitleBill'] ?? '';
     trackingBillId = widget.data['TrackingBillID'] ?? 0;
     selectedTypeBillId = widget.data['TypeTrackingBillID']; // Lấy giá trị cũ
@@ -310,6 +342,18 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                     Text('Công việc: $title',
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
+                    TextField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      enabled: isEdit,
+                      decoration: const InputDecoration(
+                        labelText: 'Số lượng',
+                        hintText: 'Nhập số m3',
+                        suffixText: 'm3',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     const Text('Ảnh Vào'),
                     _buildImageRow(inImages, inImagePaths, true),
                     const SizedBox(height: 16),
@@ -329,61 +373,64 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                             });
                           },
                         ),
-                        const Text('Vi phạm lỗi'),
+                        const Text('Vi phạm'),
                       ],
                     ),
                     if (isError) ...[
                       const SizedBox(height: 8),
+                      DropdownButtonFormField<int>(
+                        value: selectedViolationRuleId,
+                        items: violationRuleList
+                            .map((item) => DropdownMenuItem<int>(
+                                  value: item['ViolationRuleID'] ?? item['ID'],
+                                  child: Text(item['ViolationName'] ?? item['Name'] ?? ''),
+                                ))
+                            .toList(),
+                        onChanged: !isEdit ? null : (value) {
+                          setState(() {
+                            selectedViolationRuleId = value;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        hint: const Text('Lỗi vi phạm'),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<int>(
+                        value: selectedHandlingPlanId,
+                        items: handlingPlanList
+                            .map((item) => DropdownMenuItem<int>(
+                                  value: item['HandlingPlanID'] ?? item['ID'],
+                                  child: Text(item['HandlingPlanName'] ?? item['HandlingPlanName'] ?? ''),
+                                ))
+                            .toList(),
+                        onChanged: !isEdit ? null : (value) {
+                          setState(() {
+                            selectedHandlingPlanId = value;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        hint: const Text('Phương án xử lý'),
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: _reasonController,
-                        maxLines: 3,
+                        maxLines: 2,
+                        keyboardType: TextInputType.number,
                         enabled: isEdit,
                         decoration: const InputDecoration(
-                          labelText: 'Lý do',
+                          labelText: 'Khối lượng trừ (m3)',
                           border: OutlineInputBorder(),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      const Text('Ảnh vi phạm'),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          GestureDetector(
-                            onTap: !isEdit ? null : () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => PhotoScreen(title: title),
-                                ),
-                              );
-                              if (result != null && result['file'] != null && result['publicPath'] != null) {
-                                setState(() {
-                                  exactImage = result['file'];
-                                  exactImagePath = result['publicPath'];
-                                });
-                              }
-                            },
-                            child: Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: exactImage != null
-                                  ? Image.file(exactImage!, fit: BoxFit.cover)
-                                  : (exactImagePath != null && exactImagePath!.isNotEmpty
-                                      ? Image.network(
-                                          'http://freeofficefile.gvbsoft.vn/api/file/$exactImagePath',
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(Icons.broken_image, color: Colors.grey),
-                                        )
-                                      : Icon(Icons.add, size: 36, color: Colors.grey)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 100),
                     ],
                     
                   ],
@@ -451,17 +498,23 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                               );
                               return;
                             }
-                            // Nếu có vi phạm lỗi thì cần lý do và ảnh vi phạm
+                            // Nếu có vi phạm lỗi thì cần các trường bắt buộc
                             if (isError) {
-                              if (_reasonController.text.trim().isEmpty) {
+                              if (selectedViolationRuleId == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Vui lòng nhập lý do vi phạm')),
+                                  const SnackBar(content: Text('Vui lòng chọn lỗi vi phạm')),
                                 );
                                 return;
                               }
-                              if (exactImagePath == null || exactImagePath!.isEmpty) {
+                              if (selectedHandlingPlanId == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Vui lòng chọn ảnh vi phạm')),
+                                  const SnackBar(content: Text('Vui lòng chọn phương án xử lý')),
+                                );
+                                return;
+                              }
+                              if (_reasonController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Vui lòng nhập khối lượng trừ')),
                                 );
                                 return;
                               }
@@ -469,11 +522,12 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
 
                             // Xử lý lưu dữ liệu cập nhật ở đây
                             Map<String, Object> data = {
-                              "TrackingBillID": trackingBillId,
-                              "TitleBill": title,
                               "TypeTrackingBillID": selectedTypeBillId!,
                               "ProjectID": selectedProjectId ?? 0,
                               "DeliveryVehicleID": selectedDeliveryId ?? 0,
+                              "CompanyID": 0,
+                              "TitleBill": title,
+                              "DateBill": DateTime.now().toIso8601String(),
                               "ImageIn1": inImagePaths[0] ?? "",
                               "ImageIn2": inImagePaths[1] ?? "",
                               "ImageIn3": inImagePaths[2] ?? "",
@@ -481,9 +535,12 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                               "ImageOut2": outImagePaths[1] ?? "",
                               "ImageOut3": outImagePaths[2] ?? "",
                               "FileReceive": signatureImagePaths[0] ?? "",
-                              "IsError": isError ? 1 : 0,
-                              "Reason": _reasonController.text,
-                              "FileExact": exactImagePath ?? "",
+                              "IsError": isError,
+                              "ViolationRuleID": selectedViolationRuleId ?? 0,
+                              "HandlingPlanID": selectedHandlingPlanId ?? 0,
+                              "Violate": int.tryParse(_reasonController.text) ?? 0,
+                              "IsCheck": true,
+                              "Approve": true,
                             };
 
                             // Gọi API update

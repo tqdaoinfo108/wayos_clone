@@ -23,5 +23,9 @@ const String REQUEST_PERMISSION_PAGE_ROUTE = "requestPermissionPage";
 const String PREVIEW_WORKFLOW_PAGE_ROUTE = "previewWorkflowPage";
 const String PREVIEW_REQUEST_PROCESS_PAGE_ROUTE = "previewRequestProcessPage";
 
-const String CAMERA_LIST_ROUTE = "cameraList";
+const String REPORT_ROUTE = "cameraList";
+const String IMPORT_MATERIAL_ROUTE = "import_supplies_route";
+const String EXPORT_MATERIAL_ROUTE = "export_supplies_route";
+
+const String SUPPORT_ROUTE = "support_route";
 

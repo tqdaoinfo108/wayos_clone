@@ -31,7 +31,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
           //   isShowDivider: false,
           //   isShowArrow: false,
           // ),
-          
+
           MenuListTile(
             text: "Request",
             svgSrc: "assets/icons/Request.svg",
@@ -41,16 +41,52 @@ class _ApplicationPageState extends State<ApplicationPage> {
             isShowDivider: false,
             isShowArrow: false,
           ),
+          // MenuListTile(
+          //   text: "Check-in công việc",
+          //   svgSrc: "assets/icons/Filter.svg",
+          //   press: () {
+          //     Navigator.pushNamed(context, CAMERA_LIST_ROUTE);
+          //   },
+          //   isShowDivider: false,
+          //   isShowArrow: false,
+          // ),
           MenuListTile(
-            text: "Check-in công việc",
-            svgSrc: "assets/icons/Filter.svg",
+            text: "Nhập vật tư",
+            svgSrc: "assets/icons/Plus1.svg",
             press: () {
-              Navigator.pushNamed(context, CAMERA_LIST_ROUTE);
+              Navigator.pushNamed(context, IMPORT_MATERIAL_ROUTE);
             },
             isShowDivider: false,
             isShowArrow: false,
           ),
-          
+          MenuListTile(
+            text: "Xuất vật tư",
+            svgSrc: "assets/icons/Minus.svg",
+            press: () {
+              Navigator.pushNamed(context, EXPORT_MATERIAL_ROUTE);
+            },
+            isShowDivider: false,
+            isShowArrow: false,
+          ),
+          MenuListTile(
+            text: "Xem báo cáo",
+            svgSrc: "assets/icons/document.svg",
+            press: () {
+              Navigator.pushNamed(context, REPORT_ROUTE);
+            },
+            isShowDivider: false,
+            isShowArrow: false,
+          ),
+          MenuListTile(
+            text: "Hỗ trợ",
+            svgSrc: "assets/icons/Help.svg",
+            press: () {
+              Navigator.pushNamed(context, SUPPORT_ROUTE);
+            },
+            isShowDivider: false,
+            isShowArrow: false,
+          ),
+
           // MenuListTile(
           //   text: "Drive",
           //   svgSrc: "assets/icons/Drive.svg",
@@ -106,7 +142,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
               Navigator.popAndPushNamed(context, LOG_IN_SCREEN_ROUTE);
             },
             minLeadingWidth: 24,
-            leading: SvgPicture.asset(  
+            leading: SvgPicture.asset(
               "assets/icons/Logout.svg",
               height: 24,
               width: 24,
