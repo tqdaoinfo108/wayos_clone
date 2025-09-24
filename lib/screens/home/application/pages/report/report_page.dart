@@ -12,7 +12,8 @@ class ReportPage extends StatefulWidget {
   State<ReportPage> createState() => _ReportPageState();
 }
 
-class _ReportPageState extends State<ReportPage> with SingleTickerProviderStateMixin {
+class _ReportPageState extends State<ReportPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -71,16 +72,16 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
   // Dropdown state variables
   List<Map<String, dynamic>> projectList = [];
   int? selectedProjectId;
-  
+
   List<Map<String, dynamic>> providerList = [];
   int? selectedProviderId;
-  
+
   List<Map<String, dynamic>> typeBillList = [];
   int? selectedTypeBillId;
-  
+
   List<Map<String, dynamic>> typeVehicleList = [];
   int? selectedTypeVehicleId;
-  
+
   List<Map<String, dynamic>> deliveryVehicleList = [];
   int? selectedDeliveryVehicleId;
 
@@ -158,7 +159,8 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
       final response = await BillRequestService().getDeliveryVehicleList();
       if (response != null && response['data'] != null) {
         setState(() {
-          deliveryVehicleList = List<Map<String, dynamic>>.from(response['data']);
+          deliveryVehicleList =
+              List<Map<String, dynamic>>.from(response['data']);
         });
       }
     } catch (e) {
@@ -168,8 +170,7 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
 
   Future<void> fetchData({int page = 1}) async {
     final response = await BillRequestService().getRequestList(
-        timeStart.toIso8601String(),
-        timeEnd.toIso8601String(),
+        timeStart.toIso8601String(), timeEnd.toIso8601String(),
         searchText: _searchController.text.trim(),
         projectID: selectedProjectId,
         providerID: selectedProviderId,
@@ -265,11 +266,12 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                         isFilterExpanded = !isFilterExpanded;
                       });
                     },
-                    tooltip: isFilterExpanded ? 'Thu gọn bộ lọc' : 'Mở rộng bộ lọc',
+                    tooltip:
+                        isFilterExpanded ? 'Thu gọn bộ lọc' : 'Mở rộng bộ lọc',
                   ),
                 ],
               ),
-              
+
               // Expandable Filter Content
               if (isFilterExpanded) ...[
                 const SizedBox(height: 12),
@@ -297,14 +299,15 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Row 1: Project Name (full width)
                       DropdownButtonFormField<int>(
                         decoration: const InputDecoration(
                           labelText: 'Tên Dự Án',
                           border: OutlineInputBorder(),
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           filled: true,
                           fillColor: Colors.white,
                         ),
@@ -325,14 +328,15 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Row 2: Provider (full width)
                       DropdownButtonFormField<int>(
                         decoration: const InputDecoration(
                           labelText: 'Nhà cung cấp',
                           border: OutlineInputBorder(),
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           filled: true,
                           fillColor: Colors.white,
                         ),
@@ -353,14 +357,15 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Row 3: Type Bill (full width)
                       DropdownButtonFormField<int>(
                         decoration: const InputDecoration(
                           labelText: 'Loại vật tư',
                           border: OutlineInputBorder(),
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           filled: true,
                           fillColor: Colors.white,
                         ),
@@ -381,14 +386,15 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Row 4: Type Vehicle (full width)
                       DropdownButtonFormField<int>(
                         decoration: const InputDecoration(
                           labelText: 'Loại phương tiện',
                           border: OutlineInputBorder(),
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           filled: true,
                           fillColor: Colors.white,
                         ),
@@ -398,7 +404,9 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                             .map((item) => DropdownMenuItem<int>(
                                   value: item['TypeVehicleID'] ?? item['ID'],
                                   child: Text(
-                                    item['TypeVehicleName'] ?? item['Name'] ?? '',
+                                    item['TypeVehicleName'] ??
+                                        item['Name'] ??
+                                        '',
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ))
@@ -409,14 +417,15 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Row 5: Delivery Vehicle (full width)
                       DropdownButtonFormField<int>(
                         decoration: const InputDecoration(
                           labelText: 'Phương tiện',
                           border: OutlineInputBorder(),
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           filled: true,
                           fillColor: Colors.white,
                         ),
@@ -424,7 +433,8 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                         isExpanded: true,
                         items: deliveryVehicleList
                             .map((item) => DropdownMenuItem<int>(
-                                  value: item['DeliveryVehicleID'] ?? item['ID'],
+                                  value:
+                                      item['DeliveryVehicleID'] ?? item['ID'],
                                   child: Text(
                                     '${item['NumberVehicle'] ?? ''} - ${item['TypeVehicleName'] ?? ''}',
                                     overflow: TextOverflow.ellipsis,
@@ -437,7 +447,7 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Row 4: Date Range
                       Row(
                         children: [
@@ -461,7 +471,8 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                                   labelText: 'Từ ngày',
                                   border: OutlineInputBorder(),
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
@@ -493,7 +504,8 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                                   labelText: 'Đến ngày',
                                   border: OutlineInputBorder(),
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
@@ -506,7 +518,7 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                           ),
                         ],
                       ),
-                      
+
                       // Clear filters button
                       const SizedBox(height: 12),
                       SizedBox(
@@ -519,7 +531,8 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                               selectedTypeBillId = null;
                               selectedTypeVehicleId = null;
                               selectedDeliveryVehicleId = null;
-                              timeStart = DateTime.now().subtract(const Duration(days: 30));
+                              timeStart = DateTime.now()
+                                  .subtract(const Duration(days: 30));
                               timeEnd = DateTime.now();
                               _searchController.clear();
                             });
@@ -541,27 +554,31 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
           ),
         ),
         const SizedBox(height: 8),
-        Expanded(
-          child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return ItemRowDetail(
-                data: item as Map<String, dynamic>,
-                color: Colors.blue,
-                onTap: () async {
-                  var result =
-                      await Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) =>
-                        MaterialUpdatePage(data: item),
-                  ));
-                  if (result != null) await fetchData(page: currentPage);
-                },
-                status: item['Status'],
-              );
-            },
-          ),
-        ),
+        items.isNotEmpty
+            ? Expanded(
+                child: ListView.builder(
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return ItemRowDetail(
+                      data: item as Map<String, dynamic>,
+                      color: Colors.blue,
+                      onTap: () async {
+                        var result =
+                            await Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => MaterialUpdatePage(data: item),
+                        ));
+                        if (result != null) await fetchData(page: currentPage);
+                      },
+                      status: item['Status'],
+                    );
+                  },
+                ),
+              )
+            : Expanded(
+                child: Center(
+                child: Text("Không có dữ liệu"),
+              )),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
@@ -643,7 +660,7 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
     // Get projectId for API call - use projectFrom as primary, fallback to projectTo
     String? projectIdFrom;
     String? projectIdTo;
-    
+
     if (selectedProjectFrom != null) {
       final project = projectList.firstWhere(
         (p) => p['ProjectName'] == selectedProjectFrom,
@@ -651,7 +668,7 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
       );
       projectIdFrom = project['ID']?.toString();
     }
-    
+
     if (selectedProjectTo != null) {
       final project = projectList.firstWhere(
         (p) => p['ProjectName'] == selectedProjectTo,
@@ -661,8 +678,7 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
     }
 
     final response = await BillRequestService().getExportRequestList(
-        timeStart.toIso8601String(),
-        timeEnd.toIso8601String(),
+        timeStart.toIso8601String(), timeEnd.toIso8601String(),
         searchText: _searchController.text.trim(),
         page: page,
         projectIdFrom: projectIdFrom,
@@ -687,7 +703,7 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
         }
         // For export materials, status will be based on different fields
         String status = 'Đã xuất';
-        
+
         return {
           ...item,
           'Title': title,
@@ -716,7 +732,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                         labelText: 'Từ dự án',
                         border: OutlineInputBorder(),
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                       value: selectedProjectFrom,
                       isExpanded: true,
@@ -742,7 +759,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                         labelText: 'Đến dự án',
                         border: OutlineInputBorder(),
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                       value: selectedProjectTo,
                       isExpanded: true,
@@ -764,7 +782,7 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                 ],
               ),
               const SizedBox(height: 8),
-              
+
               // Date Range
               Row(
                 children: [
@@ -788,7 +806,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                           labelText: 'Từ ngày',
                           border: OutlineInputBorder(),
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                         child: Text(
                           DateFormat('dd/MM/yyyy').format(timeStart),
@@ -818,7 +837,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                           labelText: 'Đến ngày',
                           border: OutlineInputBorder(),
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                         child: Text(
                           DateFormat('dd/MM/yyyy').format(timeEnd),
@@ -855,7 +875,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                       setState(() {
                         selectedProjectFrom = null;
                         selectedProjectTo = null;
-                        timeStart = DateTime.now().subtract(const Duration(days: 30));
+                        timeStart =
+                            DateTime.now().subtract(const Duration(days: 30));
                         timeEnd = DateTime.now();
                         _searchController.clear();
                       });
@@ -962,7 +983,7 @@ class ItemRowDetail extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            data['NameDriver'] ??  data['TitleBill'],
+                            data['NameDriver'] ?? data['TitleBill'],
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
@@ -971,7 +992,7 @@ class ItemRowDetail extends StatelessWidget {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            'Ngày: ${DateFormat("HH:mm dd/MM/yyyy").format(DateTime.parse(data['DateBill'] ?? data['DateCreated'] ))}',
+                            'Ngày: ${DateFormat("HH:mm dd/MM/yyyy").format(DateTime.parse(data['DateBill'] ?? data['DateCreated']))}',
                             style: TextStyle(color: Colors.black54),
                           ),
                           const SizedBox(height: 5),

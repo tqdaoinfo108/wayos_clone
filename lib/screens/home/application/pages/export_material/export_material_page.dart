@@ -25,6 +25,9 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
   List<Map<String, dynamic>> deliveryVehicleList = [];
   int? selectedDeliveryVehicleId;
 
+  // Dropdown Unit
+  List<Map<String, dynamic>> unitList = [];
+
   // Text fields
   final TextEditingController _driverNameController = TextEditingController();
   final TextEditingController _cccdController = TextEditingController();
@@ -35,7 +38,7 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
   // Images
   List<File?> exportImages = List.generate(3, (_) => null);
   List<String?> exportImagePaths = List.generate(3, (_) => null);
-  
+
   File? signatureImage;
   String? signatureImagePath;
 
@@ -47,6 +50,7 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
     fetchProjectList();
     fetchMaterialTypeList();
     fetchDeliveryVehicleList();
+    fetchUnitList();
   }
 
   Future<void> fetchProjectList() async {
@@ -76,7 +80,17 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
     }
   }
 
-  Future<void> _pickImage(bool isExport, int index, {bool isSignature = false}) async {
+  Future<void> fetchUnitList() async {
+    final response = await BillRequestService().getUnitList();
+    if (response != null && response['data'] != null) {
+      setState(() {
+        unitList = List<Map<String, dynamic>>.from(response['data']);
+      });
+    }
+  }
+
+  Future<void> _pickImage(bool isExport, int index,
+      {bool isSignature = false}) async {
     if (_driverNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng nhập tên tài xế')),
@@ -86,10 +100,14 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => PhotoScreen(title: 'Xuất Vật Tư - ${_driverNameController.text}')),
+      MaterialPageRoute(
+          builder: (_) => PhotoScreen(
+              title: 'Xuất Vật Tư - ${_driverNameController.text}')),
     );
 
-    if (result != null && result['file'] != null && result['publicPath'] != null) {
+    if (result != null &&
+        result['file'] != null &&
+        result['publicPath'] != null) {
       File image = result['file'];
       String publicPath = result['publicPath'];
       setState(() {
@@ -104,7 +122,8 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
     }
   }
 
-  Widget _buildImageRow(List<File?> images, List<String?> paths, bool isExport) {
+  Widget _buildImageRow(
+      List<File?> images, List<String?> paths, bool isExport) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(3, (i) {
@@ -178,7 +197,8 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
           decoration: InputDecoration(
             hintText: hint,
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
         ),
       ],
@@ -217,7 +237,8 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
           onChanged: onChanged,
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             hintText: hint,
           ),
         ),
@@ -245,14 +266,15 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
               label: 'Từ Dự Án',
               items: projectList,
               selectedValue: selectedProjectIdFrom,
-              onChanged: (value) => setState(() => selectedProjectIdFrom = value),
+              onChanged: (value) =>
+                  setState(() => selectedProjectIdFrom = value),
               valueKey: 'ProjectID',
               displayKey: 'ProjectName',
               hint: 'Chọn dự án',
             ),
             const SizedBox(height: 16),
 
-            // Dự án TO dropdown  
+            // Dự án TO dropdown
             _buildDropdown(
               label: 'Đến Dự Án',
               items: projectList,
@@ -316,13 +338,16 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
                   items: deliveryVehicleList
                       .map((item) => DropdownMenuItem<int>(
                             value: item['DeliveryVehicleID'],
-                            child: Text('${item['NumberVehicle']} - ${item['TypeVehicleName'] ?? ''}'),
+                            child: Text(
+                                '${item['NumberVehicle']} - ${item['TypeVehicleName'] ?? ''}'),
                           ))
                       .toList(),
-                  onChanged: (value) => setState(() => selectedDeliveryVehicleId = value),
+                  onChanged: (value) =>
+                      setState(() => selectedDeliveryVehicleId = value),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     hintText: 'Chọn phương tiện',
                   ),
                 ),
@@ -338,26 +363,38 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
                     label: 'Loại Vật Liệu',
                     items: materialTypeList,
                     selectedValue: selectedMaterialTypeId,
-                    onChanged: (value) => setState(() => selectedMaterialTypeId = value),
+                    onChanged: (value) =>
+                        setState(() => selectedMaterialTypeId = value),
                     valueKey: 'TypeTrackingBillID',
                     displayKey: 'TypeName',
                     hint: 'Chọn loại vật liệu',
                   ),
                 ),
                 const SizedBox(width: 8),
-               
-                SizedBox(
-                  width: 100,
-                  child: _buildTextField(
-                    controller: _amountController,
-                    label: 'Số lượng (m3)',
-                    hint: 'Số lượng (m3)',
-                    keyboardType: TextInputType.number,
+                Expanded(
+                  child: _buildDropdown(
+                    label: 'Đơn vị tính',
+                    items: unitList,
+                    selectedValue: selectedUnitId,
+                    onChanged: (value) =>
+                        setState(() => selectedUnitId = value),
+                    valueKey: 'UnitID',
+                    displayKey: 'UnitName',
+                    hint: 'Chọn đơn vị',
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
+            SizedBox(
+              child: _buildTextField(
+                controller: _amountController,
+                label: 'Số lượng',
+                hint: 'Số lượng',
+                keyboardType: TextInputType.number,
+              ),
+            ),
+            const SizedBox(height: 8),
 
             // Ảnh vật tư xuất
             const Text(
@@ -371,38 +408,6 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
             const SizedBox(height: 12),
             _buildImageRow(exportImages, exportImagePaths, true),
             const SizedBox(height: 16),
-
-            // Nút Xem phiếu và In phiếu
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Implement xem phiếu
-                    },
-                    icon: const Icon(Icons.description_outlined),
-                    label: const Text('Xem phiếu'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Implement in phiếu
-                    },
-                    icon: const Icon(Icons.print_outlined),
-                    label: const Text('In phiếu'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
 
             // Ký nhận
             const Text(
@@ -432,9 +437,11 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: isLoading ? null : () {
-                      _saveExportMaterial();
-                    },
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            _saveExportMaterial();
+                          },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -503,10 +510,12 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
     }
 
     // Kiểm tra ít nhất 1 ảnh xuất
-    bool hasExportImage = exportImagePaths.any((e) => e != null && e.isNotEmpty);
+    bool hasExportImage =
+        exportImagePaths.any((e) => e != null && e.isNotEmpty);
     if (!hasExportImage) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn ít nhất 1 ảnh vật tư xuất')),
+        const SnackBar(
+            content: Text('Vui lòng chọn ít nhất 1 ảnh vật tư xuất')),
       );
       return;
     }
@@ -518,7 +527,8 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
       String licensePlate = "";
       if (selectedDeliveryVehicleId != null) {
         final selectedVehicle = deliveryVehicleList.firstWhere(
-          (vehicle) => vehicle['DeliveryVehicleID'] == selectedDeliveryVehicleId,
+          (vehicle) =>
+              vehicle['DeliveryVehicleID'] == selectedDeliveryVehicleId,
           orElse: () => {},
         );
         licensePlate = selectedVehicle['NumberVehicle'] ?? "";
@@ -544,7 +554,7 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
       };
 
       final result = await BillRequestService().createExportTrackingBill(data);
-      
+
       if (mounted && result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Lưu thành công')),

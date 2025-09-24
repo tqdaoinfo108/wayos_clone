@@ -261,4 +261,21 @@ class BillRequestService extends ApiService {
       return null;
     }
   }
+
+  // API lấy danh sách đơn vị tính
+  Future<dynamic> getUnitList() async {
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/unit/getlistunit',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy danh sách đơn vị tính thất bại: $e');
+      return null;
+    }
+  }
 }

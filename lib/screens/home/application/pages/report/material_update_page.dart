@@ -39,6 +39,14 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
     if (response != null && response['data'] != null) {
       setState(() {
         deliveryList = List<Map<String, dynamic>>.from(response['data']);
+        
+        // Kiểm tra nếu selectedDeliveryId không tồn tại trong list thì đặt thành null
+        if (selectedDeliveryId != null) {
+          bool exists = deliveryList.any((item) => item['DeliveryVehicleID'] == selectedDeliveryId);
+          if (!exists) {
+            selectedDeliveryId = null;
+          }
+        }
       });
     }
   }
@@ -48,6 +56,14 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
     if (response != null && response['data'] != null) {
       setState(() {
         violationRuleList = List<Map<String, dynamic>>.from(response['data']);
+        
+        // Kiểm tra nếu selectedViolationRuleId không tồn tại trong list thì đặt thành null
+        if (selectedViolationRuleId != null) {
+          bool exists = violationRuleList.any((item) => item['ViolationRuleID'] == selectedViolationRuleId);
+          if (!exists) {
+            selectedViolationRuleId = null;
+          }
+        }
       });
     }
   }
@@ -57,6 +73,14 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
     if (response != null && response['data'] != null) {
       setState(() {
         handlingPlanList = List<Map<String, dynamic>>.from(response['data']);
+        
+        // Kiểm tra nếu selectedHandlingPlanId không tồn tại trong list thì đặt thành null
+        if (selectedHandlingPlanId != null) {
+          bool exists = handlingPlanList.any((item) => item['HandlingPlanID'] == selectedHandlingPlanId);
+          if (!exists) {
+            selectedHandlingPlanId = null;
+          }
+        }
       });
     }
   }
@@ -93,7 +117,7 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
     selectedProjectId = widget.data['ProjectID'];
     selectedDeliveryId = widget.data['DeliveryVehicleID'];
     isEdit = widget.data['IsEdit'] ?? true;
-    
+    isError = widget.data["IsError"] ?? false;
     fetchProjectList();
     fetchDeliveryList();
     fetchViolationRuleList();
@@ -129,6 +153,15 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
     if (response != null && response['data'] != null) {
       setState(() {
         typeBillList = List<Map<String, dynamic>>.from(response['data']);
+        
+        // Kiểm tra nếu selectedTypeBillId không tồn tại trong list thì đặt thành null
+        if (selectedTypeBillId != null) {
+          bool exists = typeBillList.any((item) => item['TypeTrackingBillID'] == selectedTypeBillId);
+          if (!exists) {
+            selectedTypeBillId = null;
+          }
+        }
+        
         isLoadingTypeBill = false;
       });
     } else {
@@ -378,7 +411,7 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
                     ),
                     if (isError) ...[
                       const SizedBox(height: 8),
-                      DropdownButtonFormField<int>(
+                      DropdownButtonFormField<int?>(
                         value: selectedViolationRuleId,
                         items: violationRuleList
                             .map((item) => DropdownMenuItem<int>(
@@ -399,7 +432,7 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
                         hint: const Text('Lỗi vi phạm'),
                       ),
                       const SizedBox(height: 8),
-                      DropdownButtonFormField<int>(
+                      DropdownButtonFormField<int?>(
                         value: selectedHandlingPlanId,
                         items: handlingPlanList
                             .map((item) => DropdownMenuItem<int>(
