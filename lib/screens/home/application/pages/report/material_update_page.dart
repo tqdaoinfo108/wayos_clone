@@ -49,7 +49,6 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
         final billResponse = await BillRequestService().getTrackingBillById(billId);
         if (billResponse != null ) {
           trackingBillData = Map<String, dynamic>.from(billResponse);
-          trackingBillData!["IsError"] = true;
           await _loadAdditionalInfo();
         } else {
           throw Exception('Không thể tải dữ liệu từ API');
