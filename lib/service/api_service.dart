@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:wayos_clone/utils/constants.dart';
@@ -9,8 +8,6 @@ enum HttpMethod { post, get, put, delete }
 abstract class ApiService {
   // Hợp nhất headers
   Map<String, String> _mergeHeaders(Map<String, String>? customHeaders, {int page = 1}) {
-      log("request: $token");
-
     final defaultHeaders = {
       'Content-Type': 'application/json',
       'Page': page.toString(),

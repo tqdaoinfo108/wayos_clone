@@ -15,7 +15,6 @@ class CreateMaterialPage extends StatefulWidget {
 
 class _CreateMaterialPageState extends State<CreateMaterialPage> {
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _amountController = TextEditingController();
   List<File?> inImages = List.generate(3, (_) => null);
   List<String?> inImagePaths = List.generate(3, (_) => null);
 
@@ -37,17 +36,7 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   List<Map<String, dynamic>> deliveryList = [];
   int? selectedDeliveryId;
 
-  // Vi phạm lỗi
-  bool isError = false;
-  final TextEditingController _reasonController = TextEditingController();
-  
-  // Dropdown vi phạm
-  List<Map<String, dynamic>> violationRuleList = [];
-  int? selectedViolationRuleId;
-  
-  // Dropdown phương án xử lý
-  List<Map<String, dynamic>> handlingPlanList = [];
-  int? selectedHandlingPlanId;
+
   
   @override
   void initState() {
@@ -55,8 +44,7 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   fetchTypeBillList();
   fetchProjectList();
   fetchDeliveryList();
-  fetchViolationRuleList();
-  fetchHandlingPlanList();
+
   }
 
   Future<void> fetchTypeBillList() async {
@@ -86,23 +74,7 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     }
   }
 
-  Future<void> fetchViolationRuleList() async {
-    final response = await BillRequestService().getViolationRuleList();
-    if (response != null && response['data'] != null) {
-      setState(() {
-        violationRuleList = List<Map<String, dynamic>>.from(response['data']);
-      });
-    }
-  }
 
-  Future<void> fetchHandlingPlanList() async {
-    final response = await BillRequestService().getHandlingPlanList();
-    if (response != null && response['data'] != null) {
-      setState(() {
-        handlingPlanList = List<Map<String, dynamic>>.from(response['data']);
-      });
-    }
-  }
 
   Future<void> _pickImage(bool isIn, int index) async {
     if (_titleController.text.isEmpty) {
@@ -157,33 +129,13 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     );
   }
 
-  Widget _buildSignatureImageRow(List<File?> images, bool isIn) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(1, (i) {
-        return GestureDetector(
-          onTap: () => _pickImage(isIn, i),
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: images[i] != null
-                ? Image.file(images[i]!, fit: BoxFit.cover)
-                : Icon(Icons.add, size: 36, color: Colors.grey),
-          ),
-        );
-      }),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tạo mới'),
+        title: const Text('Tạo phiếu nhập vật liệu'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -274,93 +226,9 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                       decoration: const InputDecoration(labelText: 'Tiêu đề'),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: _amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Số lượng',
-                        hintText: 'Nhập số m3',
-                        suffixText: 'm3',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     const Text('Ảnh In'),
                     _buildImageRow(inImages, true),
-                    const SizedBox(height: 16),
-                    const Text('Ảnh Out'),
-                    _buildImageRow(outImages, false),
-                    const SizedBox(height: 16),
-                    const Text('Ký nhận'),
-                    _buildSignatureImageRow(signatureImages, false),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: isError,
-                          onChanged: (val) {
-                            setState(() {
-                              isError = val ?? false;
-                            });
-                          },
-                        ),
-                        const Text('Vi phạm'),
-                      ],
-                    ),
-                    if (isError) ...[
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<int>(
-                        value: selectedViolationRuleId,
-                        items: violationRuleList
-                            .map((item) => DropdownMenuItem<int>(
-                                  value: item['ViolationRuleID'] ?? item['ID'],
-                                  child: Text(item['ViolationName'] ?? item['Name'] ?? ''),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedViolationRuleId = value;
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        ),
-                        hint: const Text('Lỗi vi phạm'),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<int>(
-                        value: selectedHandlingPlanId,
-                        items: handlingPlanList
-                            .map((item) => DropdownMenuItem<int>(
-                                  value: item['HandlingPlanID'] ?? item['ID'],
-                                  child: Text(item['HandlingPlanName'] ?? item['HandlingPlanName'] ?? ''),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedHandlingPlanId = value;
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        ),
-                        hint: const Text('Phương án xử lý'),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _reasonController,
-                        maxLines: 2,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Khối lượng trừ (m3)',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 100),
-                    ],
+                    const SizedBox(height: 100),
                     
                   ],
                 ),
@@ -410,27 +278,6 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                           );
                           return;
                         }
-                        // Nếu có vi phạm lỗi thì cần lý do và ảnh vi phạm
-                        if (isError) {
-                          if (selectedViolationRuleId == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Vui lòng chọn lỗi vi phạm')),
-                            );
-                            return;
-                          }
-                          if (selectedHandlingPlanId == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Vui lòng chọn phương án xử lý')),
-                            );
-                            return;
-                          }
-                          if (_reasonController.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Vui lòng nhập khối lượng trừ')),
-                            );
-                            return;
-                          }
-                        }
                         // Xử lý lưu dữ liệu ở đây
                         final data = {
                           "TitleBill": _titleController.text,
@@ -438,19 +285,18 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                           "ProjectID": selectedProjectId,
                           "DeliveryVehicleID": selectedDeliveryId,
                           "DateBill": DateTime.now().toIso8601String(),
-                          "Amount": double.tryParse(_amountController.text) ?? 0.0,
                           "ImageIn1": inImagePaths[0] ?? "",
                           "ImageIn2": inImagePaths[1] ?? "",
                           "ImageIn3": inImagePaths[2] ?? "",
-                          "ImageOut1": outImagePaths[0] ?? "",
-                          "ImageOut2": outImagePaths[1] ?? "",
-                          "ImageOut3": outImagePaths[2] ?? "",
-                          "FileReceive": signatureImagePaths[0] ?? "",
-                          "IsError": isError ? 1 : 0,
-                          "Violate": int.tryParse(_reasonController.text),
+                          "ImageOut1": "",
+                          "ImageOut2": "",
+                          "ImageOut3": "",
+                          "FileReceive": "",
+                          "IsError": 0,
+                          "Violate": 0,
                           "FileExact": "",
-                          "ViolationRuleID": selectedViolationRuleId ?? 0,
-                          "HandlingPlanID": selectedHandlingPlanId ?? 0,
+                          "ViolationRuleID": 0,
+                          "HandlingPlanID": 0,
                         };
 
                         BillRequestService()

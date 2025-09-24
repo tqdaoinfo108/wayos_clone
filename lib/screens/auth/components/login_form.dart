@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../utils/constants.dart';
 
-class LogInForm extends StatelessWidget {
+class LogInForm extends StatefulWidget {
   const LogInForm({
     super.key,
     required this.formKey,
@@ -16,9 +16,16 @@ class LogInForm extends StatelessWidget {
   final TextEditingController passwordController;
 
   @override
+  State<LogInForm> createState() => _LogInFormState();
+}
+
+class _LogInFormState extends State<LogInForm> {
+  bool _obscureText = true;
+
+  @override
   Widget build(BuildContext context) {
     return Form(
-      key: formKey,
+      key: widget.formKey,
       child: Column(
         children: [
           TextFormField(
@@ -27,7 +34,7 @@ class LogInForm extends StatelessWidget {
             },
             validator: usernameValidator.call,
             textInputAction: TextInputAction.next,
-            controller: usernameController,
+            controller: widget.usernameController,
             decoration: InputDecoration(
               hintText: "Tên đăng nhập",
               prefixIcon: Padding(
@@ -53,9 +60,9 @@ class LogInForm extends StatelessWidget {
             onSaved: (pass) {
               // Password
             },
-            controller: passwordController,
+            controller: widget.passwordController,
             validator: passwordValidator.call,
-            obscureText: true,
+            obscureText: _obscureText,
             decoration: InputDecoration(
               hintText: "Mật khẩu",
               prefixIcon: Padding(
@@ -73,6 +80,21 @@ class LogInForm extends StatelessWidget {
                           .withOpacity(0.3),
                       BlendMode.srcIn),
                 ),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility : Icons.visibility_off,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge!
+                      .color!
+                      .withOpacity(0.3),
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
               ),
             ),
           ),
