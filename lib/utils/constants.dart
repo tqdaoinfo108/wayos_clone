@@ -81,7 +81,7 @@ Color getColorStatusGlobal(int statusID) {
   }
 }
 
-const Color primaryColor = Color(0xFF505CA4);
+const Color primaryColor = Color(0xFF26A69A);
 const Color secondaryColor = Color.fromARGB(255, 89, 100, 224);
 
 AppBar appBar({title}) => AppBar(

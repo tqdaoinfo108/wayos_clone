@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/screens/home/application/pages/report/camera_page.dart';
@@ -36,15 +35,12 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   List<Map<String, dynamic>> deliveryList = [];
   int? selectedDeliveryId;
 
-
-  
   @override
   void initState() {
-  super.initState();
-  fetchTypeBillList();
-  fetchProjectList();
-  fetchDeliveryList();
-
+    super.initState();
+    fetchTypeBillList();
+    fetchProjectList();
+    fetchDeliveryList();
   }
 
   Future<void> fetchTypeBillList() async {
@@ -74,12 +70,10 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     }
   }
 
-
-
   Future<void> _pickImage(bool isIn, int index) async {
     if (_titleController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng nhập tiêu đề')),
+        const SnackBar(content: Text('Vui lòng nhập tiêu đề')),
       );
       return;
     }
@@ -107,221 +101,572 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     }
   }
 
-  Widget _buildImageRow(List<File?> images, bool isIn) {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Tạo phiếu nhập vật liệu',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.blue,
+        elevation: 2,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      resizeToAvoidBottomInset: true,
+      backgroundColor: Colors.grey.shade50,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Form Card
+                  Card(
+                    elevation: 4,
+                    shadowColor: Colors.black.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.assignment_add,
+                                  color: Colors.blue,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Thông tin phiếu nhập',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.grey.shade800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Điền đầy đủ thông tin bắt buộc',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Project Dropdown
+                          _buildDropdownField(
+                            label: 'Dự án *',
+                            hint: 'Chọn dự án',
+                            value: selectedProjectId,
+                            items: projectList
+                                .map((item) => DropdownMenuItem<int>(
+                                      value: item['ProjectID'],
+                                      child: Text(item['ProjectName'] ?? ''),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedProjectId = value;
+                              });
+                            },
+                            icon: Icons.business,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Type Bill Dropdown
+                          _buildDropdownField(
+                            label: 'Loại công việc *',
+                            hint: 'Chọn loại công việc',
+                            value: selectedTypeBillId,
+                            items: typeBillList
+                                .map((item) => DropdownMenuItem<int>(
+                                      value: item['TypeTrackingBillID'],
+                                      child: Text(item['TypeName'] ?? ''),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedTypeBillId = value;
+                              });
+                            },
+                            icon: Icons.work_outline,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Delivery Vehicle Dropdown
+                          _buildDropdownField(
+                            label: 'Phương tiện *',
+                            hint: 'Chọn phương tiện',
+                            value: selectedDeliveryId,
+                            items: deliveryList
+                                .map((item) => DropdownMenuItem<int>(
+                                      value: item['DeliveryVehicleID'],
+                                      child: Text(
+                                        '${item['NumberVehicle'] ?? ''} - ${item['TypeVehicleName'] ?? ''}',
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedDeliveryId = value;
+                              });
+                            },
+                            icon: Icons.local_shipping,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Title Field
+                          _buildTextFieldWithLabel(
+                            label: 'Tiêu đề *',
+                            controller: _titleController,
+                            hint: 'Nhập tiêu đề phiếu nhập',
+                            icon: Icons.title,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Images Card
+                  Card(
+                    elevation: 4,
+                    shadowColor: Colors.black.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Images Header
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.photo_camera,
+                                  color: Colors.green,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Ảnh vào *',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.grey.shade800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Chọn ít nhất 1 ảnh vào',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          _buildModernImageRow(inImages, true),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 100), // Space for bottom buttons
+                ],
+              ),
+            ),
+          ),
+          
+          // Bottom Action Bar
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back, size: 18),
+                    label: const Text('Trở về'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey.shade600,
+                      side: BorderSide(color: Colors.grey.shade400),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _handleSave,
+                    icon: const Icon(Icons.save, size: 18),
+                    label: const Text('Lưu phiếu'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String hint,
+    required int? value,
+    required List<DropdownMenuItem<int>> items,
+    required ValueChanged<int?> onChanged,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<int>(
+          value: value,
+          items: items,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey.shade400),
+            prefixIcon: Icon(icon, color: Colors.grey.shade500),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.blue, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextFieldWithLabel({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey.shade400),
+            prefixIcon: Icon(icon, color: Colors.grey.shade500),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.blue, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernImageRow(List<File?> images, bool isIn) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(3, (i) {
+        final hasImage = images[i] != null;
         return GestureDetector(
           onTap: () => _pickImage(isIn, i),
           child: Container(
-            width: 80,
-            height: 80,
+            width: 90,
+            height: 90,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: hasImage ? Colors.blue : Colors.grey.shade400,
+                width: hasImage ? 2 : 1,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              color: hasImage ? Colors.blue.shade50 : Colors.grey.shade100,
             ),
-            child: images[i] != null
-                ? Image.file(images[i]!, fit: BoxFit.cover)
-                : Icon(Icons.add, size: 36, color: Colors.grey),
+            child: hasImage
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Stack(
+                      children: [
+                        Image.file(
+                          images[i]!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_a_photo,
+                        size: 28,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Ảnh ${i + 1}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         );
       }),
     );
   }
 
+  void _handleSave() {
+    if (_titleController.text.trim().isEmpty) {
+      _showErrorSnackBar('Vui lòng nhập tiêu đề');
+      return;
+    }
+    if (selectedProjectId == null) {
+      _showErrorSnackBar('Vui lòng chọn dự án');
+      return;
+    }
+    if (selectedDeliveryId == null) {
+      _showErrorSnackBar('Vui lòng chọn phương tiện');
+      return;
+    }
+    if (selectedTypeBillId == null) {
+      _showErrorSnackBar('Vui lòng chọn loại công việc');
+      return;
+    }
+    
+    // Kiểm tra ít nhất 1 ảnh In
+    bool hasIn = inImagePaths.any((e) => e != null && e.isNotEmpty);
+    if (!hasIn) {
+      _showErrorSnackBar('Vui lòng chọn ít nhất 1 ảnh vào');
+      return;
+    }
 
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tạo phiếu nhập vật liệu'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      resizeToAvoidBottomInset: true, // Thêm dòng này
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  spacing: 5,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        
-                        DropdownButtonFormField<int>(
-                          value: selectedProjectId,
-                          items: projectList
-                              .map((item) => DropdownMenuItem<int>(
-                                    value: item['ProjectID'],
-                                    child: Text(item['ProjectName'] ?? ''),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedProjectId = value;
-                            });
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          ),
-                          hint: const Text('Chọn dự án'),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<int>(
-                          value: selectedTypeBillId,
-                          items: typeBillList
-                              .map((item) => DropdownMenuItem<int>(
-                                    value: item['TypeTrackingBillID'],
-                                    child: Text(item['TypeName'] ?? ''),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedTypeBillId = value;
-                            });
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          ),
-                          hint: const Text('Chọn loại công việc'),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<int>(
-                          value: selectedDeliveryId,
-                          items: deliveryList
-                              .map((item) => DropdownMenuItem<int>(
-                                    value: item['DeliveryVehicleID'],
-                                    // ignore: prefer_interpolation_to_compose_strings
-                                    child: Text(item['NumberVehicle'] + ' - ' + item['TypeVehicleName'] ?? ''),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedDeliveryId = value;
-                            });
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          ),
-                          hint: const Text('Chọn phương tiện'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(labelText: 'Tiêu đề'),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text('Ảnh In'),
-                    _buildImageRow(inImages, true),
-                    const SizedBox(height: 100),
-                    
-                  ],
-                ),
-              ),
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Đang lưu phiếu...'),
+              ],
             ),
-            Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Trở về'),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_titleController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Vui lòng nhập tiêu đề')),
-                          );
-                          return;
-                        }
-                        if (selectedProjectId == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Vui lòng chọn dự án')),
-                          );
-                          return;
-                        }
-                        if (selectedDeliveryId == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Vui lòng chọn phương tiện')),
-                          );
-                          return;
-                        }
-                        if (selectedTypeBillId == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Vui lòng chọn loại công việc')),
-                          );
-                          return;
-                        }
-                        // Kiểm tra ít nhất 1 ảnh In
-                        bool hasIn = inImagePaths.any((e) => e != null && e.isNotEmpty);
-                        if (!hasIn) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Vui lòng chọn ít nhất 1 ảnh vào')),
-                          );
-                          return;
-                        }
-                        // Xử lý lưu dữ liệu ở đây
-                        final data = {
-                          "TitleBill": _titleController.text,
-                          "TypeTrackingBillID": selectedTypeBillId,
-                          "ProjectID": selectedProjectId,
-                          "DeliveryVehicleID": selectedDeliveryId,
-                          "DateBill": DateTime.now().toIso8601String(),
-                          "ImageIn1": inImagePaths[0] ?? "",
-                          "ImageIn2": inImagePaths[1] ?? "",
-                          "ImageIn3": inImagePaths[2] ?? "",
-                          "ImageOut1": "",
-                          "ImageOut2": "",
-                          "ImageOut3": "",
-                          "FileReceive": "",
-                          "IsError": 0,
-                          "Violate": 0,
-                          "FileExact": "",
-                          "ViolationRuleID": 0,
-                          "HandlingPlanID": 0,
-                        };
-
-                        BillRequestService()
-                            .createTrackingBill(data)
-                            .then((response) {
-                          if (response != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Lưu thành công')),
-                            );
-                            Navigator.pop(context, true);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Lưu thất bại')),
-                            );
-                          }
-                        });
-                      },
-                      child: const Text('Lưu'),
-                    ),
-                  ),
-                ],
-              ),
-          ],
+          ),
         ),
       ),
     );
+
+    // Xử lý lưu dữ liệu
+    final data = {
+      "TitleBill": _titleController.text,
+      "TypeTrackingBillID": selectedTypeBillId,
+      "ProjectID": selectedProjectId,
+      "DeliveryVehicleID": selectedDeliveryId,
+      "DateBill": DateTime.now().toIso8601String(),
+      "ImageIn1": inImagePaths[0] ?? "",
+      "ImageIn2": inImagePaths[1] ?? "",
+      "ImageIn3": inImagePaths[2] ?? "",
+      "ImageOut1": "",
+      "ImageOut2": "",
+      "ImageOut3": "",
+      "FileReceive": "",
+      "IsError": 0,
+      "Violate": 0,
+      "FileExact": "",
+      "ViolationRuleID": 0,
+      "HandlingPlanID": 0,
+    };
+
+    BillRequestService().createTrackingBill(data).then((response) {
+      Navigator.pop(context); // Close loading dialog
+      if (response != null) {
+        _showSuccessSnackBar('Lưu phiếu thành công!');
+        Navigator.pop(context, true);
+      } else {
+        _showErrorSnackBar('Lưu phiếu thất bại. Vui lòng thử lại.');
+      }
+    });
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
   }
 }
