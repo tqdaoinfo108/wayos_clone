@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:wayos_clone/service/project_service.dart';
 import 'package:wayos_clone/service/bill_tracking/bill_tracking_service.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'camera_page.dart';
 
-class MaterialUpdatePage extends StatefulWidget {
+class MaterialDetailPage extends StatefulWidget {
   final Map<String, dynamic>? data;
   final int? trackingBillId;
   
-  const MaterialUpdatePage({
+  const MaterialDetailPage({
     super.key, 
     this.data,
     this.trackingBillId,
   }) : assert(data != null || trackingBillId != null, 'Either data or trackingBillId must be provided');
 
   @override
-  State<MaterialUpdatePage> createState() => _MaterialUpdatePageState();
+  State<MaterialDetailPage> createState() => _MaterialDetailPageState();
 }
 
-class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
+class _MaterialDetailPageState extends State<MaterialDetailPage> {
   String projectName = 'Đang tải...';
   String violationName = '';
   String handlingPlanName = '';
@@ -662,12 +663,14 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _showUpdateOptions(context),
+                  onPressed: _canUpdate() ? () => _showUpdateOptions(context) : null,
                   icon: const Icon(Icons.update),
                   label: const Text('Cập nhật'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: _canUpdate() 
+                        ? Theme.of(context).colorScheme.primary 
+                        : Colors.grey[300],
+                    foregroundColor: _canUpdate() ? Colors.white : Colors.grey[600],
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -678,9 +681,9 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _printBill(),
-                  icon: const Icon(Icons.print),
-                  label: const Text('In Phiếu'),
+                  onPressed: () => _viewBill(),
+                  icon: const Icon(Icons.visibility),
+                  label: const Text('Xem Phiếu'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -755,6 +758,26 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
     );
   }
 
+  bool _canUpdate() {
+    if (trackingBillData == null) return false;
+    
+    final outImagePaths = [
+      trackingBillData!['ImageOut1'] as String?,
+      trackingBillData!['ImageOut2'] as String?,
+      trackingBillData!['ImageOut3'] as String?,
+    ];
+    final signaturePath = trackingBillData!['FileReceive'] as String?;
+    final isError = trackingBillData!['IsError'] == true || trackingBillData!['IsError'] == 1;
+
+    // Check what updates are available
+    final bool canUpdateOutImages = outImagePaths.every((path) => path == null || path.isEmpty);
+    final bool canUpdateSignature = signaturePath == null || signaturePath.isEmpty;
+    final bool canUpdateViolation = !isError;
+
+    // Return true if at least one update option is available
+    return canUpdateOutImages || canUpdateSignature || canUpdateViolation;
+  }
+
   void _showUpdateOptions(BuildContext context) {
     if (trackingBillData == null) return;
     
@@ -764,12 +787,12 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
       trackingBillData!['ImageOut3'] as String?,
     ];
     final signaturePath = trackingBillData!['FileReceive'] as String?;
-    final isError = (trackingBillData!['IsError'] ?? 0) == 1;
+    final isError = trackingBillData!['IsError'] == true || trackingBillData!['IsError'] == 1;
 
     // Check what updates are available
     final bool canUpdateOutImages = outImagePaths.every((path) => path == null || path.isEmpty);
     final bool canUpdateSignature = signaturePath == null || signaturePath.isEmpty;
-    final bool canUpdateViolation = !isError;
+    final bool canUpdateViolation = !isError; // Không cho phép cập nhật vi phạm nếu đã có lỗi
 
     showModalBottomSheet(
       context: context,
@@ -955,10 +978,36 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
     _showViolationUpdateDialog();
   }
 
-  void _printBill() {
-    // TODO: Implement print functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Chức năng in phiếu đang phát triển')),
+  void _viewBill() async {
+    if (trackingBillData == null) return;
+    
+    final trackingBillId = trackingBillData!['TrackingBillID'] ?? 
+                          trackingBillData!['BillID'] ?? 
+                          trackingBillData!['ID'];
+    
+    if (trackingBillId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không tìm thấy ID của phiếu theo dõi')),
+      );
+      return;
+    }
+
+    // Tạo URL trực tiếp để xem PDF
+    final pdfUrl = 'http://freeofficeapi.gvbsoft.vn/api/trackingbill/view-tracking-bill?trackingBillID=$trackingBillId';
+    
+    // Hiển thị PDF trong popup
+    _showPdfDialog(pdfUrl);
+  }
+
+  void _showPdfDialog(String pdfUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _PdfViewScreen(
+          pdfUrl: pdfUrl,
+          title: 'Phiếu Theo Dõi - ${trackingBillData?['TitleBill'] ?? ''}',
+        ),
+      ),
     );
   }
 
@@ -1219,6 +1268,8 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
       );
     }
   }
+
+
 }
 
 class _ViolationUpdateDialog extends StatefulWidget {
@@ -1816,5 +1867,136 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
         SnackBar(content: Text('Lỗi khi lưu ảnh: $e')),
       );
     }
+  }
+}
+
+// PDF Viewer Screen với WebView
+class _PdfViewScreen extends StatefulWidget {
+  final String pdfUrl;
+  final String title;
+
+  const _PdfViewScreen({
+    required this.pdfUrl,
+    required this.title,
+  });
+
+  @override
+  State<_PdfViewScreen> createState() => _PdfViewScreenState();
+}
+
+class _PdfViewScreenState extends State<_PdfViewScreen> {
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        
+      ),
+      body: Stack(
+        children: [
+          // PDF Viewer
+          SfPdfViewer.network(
+            widget.pdfUrl,
+            onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+              setState(() {
+                isLoading = false;
+              });
+            },
+            onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
+              setState(() {
+                isLoading = false;
+                errorMessage = details.error;
+              });
+            },
+          ),
+          
+          // Loading overlay
+          if (isLoading)
+            Container(
+              color: Colors.white,
+              child: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text(
+                      'Đang tải PDF...',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          
+          // Error overlay
+          if (errorMessage != null)
+            Container(
+              color: Colors.white,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red[400],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Không thể tải PDF',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          isLoading = true;
+                          errorMessage = null;
+                        });
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Thử lại'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'material_update_page.dart';
+import 'material_detail_page.dart';
 
 /// Helper class để điều hướng đến trang chi tiết vật liệu
 class MaterialDetailHelper {
@@ -7,7 +7,7 @@ class MaterialDetailHelper {
   /// Sử dụng API: GET /trackingbill/traking-by-id/{id}
   static Future<dynamic> openWithId(BuildContext context, int trackingBillId) {
     return Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => MaterialUpdatePage(trackingBillId: trackingBillId),
+      builder: (context) => MaterialDetailPage(trackingBillId: trackingBillId),
     ));
   }
 
@@ -15,7 +15,7 @@ class MaterialDetailHelper {
   /// Sử dụng data từ list API
   static Future<dynamic> openWithData(BuildContext context, Map<String, dynamic> data) {
     return Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => MaterialUpdatePage(data: data),
+      builder: (context) => MaterialDetailPage(data: data),
     ));
   }
 }

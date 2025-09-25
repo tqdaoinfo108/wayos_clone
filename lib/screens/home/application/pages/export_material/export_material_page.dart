@@ -130,18 +130,52 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
         return GestureDetector(
           onTap: () => _pickImage(isExport, i),
           child: Container(
-            width: 80,
-            height: 80,
+            width: 90,
+            height: 90,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!, width: 2),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey[50],
             ),
             child: images[i] != null
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(images[i]!, fit: BoxFit.cover),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Stack(
+                      children: [
+                        Image.file(images[i]!, fit: BoxFit.cover, width: 90, height: 90),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   )
-                : const Icon(Icons.add, size: 36, color: Colors.grey),
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_a_photo, size: 24, color: Colors.grey[400]),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Thêm ảnh',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         );
       }),
@@ -155,21 +189,112 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
         GestureDetector(
           onTap: () => _pickImage(false, 0, isSignature: true),
           child: Container(
-            width: 80,
-            height: 80,
+            width: 120,
+            height: 90,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange[300]!, width: 2),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.orange[50],
             ),
             child: signatureImage != null
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(signatureImage!, fit: BoxFit.cover),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Stack(
+                      children: [
+                        Image.file(signatureImage!, fit: BoxFit.cover, width: 120, height: 90),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   )
-                : const Icon(Icons.add, size: 36, color: Colors.grey),
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.draw, size: 28, color: Colors.orange[400]),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Chữ ký',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.orange[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.blue[600],
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            child,
+          ],
+        ),
+      ),
     );
   }
 
@@ -196,9 +321,22 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
       ],
@@ -236,9 +374,22 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
               .toList(),
           onChanged: onChanged,
           decoration: InputDecoration(
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             hintText: hint,
           ),
         ),
@@ -249,10 +400,20 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Xuất Vật Tư'),
+        title: const Text(
+          'Xuất Vật Tư',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.red[600],
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -261,105 +422,124 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dự án FROM dropdown
-            _buildDropdown(
-              label: 'Từ Dự Án',
-              items: projectList,
-              selectedValue: selectedProjectIdFrom,
-              onChanged: (value) =>
-                  setState(() => selectedProjectIdFrom = value),
-              valueKey: 'ProjectID',
-              displayKey: 'ProjectName',
-              hint: 'Chọn dự án',
-            ),
-            const SizedBox(height: 16),
-
-            // Dự án TO dropdown
-            _buildDropdown(
-              label: 'Đến Dự Án',
-              items: projectList,
-              selectedValue: selectedProjectIdTo,
-              onChanged: (value) => setState(() => selectedProjectIdTo = value),
-              valueKey: 'ProjectID',
-              displayKey: 'ProjectName',
-              hint: 'Chọn dự án đích',
-            ),
-            const SizedBox(height: 16),
-
-            // Thông tin phương tiện
-            const Text(
-              'Thông Tin Phương Tiện',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            // Project Section
+            _buildSectionCard(
+              title: 'Thông Tin Dự Án',
+              icon: Icons.business,
+              child: Column(
+                children: [
+                  _buildDropdown(
+                    label: 'Từ Dự Án',
+                    items: projectList,
+                    selectedValue: selectedProjectIdFrom,
+                    onChanged: (value) =>
+                        setState(() => selectedProjectIdFrom = value),
+                    valueKey: 'ProjectID',
+                    displayKey: 'ProjectName',
+                    hint: 'Chọn dự án xuất',
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDropdown(
+                    label: 'Đến Dự Án',
+                    items: projectList,
+                    selectedValue: selectedProjectIdTo,
+                    onChanged: (value) => setState(() => selectedProjectIdTo = value),
+                    valueKey: 'ProjectID',
+                    displayKey: 'ProjectName',
+                    hint: 'Chọn dự án nhận',
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            // Tên Tài Xế và Số CCCD
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _driverNameController,
-                    label: 'Tên Tài Xế',
-                    hint: 'Nhập tên tài xế',
+            // Vehicle Information Section
+            _buildSectionCard(
+              title: 'Thông Tin Phương Tiện',
+              icon: Icons.local_shipping,
+              child: Column(
+                children: [
+                  // Tên Tài Xế và Số CCCD
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _driverNameController,
+                          label: 'Tên Tài Xế',
+                          hint: 'Nhập tên tài xế',
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _cccdController,
+                          label: 'Số CCCD',
+                          hint: 'Nhập số CCCD',
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _cccdController,
-                    label: 'Số CCCD',
-                    hint: 'Nhập số CCCD',
-                    keyboardType: TextInputType.number,
+                  const SizedBox(height: 16),
+                  // Phương tiện
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Phương Tiện',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<int>(
+                        value: selectedDeliveryVehicleId,
+                        items: deliveryVehicleList
+                            .map((item) => DropdownMenuItem<int>(
+                                  value: item['DeliveryVehicleID'],
+                                  child: Text(
+                                      '${item['NumberVehicle']} - ${item['TypeVehicleName'] ?? ''}'),
+                                ))
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => selectedDeliveryVehicleId = value),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          hintText: 'Chọn phương tiện',
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 16),
 
-            // Phương tiện
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Phương Tiện',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<int>(
-                  value: selectedDeliveryVehicleId,
-                  items: deliveryVehicleList
-                      .map((item) => DropdownMenuItem<int>(
-                            value: item['DeliveryVehicleID'],
-                            child: Text(
-                                '${item['NumberVehicle']} - ${item['TypeVehicleName'] ?? ''}'),
-                          ))
-                      .toList(),
-                  onChanged: (value) =>
-                      setState(() => selectedDeliveryVehicleId = value),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    hintText: 'Chọn phương tiện',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Loại vật liệu, ĐVT, Số lượng
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDropdown(
+            // Material Information Section
+            _buildSectionCard(
+              title: 'Thông Tin Vật Tư',
+              icon: Icons.inventory,
+              child: Column(
+                children: [
+                  // Loại vật liệu
+                  _buildDropdown(
                     label: 'Loại Vật Liệu',
                     items: materialTypeList,
                     selectedValue: selectedMaterialTypeId,
@@ -369,10 +549,9 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
                     displayKey: 'TypeName',
                     hint: 'Chọn loại vật liệu',
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildDropdown(
+                  const SizedBox(height: 16),
+                  // Đơn vị tính
+                  _buildDropdown(
                     label: 'Đơn vị tính',
                     items: unitList,
                     selectedValue: selectedUnitId,
@@ -382,75 +561,137 @@ class _ExportMaterialPageState extends State<ExportMaterialPage> {
                     displayKey: 'UnitName',
                     hint: 'Chọn đơn vị',
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              child: _buildTextField(
-                controller: _amountController,
-                label: 'Số lượng',
-                hint: 'Số lượng',
-                keyboardType: TextInputType.number,
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _amountController,
+                    label: 'Số lượng',
+                    hint: 'Nhập số lượng',
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-
-            // Ảnh vật tư xuất
-            const Text(
-              'Ảnh vật tư xuất',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildImageRow(exportImages, exportImagePaths, true),
             const SizedBox(height: 16),
 
-            // Ký nhận
-            const Text(
-              'Ký nhận',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+            // Images Section
+            _buildSectionCard(
+              title: 'Hình Ảnh',
+              icon: Icons.photo_camera,
+              child: Column(
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.camera_alt, size: 20, color: Colors.grey),
+                      SizedBox(width: 8),
+                      Text(
+                        'Ảnh vật tư xuất',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildImageRow(exportImages, exportImagePaths, true),
+                  const SizedBox(height: 24),
+                  const Row(
+                    children: [
+                      Icon(Icons.edit, size: 20, color: Colors.grey),
+                      SizedBox(width: 8),
+                      Text(
+                        'Ký nhận',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSignatureImageRow(),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            _buildSignatureImageRow(),
             const SizedBox(height: 32),
 
-            // Nút Lưu và Trở về
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Trở về'),
+            // Action Buttons
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            _saveExportMaterial();
-                          },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.arrow_back, size: 18),
+                          SizedBox(width: 8),
+                          Text('Trở về', style: TextStyle(fontSize: 16)),
+                        ],
+                      ),
                     ),
-                    child: isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Lưu'),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              _saveExportMaterial();
+                            },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Colors.red[600],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.save, size: 18),
+                                SizedBox(width: 8),
+                                Text('Lưu', style: TextStyle(fontSize: 16)),
+                              ],
+                            ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -143,6 +143,22 @@ class BillRequestService extends ApiService {
     }
   }
 
+  Future<dynamic> getExportTrackingBillById(int id) async {
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/exporttrackingbill/export-tracking-by-id/$id',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy chi tiết export tracking bill thất bại: $e');
+      return null;
+    }
+  }
+
   Future<dynamic> getTypeBillTracking() async {
     try {
       var rs = await request(

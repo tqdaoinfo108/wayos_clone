@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 import '../../../../../service/bill_tracking/bill_tracking_service.dart';
 import '../../../../../service/project_service.dart';
 import 'material_detail_helper.dart';
-import 'material_update_page.dart';
+import 'material_detail_page.dart';
+import '../export_material/export_material_detail_page.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -1453,9 +1454,13 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                 data: item as Map<String, dynamic>,
                 color: Colors.green, // Different color for export items
                 onTap: () async {
-                  // TODO: Navigate to export material detail page
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Xuất vật tư: ${item['Title']}')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ExportMaterialDetailPage(
+                        data: item,
+                      ),
+                    ),
                   );
                 },
                 status: item['Status'],
