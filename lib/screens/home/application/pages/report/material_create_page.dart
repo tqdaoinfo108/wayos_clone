@@ -35,6 +35,8 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   List<Map<String, dynamic>> deliveryList = [];
   int? selectedDeliveryId;
 
+  bool _isLoadingTitle = false;
+
   @override
   void initState() {
     super.initState();
@@ -70,18 +72,52 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     }
   }
 
-  Future<void> _pickImage(bool isIn, int index) async {
-    if (_titleController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập tiêu đề')),
-      );
-      return;
+  Future<void> fetchTitle() async {
+    if (selectedProjectId != null && 
+        selectedTypeBillId != null && 
+        selectedDeliveryId != null) {
+      setState(() {
+        _isLoadingTitle = true;
+      });
+
+      try {
+        final response = await BillRequestService().getTitle(
+          projectID: selectedProjectId!,
+          typeTrackingBillID: selectedTypeBillId!,
+          deliveryVehicleID: selectedDeliveryId!,
+        );
+
+        if (response != null) {
+          setState(() {
+            // Handle different possible response structures
+            if (response['data'] != null ) {
+              _titleController.text = response['data'];
+            } else {
+              _titleController.text = 'Tiêu đề được tạo tự động';
+            }
+          });
+        }
+      } catch (e) {
+        // Handle error silently or show a message if needed
+        print('Error fetching title: $e');
+      } finally {
+        setState(() {
+          _isLoadingTitle = false;
+        });
+      }
     }
+  }
+
+  Future<void> _pickImage(bool isIn, int index) async {
+    // Use title from controller or a default title if empty
+    String titleToUse = _titleController.text.isNotEmpty 
+        ? _titleController.text 
+        : 'Phiếu nhập vật liệu';
 
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (_) => PhotoScreen(title: _titleController.text)),
+          builder: (_) => PhotoScreen(title: titleToUse)),
     );
 
     if (result != null &&
@@ -201,6 +237,7 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                               setState(() {
                                 selectedProjectId = value;
                               });
+                              fetchTitle();
                             },
                             icon: Icons.business,
                           ),
@@ -221,6 +258,7 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                               setState(() {
                                 selectedTypeBillId = value;
                               });
+                              fetchTitle();
                             },
                             icon: Icons.work_outline,
                           ),
@@ -243,17 +281,19 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                               setState(() {
                                 selectedDeliveryId = value;
                               });
+                              fetchTitle();
                             },
                             icon: Icons.local_shipping,
                           ),
                           const SizedBox(height: 20),
 
                           // Title Field
-                          _buildTextFieldWithLabel(
+                          _buildDisabledTextFieldWithLabel(
                             label: 'Tiêu đề *',
                             controller: _titleController,
-                            hint: 'Nhập tiêu đề phiếu nhập',
+                            hint: 'Tiêu đề sẽ được tự động tạo',
                             icon: Icons.title,
+                            isLoading: _isLoadingTitle,
                           ),
                         ],
                       ),
@@ -430,11 +470,12 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     );
   }
 
-  Widget _buildTextFieldWithLabel({
+  Widget _buildDisabledTextFieldWithLabel({
     required String label,
     required TextEditingController controller,
     required String hint,
     required IconData icon,
+    required bool isLoading,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,10 +491,36 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          enabled: false,
+          minLines: 2,
+          maxLines: 3,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400),
-            prefixIcon: Icon(icon, color: Colors.grey.shade500),
+            prefixIcon: isLoading 
+              ? Container(
+                  width: 20,
+                  height: 20,
+                  padding: const EdgeInsets.all(12),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  ),
+                )
+              : Icon(icon, color: Colors.grey.shade400),
+            suffixIcon: isLoading 
+              ? Container(
+                  width: 20,
+                  height: 20,
+                  padding: const EdgeInsets.all(12),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  ),
+                )
+              : controller.text.isNotEmpty 
+                ? Icon(Icons.check_circle, color: Colors.green)
+                : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -462,12 +529,16 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Colors.blue, width: 2),
             ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: Colors.grey.shade100,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
@@ -549,20 +620,20 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   }
 
   void _handleSave() {
-    if (_titleController.text.trim().isEmpty) {
-      _showErrorSnackBar('Vui lòng nhập tiêu đề');
-      return;
-    }
     if (selectedProjectId == null) {
       _showErrorSnackBar('Vui lòng chọn dự án');
+      return;
+    }
+    if (selectedTypeBillId == null) {
+      _showErrorSnackBar('Vui lòng chọn loại công việc');
       return;
     }
     if (selectedDeliveryId == null) {
       _showErrorSnackBar('Vui lòng chọn phương tiện');
       return;
     }
-    if (selectedTypeBillId == null) {
-      _showErrorSnackBar('Vui lòng chọn loại công việc');
+    if (_titleController.text.trim().isEmpty) {
+      _showErrorSnackBar('Tiêu đề chưa được tạo. Vui lòng chọn đầy đủ thông tin.');
       return;
     }
     

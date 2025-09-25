@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:wayos_clone/screens/home/application/pages/export_material/export_material_page.dart';
 
 import '../../../../../service/bill_tracking/bill_tracking_service.dart';
 import '../../../../../service/project_service.dart';
 import 'material_detail_helper.dart';
-import 'material_detail_page.dart';
+import 'material_create_page.dart';
+import 'import_report_page.dart';
+import 'export_report_page.dart';
 import '../export_material/export_material_detail_page.dart';
 
 class ReportPage extends StatefulWidget {
@@ -17,6 +20,8 @@ class ReportPage extends StatefulWidget {
 class _ReportPageState extends State<ReportPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final GlobalKey<_ImportMaterialTabState> _importTabKey = GlobalKey<_ImportMaterialTabState>();
+  final GlobalKey<_ExportMaterialTabState> _exportTabKey = GlobalKey<_ExportMaterialTabState>();
 
   @override
   void initState() {
@@ -30,6 +35,24 @@ class _ReportPageState extends State<ReportPage>
     super.dispose();
   }
 
+  void _showCurrentTabReportDialog() {
+    final currentIndex = _tabController.index;
+    if (currentIndex == 0) {
+      _importTabKey.currentState?._showImportReportDialog();
+    } else {
+      _exportTabKey.currentState?._showExportReportDialog();
+    }
+  }
+
+  void _navigateToCreateCurrentTabMaterial() {
+    final currentIndex = _tabController.index;
+    if (currentIndex == 0) {
+      _importTabKey.currentState?._navigateToCreateMaterial();
+    } else {
+      _exportTabKey.currentState?._navigateToCreateExportMaterial();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,12 +62,46 @@ class _ReportPageState extends State<ReportPage>
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
+            color: Colors.black87,
           ),
         ),
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.white,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        toolbarHeight: 70, // Tăng chiều cao AppBar
+        actions: [
+          // Report button
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              onPressed: () => _showCurrentTabReportDialog(),
+              icon: const Icon(Icons.assessment, size: 22),
+              tooltip: 'Báo cáo',
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.blue.shade50,
+                foregroundColor: Colors.blue.shade600,
+                padding: const EdgeInsets.all(12),
+                minimumSize: const Size(44, 44),
+              ),
+            ),
+          ),
+          // Add button
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: IconButton(
+              onPressed: () => _navigateToCreateCurrentTabMaterial(),
+              icon: const Icon(Icons.add, size: 22),
+              tooltip: 'Thêm mới',
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.green.shade50,
+                foregroundColor: Colors.green.shade600,
+                padding: const EdgeInsets.all(12),
+                minimumSize: const Size(44, 44),
+              ),
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
           child: Container(
@@ -88,9 +145,9 @@ class _ReportPageState extends State<ReportPage>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          ImportMaterialTab(),
-          ExportMaterialTab(),
+        children: [
+          ImportMaterialTab(key: _importTabKey),
+          ExportMaterialTab(key: _exportTabKey),
         ],
       ),
     );
@@ -829,7 +886,6 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
         items.isNotEmpty
             ? Expanded(
                 child: ListView.builder(
@@ -959,9 +1015,41 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
       ],
     );
   }
+
+  void _showImportReportDialog() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ImportReportPage(
+          timeStart: timeStart,
+          timeEnd: timeEnd,
+          selectedProjectId: selectedProjectId,
+          selectedProviderId: selectedProviderId,
+          selectedTypeBillId: selectedTypeBillId,
+          selectedTypeVehicleId: selectedTypeVehicleId,
+          selectedDeliveryVehicleId: selectedDeliveryVehicleId,
+          searchText: _searchController.text,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToCreateMaterial() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateMaterialPage(),
+      ),
+    );
+    
+    // Refresh data after returning from create page if needed
+    if (result == true) {
+      await fetchData(page: 1);
+    }
+  }
 }
 
-// Export Material Tab Widget
+// Export Report Dialog Widget  
 class ExportMaterialTab extends StatefulWidget {
   const ExportMaterialTab({super.key});
 
@@ -1540,6 +1628,35 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
         ),
       ],
     );
+  }
+
+  void _showExportReportDialog() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExportReportPage(
+          timeStart: timeStart,
+          timeEnd: timeEnd,
+          selectedProjectFrom: selectedProjectFrom,
+          selectedProjectTo: selectedProjectTo,
+          searchText: _searchController.text,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToCreateExportMaterial() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ExportMaterialPage(),
+      ),
+    );
+    
+    // Refresh data after returning from create page if needed
+    if (result == true) {
+      await fetchData(page: 1);
+    }
   }
 }
 
