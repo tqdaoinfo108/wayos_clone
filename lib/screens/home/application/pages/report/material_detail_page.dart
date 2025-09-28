@@ -1799,7 +1799,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
               'Đã chụp: $capturedCount/3 ảnh',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: capturedCount == 3 ? Colors.green : Colors.orange,
+                color: capturedCount == 2 ? Colors.green : Colors.orange,
               ),
             ),
           ],
@@ -1811,7 +1811,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
           child: const Text('Hủy'),
         ),
         ElevatedButton.icon(
-          onPressed: (isSaving || capturedCount < 3) ? null : _saveImages,
+          onPressed: (isSaving || capturedCount < 2) ? null : _saveImages,
           icon: isSaving 
               ? const SizedBox(
                   width: 16,
@@ -1821,7 +1821,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
               : const Icon(Icons.save),
           label: Text(isSaving ? 'Đang lưu...' : 'Lưu'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: capturedCount == 3 ? Colors.green : Colors.grey,
+            backgroundColor: capturedCount == 2 ? Colors.green : Colors.grey,
             foregroundColor: Colors.white,
           ),
         ),
