@@ -192,6 +192,19 @@ class BillRequestService extends ApiService {
     }
   }
 
+  Future<dynamic> updateApproveStatus(
+      int trackingBillID, Map<String, dynamic> data) async {
+    try {
+      var rs = await request(HttpMethod.put,
+          '/trackingbill/update-approve-status/$trackingBillID',
+          body: data);
+      return rs;
+    } catch (e) {
+      log('Cập nhật trạng thái duyệt thất bại: $e');
+      return null;
+    }
+  }
+
   Future<dynamic> getTrackingBillById(int id) async {
     try {
       var rs = await request(

@@ -20,8 +20,10 @@ class ReportPage extends StatefulWidget {
 class _ReportPageState extends State<ReportPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final GlobalKey<_ImportMaterialTabState> _importTabKey = GlobalKey<_ImportMaterialTabState>();
-  final GlobalKey<_ExportMaterialTabState> _exportTabKey = GlobalKey<_ExportMaterialTabState>();
+  final GlobalKey<_ImportMaterialTabState> _importTabKey =
+      GlobalKey<_ImportMaterialTabState>();
+  final GlobalKey<_ExportMaterialTabState> _exportTabKey =
+      GlobalKey<_ExportMaterialTabState>();
 
   @override
   void initState() {
@@ -166,7 +168,7 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
   final TextEditingController _searchController = TextEditingController();
   DateTime timeStart = DateTime.now().subtract(const Duration(days: 30));
   DateTime timeEnd = DateTime.now();
-  List<dynamic> items = [];
+  List<Map<String, dynamic>> items = [];
   int currentPage = 1;
   int totalPages = 1;
   bool isFilterExpanded = false; // Add this line for expand/collapse state
@@ -186,6 +188,149 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
 
   List<Map<String, dynamic>> deliveryVehicleList = [];
   int? selectedDeliveryVehicleId;
+  final Set<int> _approvingIds = {};
+
+  int? _parseId(dynamic raw) {
+    if (raw == null) {
+      return null;
+    }
+    if (raw is int) {
+      return raw;
+    }
+    if (raw is num) {
+      return raw.toInt();
+    }
+    if (raw is String) {
+      return int.tryParse(raw);
+    }
+    return null;
+  }
+
+  double? _parseDouble(dynamic raw) {
+    if (raw == null) {
+      return null;
+    }
+    if (raw is double) {
+      return raw;
+    }
+    if (raw is num) {
+      return raw.toDouble();
+    }
+    if (raw is String) {
+      return double.tryParse(raw.replaceAll(',', '.'));
+    }
+    return null;
+  }
+
+  String? _getTypeVehicleName(dynamic rawId) {
+    final id = _parseId(rawId);
+    if (id == null) {
+      return null;
+    }
+    for (final item in typeVehicleList) {
+      final itemId = _parseId(item['TypeVehicleID'] ?? item['ID']);
+      if (itemId == id) {
+        final name = item['TypeVehicleName'] ?? item['Name'];
+        final nameStr = name?.toString().trim();
+        if (nameStr != null && nameStr.isNotEmpty) {
+          return nameStr;
+        }
+        break;
+      }
+    }
+    return null;
+  }
+
+  String? _getDeliveryVehicleInfo(dynamic rawId) {
+    final id = _parseId(rawId);
+    if (id == null) {
+      return null;
+    }
+    for (final vehicle in deliveryVehicleList) {
+      final vehicleId = _parseId(vehicle['DeliveryVehicleID'] ?? vehicle['ID']);
+      if (vehicleId == id) {
+        final number = vehicle['NumberVehicle'] ?? vehicle['Number'];
+        final numberStr = number?.toString().trim() ?? '';
+        final typeName = vehicle['TypeVehicleName'] ??
+            vehicle['TypeName'] ??
+            _getTypeVehicleName(vehicle['TypeVehicleID']);
+        final typeStr = typeName?.toString().trim() ?? '';
+        if (numberStr.isEmpty && typeStr.isEmpty) {
+          return null;
+        }
+        if (numberStr.isEmpty) {
+          return typeStr;
+        }
+        if (typeStr.isEmpty) {
+          return numberStr;
+        }
+        return '$numberStr - $typeStr';
+      }
+    }
+    return null;
+  }
+
+  String? _buildVehicleInfo(Map<String, dynamic> item) {
+    final deliveryInfo = _getDeliveryVehicleInfo(item['DeliveryVehicleID']);
+    if (deliveryInfo != null && deliveryInfo.trim().isNotEmpty) {
+      return deliveryInfo;
+    }
+    final number = item['NumberVehicle']?.toString().trim() ?? '';
+    final typeName =
+        _getTypeVehicleName(item['TypeVehicle'] ?? item['TypeVehicleID']);
+    final typeStr = typeName?.trim() ?? '';
+    if (number.isEmpty && typeStr.isEmpty) {
+      return null;
+    }
+    if (number.isEmpty) {
+      return typeStr;
+    }
+    if (typeStr.isEmpty) {
+      return number;
+    }
+    return '$number - $typeStr';
+  }
+
+  Map<String, dynamic> _applyDisplayFields(Map<String, dynamic> item) {
+    final updated = Map<String, dynamic>.from(item);
+
+    final vehicleDisplay = _buildVehicleInfo(updated);
+    if (vehicleDisplay != null && vehicleDisplay.trim().isNotEmpty) {
+      updated['VehicleDisplay'] = vehicleDisplay;
+    } else {
+      updated.remove('VehicleDisplay');
+    }
+
+    final capacityValue = _parseDouble(updated['AmountContainer']);
+    if (capacityValue != null) {
+      final capacityFormatted =
+          NumberFormat('#,##0.##', 'vi_VN').format(capacityValue);
+      updated['CapacityDisplay'] =
+          'Sức chứa mặc định: $capacityFormatted m³';
+    } else {
+      updated.remove('CapacityDisplay');
+    }
+
+    final isChecked = updated['IsCheck'] == true;
+    updated['CheckDisplayPositive'] = isChecked;
+    updated['CheckDisplay'] = isChecked ? 'Đã kiểm tra' : 'Chưa kiểm tra';
+
+    final isApproved = updated['Approve'] == true;
+    updated['ApproveDisplayPositive'] = isApproved;
+    updated['ApproveDisplay'] = isApproved ? 'Đã duyệt' : 'Chưa duyệt';
+
+    final isError = updated['IsError'] == true;
+    final violationVolume = _parseDouble(updated['Violate']);
+    if (isError && violationVolume != null && violationVolume > 0) {
+      final violationFormatted =
+          NumberFormat('#,##0.##', 'vi_VN').format(violationVolume);
+      updated['ViolationDisplay'] = 'Trừ $violationFormatted m³';
+    } else {
+      updated.remove('ViolationDisplay');
+    }
+
+    return updated;
+  }
 
   @override
   void initState() {
@@ -246,9 +391,28 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
   Future<void> fetchTypeVehicleList() async {
     try {
       final response = await BillRequestService().getTypeVehicleList();
-      if (response != null && response['data'] != null) {
+      final data = response is List
+          ? response
+          : response is Map
+              ? response['data']
+              : null;
+      if (data is List) {
         setState(() {
-          typeVehicleList = List<Map<String, dynamic>>.from(response['data']);
+          typeVehicleList = data
+              .where((item) => item is Map)
+              .map<Map<String, dynamic>>(
+                  (item) => Map<String, dynamic>.from(item as Map))
+              .toList();
+          items = items.map(_applyDisplayFields).toList();
+          if (selectedTypeVehicleId != null) {
+            final hasSelected = typeVehicleList.any((item) {
+              final id = _parseId(item['TypeVehicleID'] ?? item['ID']);
+              return id != null && id == selectedTypeVehicleId;
+            });
+            if (!hasSelected) {
+              selectedTypeVehicleId = null;
+            }
+          }
         });
       }
     } catch (e) {
@@ -263,6 +427,7 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
         setState(() {
           deliveryVehicleList =
               List<Map<String, dynamic>>.from(response['data']);
+          items = items.map(_applyDisplayFields).toList();
         });
       }
     } catch (e) {
@@ -283,58 +448,154 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
     final data = response?['data'] as List<dynamic>? ?? [];
     final int total = response?['totals'] as int? ?? data.length;
     final int pageSize = 20;
+    final mappedItems = data.whereType<Map<String, dynamic>>().map((item) {
+      final title = item['TitleBill'] ?? '';
+      final dateRaw = item['DateBill'];
+      String date = '';
+      if (dateRaw != null && dateRaw != '') {
+        final dt = DateTime.tryParse(dateRaw as String);
+        if (dt != null) {
+          date = DateFormat('HH:mm dd/MM/yyyy').format(dt);
+        }
+      }
+
+      final hasIn = [item['ImageIn1'], item['ImageIn2'], item['ImageIn3']]
+          .any((v) => v != null && v.toString().isNotEmpty);
+      final hasOut = [item['ImageOut1'], item['ImageOut2'], item['ImageOut3']]
+          .any((v) => v != null && v.toString().isNotEmpty);
+      final hasReceiver =
+          item['FileReceive'] != null && item['FileReceive'].toString().isNotEmpty;
+      final isError = item['IsError'] == true;
+
+      String status = '';
+      if (hasIn && hasOut && hasReceiver) {
+        status = 'Vào / Ra / Ký nhận';
+      } else if (hasIn && hasOut) {
+        status = 'Vào / Ra';
+      } else if (hasIn) {
+        status = 'Vào';
+      } else if (hasOut) {
+        status = 'Ra';
+      } else if (hasReceiver) {
+        status = 'Ký nhận';
+      }
+
+      if (isError) {
+        status = status.isEmpty ? 'Vi Phạm' : '$status • Vi Phạm';
+      }
+
+      final enriched = {
+        ...item,
+        'Title': title,
+        'Date': date,
+        'Status': status,
+        'IsError': isError,
+      };
+      return _applyDisplayFields(enriched);
+    }).toList();
+
     setState(() {
       currentPage = page;
       totalPages = (total / pageSize).ceil();
-      items = data.map<Map<String, dynamic>>((item) {
-        // Xử lý Title
-        final title = item['TitleBill'] ?? '';
-        // Xử lý Date
-        final dateRaw = item['DateBill'];
-        String date = '';
-        if (dateRaw != null && dateRaw != '') {
-          final dt = DateTime.tryParse(dateRaw as String);
-          if (dt != null) {
-            date = DateFormat('HH:mm dd/MM/yyyy').format(dt);
-          }
-        }
-        // Xử lý Status
-        bool hasIn = [item['ImageIn1'], item['ImageIn2'], item['ImageIn3']]
-            .any((v) => v != null && v.toString().isNotEmpty);
-        bool hasOut = [item['ImageOut1'], item['ImageOut2'], item['ImageOut3']]
-            .any((v) => v != null && v.toString().isNotEmpty);
-        bool hasReceiver = item['FileReceive'] != null &&
-            item['FileReceive'].toString().isNotEmpty;
-        bool isError = item['IsError'] == true;
-        String status = '';
-        if (hasIn && hasOut && hasReceiver) {
-          status = 'Vào / Ra / Ký nhận';
-        } else if (hasIn && hasOut) {
-          status = 'Vào / Ra';
-        } else if (hasIn) {
-          status = 'Vào';
-        } else if (hasOut) {
-          status = 'Ra';
-        } else if (hasReceiver) {
-          status = 'Ký nhận';
-        } else {
-          status = '';
-        }
-        
-        // Thêm thông tin vi phạm nếu có
-        if (isError) {
-          status = status.isEmpty ? 'Vi Phạm' : '$status • Vi Phạm';
-        }
-        // Trả về map gồm cả property gốc và các trường mới
-        return {
-          ...item,
-          'Title': title,
-          'Date': date,
-          'Status': status,
-          'IsError': isError,
-        };
-      }).toList();
+      items = mappedItems;
     });
+  }
+
+  Map<String, dynamic> _buildApprovePayload(Map<String, dynamic> item) {
+    final keys = {
+      'TypeTrackingBillID',
+      'ProjectID',
+      'DeliveryVehicleID',
+      'CompanyID',
+      'TitleBill',
+      'DateBill',
+      'ImageIn1',
+      'ImageIn2',
+      'ImageIn3',
+      'ImageOut1',
+      'ImageOut2',
+      'ImageOut3',
+      'FileReceive',
+      'IsError',
+      'ViolationRuleID',
+      'HandlingPlanID',
+      'Violate',
+      'IsCheck',
+      'Approve',
+    };
+    final payload = <String, dynamic>{};
+    for (final key in keys) {
+      if (item.containsKey(key)) {
+        payload[key] = item[key];
+      }
+    }
+    payload['Approve'] = true;
+    final trackingId = item['TrackingBillID'] ?? item['BillID'] ?? item['ID'];
+    if (trackingId != null) {
+      payload['TrackingBillID'] = trackingId;
+    }
+    return payload;
+  }
+
+  Future<void> _handleApprove(Map<String, dynamic> item) async {
+    final trackingId = _parseId(item['TrackingBillID'] ?? item['BillID'] ?? item['ID']);
+    if (trackingId == null) {
+      return;
+    }
+    if (_approvingIds.contains(trackingId)) {
+      return;
+    }
+
+    setState(() {
+      _approvingIds.add(trackingId);
+    });
+
+    try {
+      final payload = _buildApprovePayload(item);
+      final response = await BillRequestService()
+          .updateApproveStatus(trackingId, payload);
+
+      if (response != null) {
+        setState(() {
+          items = items.map((existing) {
+            final existingId =
+                _parseId(existing['TrackingBillID'] ?? existing['BillID']);
+            if (existingId == trackingId) {
+              final merged = {
+                ...existing,
+                if (response is Map<String, dynamic>) ...response,
+                'Approve': true,
+              };
+              return _applyDisplayFields(merged);
+            }
+            return existing;
+          }).toList();
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đã duyệt yêu cầu thành công'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Duyệt yêu cầu thất bại: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _approvingIds.remove(trackingId);
+        });
+      }
+    }
   }
 
   @override
@@ -377,12 +638,15 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Colors.blue, width: 2),
+                            borderSide:
+                                const BorderSide(color: Colors.blue, width: 2),
                           ),
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          prefixIcon:
+                              Icon(Icons.search, color: Colors.grey.shade500),
                         ),
                         onSubmitted: (_) => fetchData(page: 1),
                       ),
@@ -403,7 +667,9 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                             padding: const EdgeInsets.all(8),
                             child: Icon(
                               isFilterExpanded ? Icons.expand_less : Icons.tune,
-                              color: isFilterExpanded ? Colors.blue : Colors.grey.shade600,
+                              color: isFilterExpanded
+                                  ? Colors.blue
+                                  : Colors.grey.shade600,
                               size: 24,
                             ),
                           ),
@@ -436,449 +702,451 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                   ),
                   child: SingleChildScrollView(
                     child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(8),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(Icons.filter_alt,
+                                  color: Colors.blue, size: 20),
                             ),
-                            child: Icon(Icons.filter_alt, color: Colors.blue, size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Bộ lọc nâng cao',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey.shade800,
+                            const SizedBox(width: 12),
+                            Text(
+                              'Bộ lọc nâng cao',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.grey.shade800,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
 
-                      // Row 1: Project Name (full width)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Tên Dự Án',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
+                        // Row 1: Project Name (full width)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Tên Dự Án',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade700,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<int>(
-                            decoration: InputDecoration(
-                              hintText: 'Chọn dự án',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Colors.blue, width: 2),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            ),
-                            value: selectedProjectId,
-                            isExpanded: true,
-                            items: projectList
-                                .map((item) => DropdownMenuItem<int>(
-                                      value: item['ProjectID'],
-                                      child: Text(
-                                        item['ProjectName'] ?? '',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() => selectedProjectId = value);
-                              fetchData(page: 1);
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Row 2: Provider (full width)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Nhà cung cấp',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<int>(
-                            decoration: InputDecoration(
-                              hintText: 'Chọn nhà cung cấp',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Colors.blue, width: 2),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            ),
-                            value: selectedProviderId,
-                            isExpanded: true,
-                            items: providerList
-                                .map((item) => DropdownMenuItem<int>(
-                                      value: item['ProviderID'] ?? item['ID'],
-                                      child: Text(
-                                        item['ProviderName'] ?? item['Name'] ?? '',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() => selectedProviderId = value);
-                              fetchData(page: 1);
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Row 3: Type Bill (full width)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Loại vật tư',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<int>(
-                            decoration: InputDecoration(
-                              hintText: 'Chọn loại vật tư',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Colors.blue, width: 2),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            ),
-                            value: selectedTypeBillId,
-                            isExpanded: true,
-                            items: typeBillList
-                                .map((item) => DropdownMenuItem<int>(
-                                      value: item['TypeTrackingBillID'],
-                                      child: Text(
-                                        item['TypeName'] ?? '',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() => selectedTypeBillId = value);
-                              fetchData(page: 1);
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Row 4: Type Vehicle (full width)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Loại phương tiện',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<int>(
-                            decoration: InputDecoration(
-                              hintText: 'Chọn loại phương tiện',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Colors.blue, width: 2),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            ),
-                            value: selectedTypeVehicleId,
-                            isExpanded: true,
-                            items: typeVehicleList
-                                .map((item) => DropdownMenuItem<int>(
-                                      value: item['TypeVehicleID'] ?? item['ID'],
-                                      child: Text(
-                                        item['TypeVehicleName'] ??
-                                            item['Name'] ??
-                                            '',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() => selectedTypeVehicleId = value);
-                              fetchData(page: 1);
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Row 5: Delivery Vehicle (full width)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Phương tiện',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<int>(
-                            decoration: InputDecoration(
-                              hintText: 'Chọn phương tiện',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: Colors.blue, width: 2),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            ),
-                            value: selectedDeliveryVehicleId,
-                            isExpanded: true,
-                            items: deliveryVehicleList
-                                .map((item) => DropdownMenuItem<int>(
-                                      value:
-                                          item['DeliveryVehicleID'] ?? item['ID'],
-                                      child: Text(
-                                        '${item['NumberVehicle'] ?? ''} - ${item['TypeVehicleName'] ?? ''}',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() => selectedDeliveryVehicleId = value);
-                              fetchData(page: 1);
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Date Range Section
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Khoảng thời gian',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () async {
-                                    final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: timeStart,
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime.now(),
-                                      locale: const Locale('vi'),
-                                    );
-                                    if (picked != null) {
-                                      setState(() => timeStart = picked);
-                                      fetchData(page: 1);
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey.shade300),
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Colors.grey.shade50,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.calendar_today, color: Colors.grey.shade500, size: 18),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            DateFormat('dd/MM/yyyy').format(timeStart),
-                                            style: const TextStyle(fontSize: 14),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                            const SizedBox(height: 8),
+                            DropdownButtonFormField<int>(
+                              decoration: InputDecoration(
+                                hintText: 'Chọn dự án',
+                                hintStyle:
+                                    TextStyle(color: Colors.grey.shade400),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                child: Icon(Icons.arrow_forward, color: Colors.grey.shade400, size: 16),
-                              ),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () async {
-                                    final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: timeEnd,
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime.now(),
-                                      locale: const Locale('vi'),
-                                    );
-                                    if (picked != null) {
-                                      setState(() => timeEnd = picked);
-                                      fetchData(page: 1);
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey.shade300),
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Colors.grey.shade50,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.calendar_today, color: Colors.grey.shade500, size: 18),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            DateFormat('dd/MM/yyyy').format(timeEnd),
-                                            style: const TextStyle(fontSize: 14),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
                                 ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      color: Colors.blue, width: 2),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey.shade50,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      // Action buttons
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  selectedProjectId = null;
-                                  selectedProviderId = null;
-                                  selectedTypeBillId = null;
-                                  selectedTypeVehicleId = null;
-                                  selectedDeliveryVehicleId = null;
-                                  timeStart = DateTime.now()
-                                      .subtract(const Duration(days: 30));
-                                  timeEnd = DateTime.now();
-                                  _searchController.clear();
-                                });
+                              value: selectedProjectId,
+                              isExpanded: true,
+                              items: projectList
+                                  .map((item) => DropdownMenuItem<int>(
+                                        value: item['ProjectID'],
+                                        child: Text(
+                                          item['ProjectName'] ?? '',
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() => selectedProjectId = value);
                                 fetchData(page: 1);
                               },
-                              icon: const Icon(Icons.clear_all, size: 18),
-                              label: const Text('Xóa bộ lọc'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red.shade600,
-                                side: BorderSide(color: Colors.red.shade300),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Row 2: Provider (full width)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nhà cung cấp',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            DropdownButtonFormField<int>(
+                              decoration: InputDecoration(
+                                hintText: 'Chọn nhà cung cấp',
+                                hintStyle:
+                                    TextStyle(color: Colors.grey.shade400),
+                                border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      color: Colors.blue, width: 2),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey.shade50,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                              ),
+                              value: selectedProviderId,
+                              isExpanded: true,
+                              items: providerList
+                                  .map((item) => DropdownMenuItem<int>(
+                                        value: item['ProviderID'] ?? item['ID'],
+                                        child: Text(
+                                          item['ProviderName'] ??
+                                              item['Name'] ??
+                                              '',
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() => selectedProviderId = value);
+                                fetchData(page: 1);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Row 3: Type Bill (full width)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Loại vật tư',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            DropdownButtonFormField<int>(
+                              decoration: InputDecoration(
+                                hintText: 'Chọn loại vật tư',
+                                hintStyle:
+                                    TextStyle(color: Colors.grey.shade400),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      color: Colors.blue, width: 2),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey.shade50,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                              ),
+                              value: selectedTypeBillId,
+                              isExpanded: true,
+                              items: typeBillList
+                                  .map((item) => DropdownMenuItem<int>(
+                                        value: item['TypeTrackingBillID'],
+                                        child: Text(
+                                          item['TypeName'] ?? '',
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() => selectedTypeBillId = value);
+                                fetchData(page: 1);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Row 4: Delivery Vehicle (full width)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Phương tiện',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            DropdownButtonFormField<int>(
+                              decoration: InputDecoration(
+                                hintText: 'Chọn phương tiện',
+                                hintStyle:
+                                    TextStyle(color: Colors.grey.shade400),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(
+                                      color: Colors.blue, width: 2),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey.shade50,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                              ),
+                              value: selectedDeliveryVehicleId,
+                              isExpanded: true,
+                              items: deliveryVehicleList
+                                  .where((item) =>
+                                      item != null) // Filter null items first
+                                  .map((item) {
+                                    // Try multiple field names for ID
+                                    final id = item["DeliveryVehicleID"];
+                                    if (id == null) return null;
+
+                                    // Get display text with fallbacks
+                                    final numberVehicle =
+                                        item['NumberVehicle'] ??
+                                            item['Number'] ??
+                                            '';
+                                    final typeName = item['TypeVehicleName'] ??
+                                        item['TypeName'] ??
+                                        '';
+
+                                    return DropdownMenuItem<int>(
+                                      value: id,
+                                      child: Text(
+                                        '$numberVehicle - $typeName',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  })
+                                  .whereType<DropdownMenuItem<int>>()
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(
+                                    () => selectedDeliveryVehicleId = value);
+                                fetchData(page: 1);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Date Range Section
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Khoảng thời gian',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: timeStart,
+                                        firstDate: DateTime(2000),
+                                        lastDate: DateTime.now(),
+                                        locale: const Locale('vi'),
+                                      );
+                                      if (picked != null) {
+                                        setState(() => timeStart = picked);
+                                        fetchData(page: 1);
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 14),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.grey.shade50,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.calendar_today,
+                                              color: Colors.grey.shade500,
+                                              size: 18),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              DateFormat('dd/MM/yyyy')
+                                                  .format(timeStart),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Icon(Icons.arrow_forward,
+                                      color: Colors.grey.shade400, size: 16),
+                                ),
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: timeEnd,
+                                        firstDate: DateTime(2000),
+                                        lastDate: DateTime.now(),
+                                        locale: const Locale('vi'),
+                                      );
+                                      if (picked != null) {
+                                        setState(() => timeEnd = picked);
+                                        fetchData(page: 1);
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 14),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.grey.shade50,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.calendar_today,
+                                              color: Colors.grey.shade500,
+                                              size: 18),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              DateFormat('dd/MM/yyyy')
+                                                  .format(timeEnd),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        // Action buttons
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    selectedProjectId = null;
+                                    selectedProviderId = null;
+                                    selectedTypeBillId = null;
+                                    selectedTypeVehicleId = null;
+                                    selectedDeliveryVehicleId = null;
+                                    timeStart = DateTime.now()
+                                        .subtract(const Duration(days: 30));
+                                    timeEnd = DateTime.now();
+                                    _searchController.clear();
+                                  });
+                                  fetchData(page: 1);
+                                },
+                                icon: const Icon(Icons.clear_all, size: 18),
+                                label: const Text('Xóa bộ lọc'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.red.shade600,
+                                  side: BorderSide(color: Colors.red.shade300),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => fetchData(page: 1),
-                              icon: const Icon(Icons.search, size: 18),
-                              label: const Text('Áp dụng'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => fetchData(page: 1),
+                                icon: const Icon(Icons.search, size: 18),
+                                label: const Text('Áp dụng'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  elevation: 2,
                                 ),
-                                elevation: 2,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -892,11 +1160,20 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
+                    final trackingId =
+                        _parseId(item['TrackingBillID'] ?? item['BillID']);
+                    final isApproved = item['Approve'] == true;
+                    final isApproving = trackingId != null &&
+                        _approvingIds.contains(trackingId);
                     return ItemRowDetail(
-                      data: item as Map<String, dynamic>,
+                      data: item,
                       color: Colors.blue,
+                      isApproving: isApproving,
+                      onApprove:
+                          isApproved ? null : () => _handleApprove(item),
                       onTap: () async {
-                        var result = await MaterialDetailHelper.openWithId(context, item['TrackingBillID']);
+                        var result = await MaterialDetailHelper.openWithId(
+                            context, item['TrackingBillID']);
                         if (result != null) await fetchData(page: currentPage);
                       },
                       status: item['Status'],
@@ -906,41 +1183,41 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
               )
             : Expanded(
                 child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.inbox_outlined,
-                          size: 48,
-                          color: Colors.grey.shade400,
-                        ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Không có dữ liệu",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade600,
-                        ),
+                      child: Icon(
+                        Icons.inbox_outlined,
+                        size: 48,
+                        color: Colors.grey.shade400,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Hãy thử thay đổi bộ lọc để xem thêm kết quả",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
-                        ),
-                        textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      "Không có dữ liệu",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Hãy thử thay đổi bộ lọc để xem thêm kết quả",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               )),
         Container(
           padding: const EdgeInsets.all(16),
@@ -965,8 +1242,10 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                   icon: const Icon(Icons.arrow_back, size: 18),
                   label: const Text('Trước'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: currentPage > 1 ? Colors.blue : Colors.grey.shade300,
-                    foregroundColor: currentPage > 1 ? Colors.white : Colors.grey.shade500,
+                    backgroundColor:
+                        currentPage > 1 ? Colors.blue : Colors.grey.shade300,
+                    foregroundColor:
+                        currentPage > 1 ? Colors.white : Colors.grey.shade500,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -977,7 +1256,8 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
               ),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.blue.shade50,
                   borderRadius: BorderRadius.circular(8),
@@ -999,8 +1279,12 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                   icon: const Icon(Icons.arrow_forward, size: 18),
                   label: const Text('Sau'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: currentPage < totalPages ? Colors.blue : Colors.grey.shade300,
-                    foregroundColor: currentPage < totalPages ? Colors.white : Colors.grey.shade500,
+                    backgroundColor: currentPage < totalPages
+                        ? Colors.blue
+                        : Colors.grey.shade300,
+                    foregroundColor: currentPage < totalPages
+                        ? Colors.white
+                        : Colors.grey.shade500,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -1041,7 +1325,7 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
         builder: (context) => const CreateMaterialPage(),
       ),
     );
-    
+
     // Refresh data after returning from create page if needed
     if (result == true) {
       await fetchData(page: 1);
@@ -1049,7 +1333,7 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
   }
 }
 
-// Export Report Dialog Widget  
+// Export Report Dialog Widget
 class ExportMaterialTab extends StatefulWidget {
   const ExportMaterialTab({super.key});
 
@@ -1189,12 +1473,15 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Colors.green, width: 2),
+                            borderSide:
+                                const BorderSide(color: Colors.green, width: 2),
                           ),
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          prefixIcon:
+                              Icon(Icons.search, color: Colors.grey.shade500),
                         ),
                         onSubmitted: (_) => fetchData(page: 1),
                       ),
@@ -1215,7 +1502,9 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                             padding: const EdgeInsets.all(8),
                             child: Icon(
                               isFilterExpanded ? Icons.expand_less : Icons.tune,
-                              color: isFilterExpanded ? Colors.green : Colors.grey.shade600,
+                              color: isFilterExpanded
+                                  ? Colors.green
+                                  : Colors.grey.shade600,
                               size: 24,
                             ),
                           ),
@@ -1258,7 +1547,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                                 color: Colors.green.shade50,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(Icons.filter_alt, color: Colors.green, size: 20),
+                              child: Icon(Icons.filter_alt,
+                                  color: Colors.green, size: 20),
                             ),
                             const SizedBox(width: 12),
                             Text(
@@ -1289,22 +1579,27 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                             DropdownButtonFormField<String>(
                               decoration: InputDecoration(
                                 hintText: 'Chọn dự án nguồn',
-                                hintStyle: TextStyle(color: Colors.grey.shade400),
+                                hintStyle:
+                                    TextStyle(color: Colors.grey.shade400),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Colors.green, width: 2),
+                                  borderSide: const BorderSide(
+                                      color: Colors.green, width: 2),
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
                               ),
                               value: selectedProjectFrom,
                               isExpanded: true,
@@ -1342,22 +1637,27 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                             DropdownButtonFormField<String>(
                               decoration: InputDecoration(
                                 hintText: 'Chọn dự án đích',
-                                hintStyle: TextStyle(color: Colors.grey.shade400),
+                                hintStyle:
+                                    TextStyle(color: Colors.grey.shade400),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Colors.green, width: 2),
+                                  borderSide: const BorderSide(
+                                      color: Colors.green, width: 2),
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
                               ),
                               value: selectedProjectTo,
                               isExpanded: true,
@@ -1410,20 +1710,26 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                                       }
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 14),
                                       decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.grey.shade300),
+                                        border: Border.all(
+                                            color: Colors.grey.shade300),
                                         borderRadius: BorderRadius.circular(10),
                                         color: Colors.grey.shade50,
                                       ),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.calendar_today, color: Colors.grey.shade500, size: 18),
+                                          Icon(Icons.calendar_today,
+                                              color: Colors.grey.shade500,
+                                              size: 18),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
-                                              DateFormat('dd/MM/yyyy').format(timeStart),
-                                              style: const TextStyle(fontSize: 14),
+                                              DateFormat('dd/MM/yyyy')
+                                                  .format(timeStart),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
                                             ),
                                           ),
                                         ],
@@ -1432,8 +1738,10 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  child: Icon(Icons.arrow_forward, color: Colors.grey.shade400, size: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Icon(Icons.arrow_forward,
+                                      color: Colors.grey.shade400, size: 16),
                                 ),
                                 Expanded(
                                   child: InkWell(
@@ -1451,20 +1759,26 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                                       }
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 14),
                                       decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.grey.shade300),
+                                        border: Border.all(
+                                            color: Colors.grey.shade300),
                                         borderRadius: BorderRadius.circular(10),
                                         color: Colors.grey.shade50,
                                       ),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.calendar_today, color: Colors.grey.shade500, size: 18),
+                                          Icon(Icons.calendar_today,
+                                              color: Colors.grey.shade500,
+                                              size: 18),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
-                                              DateFormat('dd/MM/yyyy').format(timeEnd),
-                                              style: const TextStyle(fontSize: 14),
+                                              DateFormat('dd/MM/yyyy')
+                                                  .format(timeEnd),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
                                             ),
                                           ),
                                         ],
@@ -1499,7 +1813,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: Colors.red.shade600,
                                   side: BorderSide(color: Colors.red.shade300),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -1515,7 +1830,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -1539,7 +1855,7 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
             itemBuilder: (context, index) {
               final item = items[index];
               return ItemRowDetail(
-                data: item as Map<String, dynamic>,
+                data: item,
                 color: Colors.green, // Different color for export items
                 onTap: () async {
                   Navigator.push(
@@ -1579,8 +1895,10 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                   icon: const Icon(Icons.arrow_back, size: 18),
                   label: const Text('Trước'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: currentPage > 1 ? Colors.green : Colors.grey.shade300,
-                    foregroundColor: currentPage > 1 ? Colors.white : Colors.grey.shade500,
+                    backgroundColor:
+                        currentPage > 1 ? Colors.green : Colors.grey.shade300,
+                    foregroundColor:
+                        currentPage > 1 ? Colors.white : Colors.grey.shade500,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -1591,7 +1909,8 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
               ),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.green.shade50,
                   borderRadius: BorderRadius.circular(8),
@@ -1613,8 +1932,12 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                   icon: const Icon(Icons.arrow_forward, size: 18),
                   label: const Text('Sau'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: currentPage < totalPages ? Colors.green : Colors.grey.shade300,
-                    foregroundColor: currentPage < totalPages ? Colors.white : Colors.grey.shade500,
+                    backgroundColor: currentPage < totalPages
+                        ? Colors.green
+                        : Colors.grey.shade300,
+                    foregroundColor: currentPage < totalPages
+                        ? Colors.white
+                        : Colors.grey.shade500,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -1652,7 +1975,7 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
         builder: (context) => const ExportMaterialPage(),
       ),
     );
-    
+
     // Refresh data after returning from create page if needed
     if (result == true) {
       await fetchData(page: 1);
@@ -1668,15 +1991,38 @@ class ItemRowDetail extends StatelessWidget {
     required this.color,
     required this.onTap,
     required this.status,
+    this.onApprove,
+    this.isApproving = false,
   }) : super(key: key);
 
   final Color color;
   final VoidCallback onTap;
   final Map<String, dynamic> data;
   final String status;
+  final Future<void> Function()? onApprove;
+  final bool isApproving;
 
   @override
   Widget build(BuildContext context) {
+    final vehicleDisplay = data['VehicleDisplay']?.toString();
+    final capacityDisplay = data['CapacityDisplay']?.toString();
+    final violationDisplay = data['ViolationDisplay']?.toString();
+    final checkDisplay = data['CheckDisplay']?.toString();
+    final checkPositive = data['CheckDisplayPositive'] == true;
+    final approveDisplay = data['ApproveDisplay']?.toString();
+    final approvePositive = data['ApproveDisplayPositive'] == true;
+    final dateText = data['Date'] is String && (data['Date'] as String).isNotEmpty
+        ? data['Date'] as String
+        : _formatDate(data['DateBill'] ?? data['DateCreated']);
+    final hasViolation = status.contains('Vi Phạm');
+    final rawBaseStatus = status.replaceAll(' • Vi Phạm', '').trim();
+    final baseStatus =
+        hasViolation && rawBaseStatus == 'Vi Phạm' ? '' : rawBaseStatus;
+    final isApproved = data['Approve'] == true;
+    final showApproveButton = !isApproved && onApprove != null;
+    final checkColor = checkPositive ? Colors.blue : Colors.grey;
+    final approveColor = approvePositive ? Colors.green : Colors.grey;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Material(
@@ -1711,7 +2057,10 @@ class ItemRowDetail extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data['NameDriver'] ?? data['TitleBill'] ?? '',
+                        data['Title'] ??
+                            data['NameDriver'] ??
+                            data['TitleBill'] ??
+                            '',
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: Colors.black87,
@@ -1721,78 +2070,139 @@ class ItemRowDetail extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.access_time, size: 16, color: Colors.grey.shade500),
-                          const SizedBox(width: 4),
-                          Text(
-                            DateFormat("HH:mm dd/MM/yyyy").format(
-                              DateTime.parse(data['DateBill'] ?? data['DateCreated']),
+                      if (dateText.isNotEmpty)
+                        Row(
+                          children: [
+                            Icon(Icons.access_time,
+                                size: 16, color: Colors.grey.shade500),
+                            const SizedBox(width: 4),
+                            Text(
+                              dateText,
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 14,
+                              ),
                             ),
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
+                          ],
+                        ),
+                      if (dateText.isNotEmpty) const SizedBox(height: 8),
                       // Status badges
                       Wrap(
                         spacing: 6,
                         runSpacing: 4,
                         children: [
-                          if (status.contains('Vi Phạm'))
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: Colors.red.withOpacity(0.3)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.warning, size: 12, color: Colors.red),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'VI PHẠM',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          if (hasViolation)
+                            _buildChip(
+                              violationDisplay != null
+                                  ? 'VI PHẠM - $violationDisplay'
+                                  : 'VI PHẠM',
+                              Colors.red,
+                              icon: Icons.warning,
+                              fontWeight: FontWeight.w700,
                             ),
-                          if (status.replaceAll(' • Vi Phạm', '').isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: color.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: color.withOpacity(0.3)),
-                              ),
-                              child: Text(
-                                status.replaceAll(' • Vi Phạm', ''),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: color,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                          if (baseStatus.isNotEmpty)
+                            _buildChip(
+                              baseStatus,
+                              color,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          if (checkDisplay != null && checkDisplay.isNotEmpty)
+                            _buildChip(
+                              checkDisplay,
+                              checkColor,
+                              icon: checkPositive
+                                  ? Icons.verified_outlined
+                                  : Icons.help_outline,
+                            ),
+                          if (approveDisplay != null && approveDisplay.isNotEmpty)
+                            _buildChip(
+                              approveDisplay,
+                              approveColor,
+                              icon: approvePositive
+                                  ? Icons.check_circle_outline
+                                  : Icons.pending_actions,
                             ),
                         ],
                       ),
+                      if (vehicleDisplay != null && vehicleDisplay.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.local_shipping_outlined,
+                          vehicleDisplay,
+                          iconColor: Colors.blueGrey,
+                        ),
+                      if (capacityDisplay != null && capacityDisplay.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.inventory_2_outlined,
+                          capacityDisplay,
+                        ),
                     ],
                   ),
                 ),
-                // Arrow indicator
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Colors.grey.shade400,
+                // Actions
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showApproveButton)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: isApproving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : IconButton(
+                                onPressed: () async {
+                                  if (onApprove == null) {
+                                    return;
+                                  }
+                                  final confirmed = await showDialog<bool>(
+                                        context: context,
+                                        builder: (dialogContext) {
+                                          return AlertDialog(
+                                            title: const Text('Xác nhận duyệt'),
+                                            content: const Text(
+                                                'Bạn xác nhận duyệt cho đơn vật liệu này không?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(dialogContext).pop(false),
+                                                child: const Text('Hủy'),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () =>
+                                                    Navigator.of(dialogContext).pop(true),
+                                                child: const Text('Đồng ý'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ) ??
+                                      false;
+                                  if (!confirmed) {
+                                    return;
+                                  }
+                                  await onApprove!();
+                                },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                visualDensity: VisualDensity.compact,
+                                icon: const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                  size: 20,
+                                ),
+                                tooltip: 'Duyệt nhanh',
+                              ),
+                      ),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.grey.shade400,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1800,5 +2210,66 @@ class ItemRowDetail extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildChip(String label, Color color,
+      {IconData? icon, FontWeight fontWeight = FontWeight.w600}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: fontWeight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text, {Color? iconColor}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16, color: iconColor ?? Colors.grey.shade500),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(dynamic value) {
+    if (value is String && value.isNotEmpty) {
+      final dt = DateTime.tryParse(value);
+      if (dt != null) {
+        return DateFormat('HH:mm dd/MM/yyyy').format(dt);
+      }
+    }
+    return '';
   }
 }

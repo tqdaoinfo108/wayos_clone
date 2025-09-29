@@ -11,7 +11,7 @@ abstract class ApiService {
     final defaultHeaders = {
       'Content-Type': 'application/json',
       'Page': page.toString(),
-      'Limit': '20', // default
+      'Limit': '10000', // default
       if (token != null) 'Authorization': '$token'
 
     };

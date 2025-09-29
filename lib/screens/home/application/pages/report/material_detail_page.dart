@@ -22,6 +22,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   String projectName = 'Đang tải...';
   String violationName = '';
   String handlingPlanName = '';
+  String deliveryVehicleName = '';
   bool isLoading = true;
   Map<String, dynamic>? trackingBillData;
 
@@ -106,6 +107,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
       setState(() {
         violationName = '';
         handlingPlanName = '';
+        deliveryVehicleName = _fallbackDeliveryVehicleName();
       });
       
       if (violationRuleId != null && violationRuleId != 0) {
@@ -139,10 +141,73 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
           }
         }
       }
+
+      final deliveryId = trackingBillData!['DeliveryVehicleID'] ??
+          trackingBillData!['DeliveryVehicleId'] ??
+          trackingBillData!['DeliveryID'];
+      if (deliveryId != null) {
+        final deliveryResponse = await BillRequestService().getDeliveryVehicleList();
+        final deliveryData = deliveryResponse?['data'];
+        if (deliveryData is List) {
+          final deliveries = deliveryData
+              .whereType<Map<String, dynamic>>()
+              .toList();
+          final match = deliveries.firstWhere(
+            (vehicle) {
+              final id = vehicle['DeliveryVehicleID'] ??
+                  vehicle['DeliveryID'] ??
+                  vehicle['ID'];
+              return id != null && id.toString() == deliveryId.toString();
+            },
+            orElse: () => {},
+          );
+          if (match.isNotEmpty) {
+            final numberRaw = match['NumberVehicle'] ?? match['Number'];
+            final typeRaw = match['TypeVehicleName'] ?? match['TypeName'];
+            final number = numberRaw == null ? '' : numberRaw.toString().trim();
+            final typeName = typeRaw == null ? '' : typeRaw.toString().trim();
+            String formatted = deliveryVehicleName;
+            if (number.isEmpty && typeName.isEmpty) {
+              formatted = deliveryVehicleName;
+            } else if (number.isEmpty) {
+              formatted = typeName;
+            } else if (typeName.isEmpty) {
+              formatted = number;
+            } else {
+              formatted = '$number - $typeName';
+            }
+            setState(() {
+              deliveryVehicleName = formatted;
+            });
+          }
+        }
+      }
     } catch (e) {
       // Không làm gì cả, chỉ log lỗi
       print('Error loading additional info: $e');
     }
+  }
+
+  String _fallbackDeliveryVehicleName() {
+    if (trackingBillData == null) {
+      return '';
+    }
+    final numberRaw = trackingBillData!['NumberVehicle'] ??
+        trackingBillData!['VehicleNumber'];
+    final typeRaw = trackingBillData!['TypeVehicleName'] ??
+        trackingBillData!['TypeName'];
+    final number = numberRaw == null ? '' : numberRaw.toString().trim();
+    final typeName = typeRaw == null ? '' : typeRaw.toString().trim();
+    if (number.isEmpty && typeName.isEmpty) {
+      return '';
+    }
+    if (number.isEmpty) {
+      return typeName;
+    }
+    if (typeName.isEmpty) {
+      return number;
+    }
+    return '$number - $typeName';
   }
 
   Widget _buildImageRow(List<String?> paths, String title, BuildContext context) {
@@ -449,8 +514,13 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     }
 
     // Lấy thông tin từ trackingBillData
-    final deliveryName = trackingBillData!['DeliveryVehicleName'] ?? 
-                        (trackingBillData!['NumberVehicle'] ?? '') + ' - ' + (trackingBillData!['TypeVehicleName'] ?? '');
+    final rawDeliveryName =
+        trackingBillData!['DeliveryVehicleName']?.toString().trim();
+    final deliveryName = (deliveryVehicleName.isNotEmpty)
+        ? deliveryVehicleName
+        : (rawDeliveryName != null && rawDeliveryName.isNotEmpty)
+            ? rawDeliveryName
+            : _fallbackDeliveryVehicleName();
     final typeBillName = trackingBillData!['TypeTrackingBillName'] ?? trackingBillData!['TypeName'] ?? 'Không xác định';
     final title = trackingBillData!['TitleBill'] ?? 'Không có tiêu đề';
     final dateBill = trackingBillData!['DateBill'] ?? '';
