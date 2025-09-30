@@ -245,8 +245,8 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
 
                           // Type Bill Dropdown
                           _buildDropdownField(
-                            label: 'Loại công việc *',
-                            hint: 'Chọn loại công việc',
+                            label: 'Loại vật tư *',
+                            hint: 'Chọn loại vật tư',
                             value: selectedTypeBillId,
                             items: typeBillList
                                 .map((item) => DropdownMenuItem<int>(
@@ -343,7 +343,7 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Chọn ít nhất 1 ảnh vào',
+                                      'Chụp ít nhất 1 ảnh vào',
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: Colors.grey.shade600,

@@ -210,7 +210,11 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     return '$number - $typeName';
   }
 
-  Widget _buildImageRow(List<String?> paths, String title, BuildContext context) {
+  Widget _buildImageRow(List<String?> paths, String title, BuildContext context, {bool isInImages = false}) {
+    final signaturePath = trackingBillData?['FileReceive'] as String?;
+    final hasFileReceive = signaturePath != null && signaturePath.isNotEmpty;
+    final canRetake = !hasFileReceive; // Chỉ cho phép chụp lại khi chưa có FileReceive
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -220,13 +224,34 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                if (canRetake && paths.any((path) => path != null && path.isNotEmpty))
+                  TextButton.icon(
+                    onPressed: () {
+                      if (isInImages) {
+                        _updateInImages();
+                      } else {
+                        _updateOutImages();
+                      }
+                    },
+                    icon: const Icon(Icons.camera_alt, size: 16),
+                    label: const Text('Chụp lại'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.primary,
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 12),
             paths.any((path) => path != null && path.isNotEmpty)
@@ -408,7 +433,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                           Icon(Icons.edit_note, color: Colors.grey[400], size: 40),
                           const SizedBox(height: 8),
                           Text(
-                            'Chưa có chữ ký',
+                            'Chưa có ký nhận',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,
@@ -646,9 +671,9 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
             
             // Hình ảnh
             _buildSectionTitle('Hình ảnh theo dõi', Icons.photo_library),
-            _buildImageRow(inImagePaths, 'Ảnh vào', context),
-            _buildImageRow(outImagePaths, 'Ảnh ra', context),
-            _buildSignatureImageRow(signaturePath, 'Chữ ký nhận', context),
+            _buildImageRow(inImagePaths, 'Ảnh vào', context, isInImages: true),
+            _buildImageRow(outImagePaths, 'Ảnh ra', context, isInImages: false),
+            _buildSignatureImageRow(signaturePath, 'Ký nhận', context),
             
             // Thông tin vi phạm (nếu có)
             if (isError) ...[
@@ -831,21 +856,14 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   bool _canUpdate() {
     if (trackingBillData == null) return false;
     
-    final outImagePaths = [
-      trackingBillData!['ImageOut1'] as String?,
-      trackingBillData!['ImageOut2'] as String?,
-      trackingBillData!['ImageOut3'] as String?,
-    ];
     final signaturePath = trackingBillData!['FileReceive'] as String?;
-    final isError = trackingBillData!['IsError'] == true || trackingBillData!['IsError'] == 1;
+    final hasFileReceive = signaturePath != null && signaturePath.isNotEmpty;
 
-    // Check what updates are available
-    final bool canUpdateOutImages = outImagePaths.every((path) => path == null || path.isEmpty);
-    final bool canUpdateSignature = signaturePath == null || signaturePath.isEmpty;
-    final bool canUpdateViolation = !isError;
+    // If FileReceive exists, no updates are allowed
+    if (hasFileReceive) return false;
 
-    // Return true if at least one update option is available
-    return canUpdateOutImages || canUpdateSignature || canUpdateViolation;
+    // If FileReceive doesn't exist, allow updates for in images, out images, signature, and violation
+    return true;
   }
 
   void _showUpdateOptions(BuildContext context) {
@@ -857,12 +875,13 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
       trackingBillData!['ImageOut3'] as String?,
     ];
     final signaturePath = trackingBillData!['FileReceive'] as String?;
-    final isError = trackingBillData!['IsError'] == true || trackingBillData!['IsError'] == 1;
+    final hasFileReceive = signaturePath != null && signaturePath.isNotEmpty;
 
     // Check what updates are available
-    final bool canUpdateOutImages = outImagePaths.every((path) => path == null || path.isEmpty);
+    final bool canUpdateInImages = !hasFileReceive; // Luôn cho phép cập nhật ảnh vào nếu chưa có FileReceive
+    final bool canUpdateOutImages = !hasFileReceive && outImagePaths.every((path) => path == null || path.isEmpty);
     final bool canUpdateSignature = signaturePath == null || signaturePath.isEmpty;
-    final bool canUpdateViolation = !isError; // Không cho phép cập nhật vi phạm nếu đã có lỗi
+    final bool canUpdateViolation = !hasFileReceive; // Cho phép cập nhật vi phạm nếu chưa có FileReceive
 
     showModalBottomSheet(
       context: context,
@@ -904,6 +923,17 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               const SizedBox(height: 20),
 
               // Update options
+              if (canUpdateInImages)
+                _buildUpdateOption(
+                  icon: Icons.photo_camera_front,
+                  title: 'Cập nhật hình ảnh vào',
+                  subtitle: 'Chụp lại ảnh khi vào',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _updateInImages();
+                  },
+                ),
+
               if (canUpdateOutImages)
                 _buildUpdateOption(
                   icon: Icons.photo_camera_back,
@@ -915,17 +945,6 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                   },
                 ),
 
-              if (canUpdateSignature)
-                _buildUpdateOption(
-                  icon: Icons.edit_note,
-                  title: 'Cập nhật chữ ký nhận',
-                  subtitle: 'Thêm chữ ký xác nhận nhận hàng',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _updateSignature();
-                  },
-                ),
-
               if (canUpdateViolation)
                 _buildUpdateOption(
                   icon: Icons.report_problem,
@@ -934,6 +953,17 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                   onTap: () {
                     Navigator.pop(context);
                     _updateViolation();
+                  },
+                ),
+              
+              if (canUpdateSignature)
+                _buildUpdateOption(
+                  icon: Icons.edit_note,
+                  title: 'Cập nhật ký nhận',
+                  subtitle: 'Thêm ký xác nhận nhận hàng',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _updateSignature();
                   },
                 ),
 
@@ -1032,6 +1062,19 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _updateInImages() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _MultiImageCaptureDialog(
+        title: 'Cập nhật ảnh vào - ${trackingBillData?['TitleBill'] ?? ''}',
+        onImagesCapture: (images) async {
+          await _saveInImages(images);
+        },
       ),
     );
   }
@@ -1172,14 +1215,80 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Cập nhật chữ ký thành công!'),
+            content: Text('Cập nhật ký thành công!'),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Cập nhật chữ ký thất bại!'),
+            content: Text('Cập nhật ký thất bại!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      Navigator.pop(context); // Đóng loading nếu có
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _saveInImages(List<String> imagePaths) async {
+    if (trackingBillData == null) return;
+
+    try {
+      // Hiển thị loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Lấy TrackingBillID
+      final trackingBillId = trackingBillData!['TrackingBillID'] ?? 
+                            trackingBillData!['BillID'] ?? 
+                            trackingBillData!['ID'];
+
+      if (trackingBillId == null) {
+        Navigator.pop(context); // Đóng loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không tìm thấy ID của phiếu theo dõi')),
+        );
+        return;
+      }
+
+      // Tạo data để update, giữ nguyên data cũ và chỉ update ảnh vào
+      final updateData = Map<String, Object>.from(trackingBillData!.map((key, value) => MapEntry(key, value ?? '')));
+      updateData['ImageIn1'] = imagePaths.length > 0 ? imagePaths[0] : '';
+      updateData['ImageIn2'] = imagePaths.length > 1 ? imagePaths[1] : '';
+      updateData['ImageIn3'] = imagePaths.length > 2 ? imagePaths[2] : '';
+
+      // Gọi API update
+      final result = await BillRequestService().updateTrackingBill(trackingBillId, updateData);
+      
+      Navigator.pop(context); // Đóng loading
+
+      if (result != null) {
+        // Refresh lại toàn bộ data từ API
+        await _refreshTrackingBillData();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật ảnh vào thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật ảnh vào thất bại!'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1262,12 +1371,20 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   }
 
   void _showViolationUpdateDialog() {
+    // Lấy data vi phạm hiện tại nếu có
+    final currentViolationRuleId = trackingBillData?['ViolationRuleID'] as int?;
+    final currentHandlingPlanId = trackingBillData?['HandlingPlanID'] as int?;
+    final currentViolateAmount = (trackingBillData?['Violate'] as num?)?.toDouble() ?? 0.0;
+
     showDialog(
       context: context,
       builder: (context) => _ViolationUpdateDialog(
         onViolationUpdate: (violationRuleId, handlingPlanId, violateAmount) async {
           await _saveViolation(violationRuleId, handlingPlanId, violateAmount);
         },
+        currentViolationRuleId: currentViolationRuleId,
+        currentHandlingPlanId: currentHandlingPlanId,
+        currentViolateAmount: currentViolateAmount,
       ),
     );
   }
@@ -1344,8 +1461,16 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
 
 class _ViolationUpdateDialog extends StatefulWidget {
   final Function(int, int, double) onViolationUpdate;
+  final int? currentViolationRuleId;
+  final int? currentHandlingPlanId;
+  final double? currentViolateAmount;
 
-  const _ViolationUpdateDialog({required this.onViolationUpdate});
+  const _ViolationUpdateDialog({
+    required this.onViolationUpdate,
+    this.currentViolationRuleId,
+    this.currentHandlingPlanId,
+    this.currentViolateAmount,
+  });
 
   @override
   State<_ViolationUpdateDialog> createState() => _ViolationUpdateDialogState();
@@ -1365,6 +1490,15 @@ class _ViolationUpdateDialogState extends State<_ViolationUpdateDialog> {
   @override
   void initState() {
     super.initState();
+    
+    // Set giá trị ban đầu nếu có
+    selectedViolationRuleId = widget.currentViolationRuleId;
+    selectedHandlingPlanId = widget.currentHandlingPlanId;
+    if (widget.currentViolateAmount != null) {
+      violateAmount = widget.currentViolateAmount!;
+      _violateController.text = violateAmount.toString();
+    }
+    
     _loadViolationData();
   }
 
@@ -1381,10 +1515,26 @@ class _ViolationUpdateDialogState extends State<_ViolationUpdateDialog> {
 
       if (violationResponse != null && violationResponse['data'] != null) {
         violationRules = List<Map<String, dynamic>>.from(violationResponse['data']);
+        
+        // Validate selectedViolationRuleId exists in the list
+        if (selectedViolationRuleId != null) {
+          final exists = violationRules.any((v) => v['ViolationRuleID'] == selectedViolationRuleId);
+          if (!exists) {
+            selectedViolationRuleId = null;
+          }
+        }
       }
 
       if (handlingResponse != null && handlingResponse['data'] != null) {
         handlingPlans = List<Map<String, dynamic>>.from(handlingResponse['data']);
+        
+        // Validate selectedHandlingPlanId exists in the list
+        if (selectedHandlingPlanId != null) {
+          final exists = handlingPlans.any((p) => p['HandlingPlanID'] == selectedHandlingPlanId);
+          if (!exists) {
+            selectedHandlingPlanId = null;
+          }
+        }
       }
 
       setState(() {
@@ -1428,15 +1578,25 @@ class _ViolationUpdateDialogState extends State<_ViolationUpdateDialog> {
                       border: OutlineInputBorder(),
                       hintText: 'Chọn loại vi phạm',
                     ),
-                    items: violationRules.map((violation) {
-                      return DropdownMenuItem<int>(
-                        value: violation['ViolationRuleID'],
-                        child: Text(
-                          violation['ViolationName'] ?? '',
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      );
-                    }).toList(),
+                    items: () {
+                      final uniqueViolations = <int, Map<String, dynamic>>{};
+                      for (final violation in violationRules) {
+                        final id = violation['ViolationRuleID'];
+                        if (id != null && id != 0) {
+                          uniqueViolations[id] = violation;
+                        }
+                      }
+                      return uniqueViolations.values.map((violation) {
+                        final id = violation['ViolationRuleID'] as int;
+                        return DropdownMenuItem<int>(
+                          value: id,
+                          child: Text(
+                            violation['ViolationName']?.toString() ?? 'Loại vi phạm $id',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        );
+                      }).toList();
+                    }(),
                     onChanged: (value) {
                       setState(() {
                         selectedViolationRuleId = value;
@@ -1462,15 +1622,25 @@ class _ViolationUpdateDialogState extends State<_ViolationUpdateDialog> {
                       border: OutlineInputBorder(),
                       hintText: 'Chọn phương án xử lý',
                     ),
-                    items: handlingPlans.map((plan) {
-                      return DropdownMenuItem<int>(
-                        value: plan['HandlingPlanID'],
-                        child: Text(
-                          plan['HandlingPlanName'] ?? '',
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      );
-                    }).toList(),
+                    items: () {
+                      final uniquePlans = <int, Map<String, dynamic>>{};
+                      for (final plan in handlingPlans) {
+                        final id = plan['HandlingPlanID'];
+                        if (id != null && id != 0) {
+                          uniquePlans[id] = plan;
+                        }
+                      }
+                      return uniquePlans.values.map((plan) {
+                        final id = plan['HandlingPlanID'] as int;
+                        return DropdownMenuItem<int>(
+                          value: id,
+                          child: Text(
+                            plan['HandlingPlanName']?.toString() ?? 'Phương án $id',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        );
+                      }).toList();
+                    }(),
                     onChanged: (value) {
                       setState(() {
                         selectedHandlingPlanId = value;
@@ -1588,14 +1758,14 @@ class _SignatureCaptureDialogState extends State<_SignatureCaptureDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text(
-        'Cập nhật chữ ký nhận',
+        'Cập nhật ký nhận',
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Vui lòng chụp ảnh chữ ký để xác nhận nhận hàng'),
+            const Text('Vui lòng chụp ảnh ký để xác nhận nhận hàng'),
             const SizedBox(height: 20),
             
             // Hiển thị thumbnail nếu đã chụp
@@ -1656,7 +1826,7 @@ class _SignatureCaptureDialogState extends State<_SignatureCaptureDialog> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Chụp chữ ký',
+                            'Chụp ký',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,
@@ -1682,7 +1852,7 @@ class _SignatureCaptureDialogState extends State<_SignatureCaptureDialog> {
                     Icon(Icons.check_circle, color: Colors.green[600], size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      'Đã chụp chữ ký',
+                      'Đã chụp ký nhận',
                       style: TextStyle(
                         color: Colors.green[700],
                         fontWeight: FontWeight.w500,
@@ -1736,7 +1906,7 @@ class _SignatureCaptureDialogState extends State<_SignatureCaptureDialog> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi chụp chữ ký: $e')),
+        SnackBar(content: Text('Lỗi khi chụp ký nhận: $e')),
       );
     }
   }
@@ -1793,7 +1963,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Vui lòng chụp đủ 3 ảnh để hoàn tất việc cập nhật',
+              'Vui lòng chụp đủ 2 ảnh để hoàn tất việc cập nhật',
               style: TextStyle(
                 color: Colors.grey[700],
                 fontSize: 14,

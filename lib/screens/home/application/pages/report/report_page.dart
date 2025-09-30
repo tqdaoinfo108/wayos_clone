@@ -365,9 +365,9 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
   Future<void> fetchProviderList() async {
     try {
       final response = await BillRequestService().getProviderVehicles();
-      if (response != null && response['data'] != null) {
+      if (response != null ) {
         setState(() {
-          providerList = List<Map<String, dynamic>>.from(response['data']);
+          providerList = List<Map<String, dynamic>>.from(response);
         });
       }
     } catch (e) {
