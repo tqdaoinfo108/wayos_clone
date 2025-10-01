@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../service/bill_tracking/bill_tracking_service.dart';
@@ -30,9 +31,10 @@ class ImportReportPage extends StatefulWidget {
 }
 
 class _ImportReportPageState extends State<ImportReportPage> {
-  Map<String, String> listReportTotal = {};
+  String stringHtml = '';
   bool isLoading = true;
   int totalRecords = 0;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -43,6 +45,7 @@ class _ImportReportPageState extends State<ImportReportPage> {
   Future<void> fetchReportData() async {
     setState(() {
       isLoading = true;
+      errorMessage = null;
     });
 
     try {
@@ -61,40 +64,51 @@ class _ImportReportPageState extends State<ImportReportPage> {
       );
 
       if (response != null && response is Map<String, dynamic>) {
-        final reportTotal = response['listReportTotal'];
+        final reportTotal = response['data'];
         final totals = response['totals'];
-        
-        if (reportTotal != null && reportTotal is Map) {
+
+        if (reportTotal != null) {
           setState(() {
-            listReportTotal = Map<String, String>.from(reportTotal);
+            stringHtml = reportTotal.toString();
             totalRecords = totals as int? ?? 0;
             isLoading = false;
           });
         } else {
           setState(() {
-            listReportTotal = {};
+            stringHtml = '';
             totalRecords = 0;
+            errorMessage = 'Không có dữ liệu báo cáo';
             isLoading = false;
           });
         }
       } else {
         setState(() {
-          listReportTotal = {};
+          stringHtml = '';
           totalRecords = 0;
+          errorMessage = 'Không thể tải dữ liệu báo cáo';
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        listReportTotal = {};
+        stringHtml = '';
         totalRecords = 0;
+        errorMessage = 'Lỗi: ${e.toString()}';
         isLoading = false;
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Lỗi khi tải dữ liệu báo cáo: $e'),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Lỗi khi tải dữ liệu báo cáo: $e')),
+              ],
+            ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
@@ -121,196 +135,32 @@ class _ImportReportPageState extends State<ImportReportPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-      ),
-      body: Column(
-        children: [
-          // Header summary
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.assessment,
-                    color: Colors.blue.shade600,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Báo cáo nhập vật tư',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Từ ${DateFormat('dd/MM/yyyy').format(widget.timeStart)} đến ${DateFormat('dd/MM/yyyy').format(widget.timeEnd)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      if (totalRecords > 0) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Tổng: $totalRecords bản ghi',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: isLoading ? null : fetchReportData,
+            tooltip: 'Làm mới',
           ),
-
-          // Content
-          if (isLoading)
-            const Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text(
-                      'Đang tải dữ liệu báo cáo...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else if (listReportTotal.isEmpty)
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.report_outlined,
-                        size: 64,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Không có dữ liệu báo cáo',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Thử thay đổi bộ lọc để xem thêm kết quả',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: listReportTotal.length,
-                itemBuilder: (context, index) {
-                  final entry = listReportTotal.entries.elementAt(index);
-                  final key = entry.key;
-                  final value = entry.value;
-                  
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.bar_chart,
-                              color: Colors.blue.shade600,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  key,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  value,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
         ],
       ),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              physics: const BouncingScrollPhysics(),
+              child: HtmlWidget(
+                stringHtml,
+                textStyle: TextStyle(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+            ),
     );
   }
 }

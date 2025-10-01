@@ -1410,7 +1410,6 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
       totalPages = (total / pageSize).ceil();
       items = data.map<Map<String, dynamic>>((item) {
         // For export data, we'll process similar to import but with export-specific fields
-        final title = item['TitleBill'] ?? item['Description'] ?? '';
         // Xử lý Date
         final dateRaw = item['DateBill'] ?? item['CreateDate'];
         String date = '';
@@ -1420,14 +1419,64 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
             date = DateFormat('HH:mm dd/MM/yyyy').format(dt);
           }
         }
-        // For export materials, status will be based on different fields
-        String status = 'Đã xuất';
+        
+        // Status: Only check FileReceive
+        final hasReceiver =
+            item['FileReceive'] != null && item['FileReceive'].toString().isNotEmpty;
+        final isError = item['IsError'] == true;
+
+        String status = hasReceiver ? 'Đã xuất' : '';
+
+        if (isError) {
+          status = status.isEmpty ? 'Vi Phạm' : '$status • Vi Phạm';
+        }
+
+        // Check and Approve status
+        final isChecked = item['IsCheck'] == true;
+        final checkDisplay = isChecked ? 'Đã kiểm tra' : 'Chưa kiểm tra';
+        final checkDisplayPositive = isChecked;
+
+        final isApproved = item['Approve'] == true;
+        final approveDisplay = isApproved ? 'Đã duyệt' : 'Chưa duyệt';
+        final approveDisplayPositive = isApproved;
+
+        // License Plate
+        final licensePlate = item['LicensePlate']?.toString().trim() ?? '';
+
+        // Project From/To
+        final projectIdFrom = item['ProjectIDFrom'];
+        final projectIdTo = item['ProjectIDTo'];
+        String? projectFromName;
+        String? projectToName;
+
+        if (projectIdFrom != null) {
+          final fromProject = projectList.firstWhere(
+            (p) => p['ProjectID'].toString() == projectIdFrom.toString(),
+            orElse: () => {},
+          );
+          projectFromName = fromProject['ProjectName']?.toString();
+        }
+
+        if (projectIdTo != null) {
+          final toProject = projectList.firstWhere(
+            (p) => p['ProjectID'].toString() == projectIdTo.toString(),
+            orElse: () => {},
+          );
+          projectToName = toProject['ProjectName']?.toString();
+        }
 
         return {
           ...item,
-          'Title': title,
           'Date': date,
           'Status': status,
+          'IsError': isError,
+          'CheckDisplay': checkDisplay,
+          'CheckDisplayPositive': checkDisplayPositive,
+          'ApproveDisplay': approveDisplay,
+          'ApproveDisplayPositive': approveDisplayPositive,
+          'LicensePlateDisplay': licensePlate.isNotEmpty ? licensePlate : null,
+          'ProjectFromDisplay': projectFromName,
+          'ProjectToDisplay': projectToName,
         };
       }).toList();
     });
@@ -2011,6 +2060,9 @@ class ItemRowDetail extends StatelessWidget {
     final checkPositive = data['CheckDisplayPositive'] == true;
     final approveDisplay = data['ApproveDisplay']?.toString();
     final approvePositive = data['ApproveDisplayPositive'] == true;
+    final licensePlateDisplay = data['LicensePlateDisplay']?.toString();
+    final projectFromDisplay = data['ProjectFromDisplay']?.toString();
+    final projectToDisplay = data['ProjectToDisplay']?.toString();
     final dateText = data['Date'] is String && (data['Date'] as String).isNotEmpty
         ? data['Date'] as String
         : _formatDate(data['DateBill'] ?? data['DateCreated']);
@@ -2058,7 +2110,7 @@ class ItemRowDetail extends StatelessWidget {
                     children: [
                       Text(
                         data['Title'] ??
-                            data['NameDriver'] ??
+                            "Vận chuyển: ${data['NameDriver'] ?? ''}" ??
                             data['TitleBill'] ??
                             '',
                         style: const TextStyle(
@@ -2129,6 +2181,24 @@ class ItemRowDetail extends StatelessWidget {
                           Icons.local_shipping_outlined,
                           vehicleDisplay,
                           iconColor: Colors.blueGrey,
+                        ),
+                      if (licensePlateDisplay != null && licensePlateDisplay.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.credit_card,
+                          'Biển số: $licensePlateDisplay',
+                          iconColor: Colors.deepOrange,
+                        ),
+                      if (projectFromDisplay != null && projectFromDisplay.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.folder_outlined,
+                          'Từ: $projectFromDisplay',
+                          iconColor: Colors.blue,
+                        ),
+                      if (projectToDisplay != null && projectToDisplay.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.folder_special_outlined,
+                          'Đến: $projectToDisplay',
+                          iconColor: Colors.green,
                         ),
                       if (capacityDisplay != null && capacityDisplay.isNotEmpty)
                         _buildInfoRow(
