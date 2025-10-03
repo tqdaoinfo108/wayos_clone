@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/rendering.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,6 +11,8 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../../../service/bill_tracking/bill_tracking_service.dart';
+import 'camera_web_helper.dart' if (dart.library.io) 'camera_web_helper_stub.dart';
+import 'camera_page_web_widget.dart' if (dart.library.io) 'camera_page_web_widget_stub.dart';
 
 class PhotoScreen extends StatefulWidget {
   const PhotoScreen({required this.title, super.key});
@@ -26,6 +29,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
   File? _image;
+  Uint8List? _imageBytes; // For web
   String _location = 'Đang lấy vị trí...';
   String _time = '';
   bool _isInitialized = false;
@@ -119,6 +123,20 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   Future<void> _initializeCamera() async {
+    if (kIsWeb) {
+      try {
+        await CameraWebHelper.initializeWebCamera();
+        if (mounted) {
+          setState(() => _isInitialized = true);
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _location = 'Lỗi khi khởi tạo camera: $e');
+        }
+      }
+      return;
+    }
+    
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
@@ -148,6 +166,27 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   Future<void> _getLocation() async {
+    if (kIsWeb) {
+      try {
+        setState(() => _isLoadingLocation = true);
+        final location = await CameraWebHelper.getWebLocation();
+        if (mounted) {
+          setState(() {
+            _location = location;
+            _isLoadingLocation = false;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _location = 'Không thể lấy vị trí';
+            _isLoadingLocation = false;
+          });
+        }
+      }
+      return;
+    }
+    
     try {
       setState(() => _isLoadingLocation = true);
       
@@ -218,31 +257,55 @@ class _PhotoScreenState extends State<PhotoScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      await _initializeControllerFuture!;
-      await _controller!.takePicture();
-      await _controller!.setFlashMode(FlashMode.off);
-      await Future.delayed(const Duration(milliseconds: 100));
+      if (kIsWeb) {
+        // Web: capture the overlay with video element
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Capture the overlay
+        RenderRepaintBoundary boundary = _previewContainerKey.currentContext!
+            .findRenderObject() as RenderRepaintBoundary;
+        final ui.Image renderedImage = await boundary.toImage(pixelRatio: 3.0);
+        final ByteData? byteData =
+            await renderedImage.toByteData(format: ui.ImageByteFormat.png);
 
-      RenderRepaintBoundary boundary = _previewContainerKey.currentContext!
-          .findRenderObject() as RenderRepaintBoundary;
-      final ui.Image renderedImage = await boundary.toImage(pixelRatio: 3.0);
-      final ByteData? byteData =
-          await renderedImage.toByteData(format: ui.ImageByteFormat.png);
+        if (byteData == null) throw Exception('Không thể tạo byte dữ liệu ảnh');
 
-      if (byteData == null) throw Exception('Không thể tạo byte dữ liệu ảnh');
+        final Uint8List pngBytes = byteData.buffer.asUint8List();
+        
+        if (mounted) {
+          setState(() {
+            _imageBytes = pngBytes;
+            _isProcessing = false;
+          });
+        }
+      } else {
+        // Mobile: use camera package
+        await _initializeControllerFuture!;
+        await _controller!.takePicture();
+        await _controller!.setFlashMode(FlashMode.off);
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      final Uint8List pngBytes = byteData.buffer.asUint8List();
-      final tempDir = await getTemporaryDirectory();
-      final String tempPath =
-          '${tempDir.path}/marked_image_${DateTime.now().millisecondsSinceEpoch}.png';
-      final File finalFile = File(tempPath);
-      await finalFile.writeAsBytes(pngBytes);
+        RenderRepaintBoundary boundary = _previewContainerKey.currentContext!
+            .findRenderObject() as RenderRepaintBoundary;
+        final ui.Image renderedImage = await boundary.toImage(pixelRatio: 3.0);
+        final ByteData? byteData =
+            await renderedImage.toByteData(format: ui.ImageByteFormat.png);
 
-      if (mounted) {
-        setState(() {
-          _image = finalFile;
-          _isProcessing = false;
-        });
+        if (byteData == null) throw Exception('Không thể tạo byte dữ liệu ảnh');
+
+        final Uint8List pngBytes = byteData.buffer.asUint8List();
+        final tempDir = await getTemporaryDirectory();
+        final String tempPath =
+            '${tempDir.path}/marked_image_${DateTime.now().millisecondsSinceEpoch}.png';
+        final File finalFile = File(tempPath);
+        await finalFile.writeAsBytes(pngBytes);
+
+        if (mounted) {
+          setState(() {
+            _image = finalFile;
+            _isProcessing = false;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -255,25 +318,106 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   Future<void> _saveImageToGallery() async {
-    if (_image == null) return;
-    final result = await BillRequestService().uploadFileHttp(file: _image!);
-    if (result != null && result['publicPath'] != null) {
-      Navigator.pop(context, {
-        'file': _image,
-        'publicPath': result['publicPath'],
-      });
+    if (kIsWeb) {
+      if (_imageBytes == null) return;
+      final result = await BillRequestService().uploadFileHttpBytes(
+        bytes: _imageBytes!,
+        filename: 'camera_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      if (result != null && result['publicPath'] != null) {
+        Navigator.pop(context, {
+          'publicPath': result['publicPath'],
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Upload file thất bại!')),
+          );
+        }
+      }
     } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload file thất bại!')),
-        );
+      if (_image == null) return;
+      final result = await BillRequestService().uploadFileHttp(file: _image!);
+      if (result != null && result['publicPath'] != null) {
+        Navigator.pop(context, {
+          'file': _image,
+          'publicPath': result['publicPath'],
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Upload file thất bại!')),
+          );
+        }
       }
     }
   }
 
+  Widget _buildWebCamera() {
+    if (!_isInitialized) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
+    return const CameraWebWidget();
+  }
+
+  Widget _buildMobileCamera() {
+    return FutureBuilder<void>(
+      future: _initializeControllerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (_isInitialized && _controller != null) {
+            return GestureDetector(
+              onScaleStart: (details) {
+                _baseZoom = _currentZoom;
+              },
+              onScaleUpdate: (details) async {
+                if (_controller != null && details.scale != 1.0) {
+                  double minZoom = await _controller!.getMinZoomLevel();
+                  double maxZoom = await _controller!.getMaxZoomLevel();
+                  double newZoom = (_baseZoom * details.scale).clamp(minZoom, maxZoom);
+                  setState(() {
+                    _currentZoom = newZoom;
+                  });
+                  await _controller!.setZoomLevel(_currentZoom);
+                }
+              },
+              child: ClipRect(
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: _controller!.value.previewSize!.height,
+                    height: _controller!.value.previewSize!.width,
+                    child: CameraPreview(_controller!),
+                  ),
+                ),
+              ),
+            );
+          } else {
+            return const Center(
+              child: Text(
+                'Không thể khởi tạo camera',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }
+      },
+    );
+  }
+
   @override
   void dispose() {
-    _controller?.dispose();
+    if (kIsWeb) {
+      CameraWebHelper.dispose();
+    } else {
+      _controller?.dispose();
+    }
     super.dispose();
   }
 
@@ -338,54 +482,16 @@ class _PhotoScreenState extends State<PhotoScreen> {
                               width: double.infinity,
                               height: double.infinity,
                             )
-                          : FutureBuilder<void>(
-                              future: _initializeControllerFuture,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.done) {
-                                  if (_isInitialized && _controller != null) {
-                                    return GestureDetector(
-                                      onScaleStart: (details) {
-                                        _baseZoom = _currentZoom;
-                                      },
-                                      onScaleUpdate: (details) async {
-                                        if (_controller != null && details.scale != 1.0) {
-                                          double minZoom = await _controller!.getMinZoomLevel();
-                                          double maxZoom = await _controller!.getMaxZoomLevel();
-                                          double newZoom = (_baseZoom * details.scale).clamp(minZoom, maxZoom);
-                                          setState(() {
-                                            _currentZoom = newZoom;
-                                          });
-                                          await _controller!.setZoomLevel(_currentZoom);
-                                        }
-                                      },
-                                      child: ClipRect(
-                                        child: FittedBox(
-                                          fit: BoxFit.cover,
-                                          child: SizedBox(
-                                            width: _controller!.value.previewSize!.height,
-                                            height: _controller!.value.previewSize!.width,
-                                            child: CameraPreview(_controller!),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    return const Center(
-                                      child: Text(
-                                        'Không thể khởi tạo camera',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    );
-                                  }
-                                } else {
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
+                          : _imageBytes != null
+                              ? Image.memory(
+                                  _imageBytes!,
+                                  fit: BoxFit.contain,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                )
+                              : kIsWeb
+                                  ? _buildWebCamera()
+                                  : _buildMobileCamera(),
                     ),
                     
                     // Overlay thông tin LÊN TRÊN ảnh (sẽ được capture)

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:wayos_clone/service/api_service.dart';
 
@@ -163,6 +164,40 @@ class BillRequestService extends ApiService {
         })
         ..fields['SubDirectory'] = subDirectory
         ..files.add(await http.MultipartFile.fromPath('File', file.path));
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        log('Upload file thất bại: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      log('Upload file thất bại: $e');
+      return null;
+    }
+  }
+
+  Future<dynamic> uploadFileHttpBytes({
+    required Uint8List bytes,
+    required String filename,
+    String subDirectory = 'RequestAttachment',
+  }) async {
+    try {
+      var uri = Uri.parse('http://freeofficefile.gvbsoft.vn/api/publicupload');
+      var request = http.MultipartRequest('POST', uri)
+        ..headers.addAll({
+          'Accept': '*/*',
+          'Accept-Language': 'vi',
+          'Authorization': token ?? '',
+          'Connection': 'keep-alive',
+          'Origin': 'http://freeoffice.gvbsoft.vn',
+          'Referer': 'http://freeoffice.gvbsoft.vn/',
+        })
+        ..fields['SubDirectory'] = subDirectory
+        ..files.add(http.MultipartFile.fromBytes('File', bytes, filename: filename));
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
