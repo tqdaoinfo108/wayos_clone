@@ -19,10 +19,9 @@ abstract class ApiService {
     return {...defaultHeaders, ...?customHeaders};
   }
 
-  // Sử dụng AllOrigins proxy cho web để tránh Mixed Content error
-  // Note: Response sẽ được wrap trong {contents: "...", status: {...}}
+  // Sử dụng Cloudflare Worker proxy cho web để tránh Mixed Content error
   final String baseUrl = kIsWeb 
-      ? 'https://api.allorigins.win/raw?url=http://freeofficeapi.gvbsoft.vn/api'
+      ? 'https://quocdung.sitienbmt.workers.dev/?url=http://freeofficeapi.gvbsoft.vn/api'
       : 'http://freeofficeapi.gvbsoft.vn/api';
   final GetStorage storage = GetStorage();
 

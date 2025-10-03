@@ -645,9 +645,9 @@ class _ExportMaterialDetailPageState extends State<ExportMaterialDetailPage> {
       return;
     }
 
-    // Tạo URL trực tiếp để xem PDF với AllOrigins proxy cho web
+    // Tạo URL trực tiếp để xem PDF với Cloudflare Worker proxy cho web
     final baseUrl = kIsWeb
-        ? 'https://api.allorigins.win/raw?url=http://freeofficeapi.gvbsoft.vn/api'
+        ? 'https://quocdung.sitienbmt.workers.dev/?url=http://freeofficeapi.gvbsoft.vn/api'
         : 'http://freeofficeapi.gvbsoft.vn/api';
     final pdfUrl = '$baseUrl/exporttrackingbill/view-export-tracking-bill?exportTrackingBillID=$exportTrackingBillId';
     

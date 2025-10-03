@@ -4,9 +4,9 @@ import 'package:http/http.dart' as http;
 
 class DashboardService {
   Future<GetListBirthday> fetchStaffBirthdayList() async {
-    // Sử dụng AllOrigins proxy cho web
+    // Sử dụng Cloudflare Worker proxy cho web
     final apiUrl = kIsWeb
-        ? 'https://api.allorigins.win/raw?url=http://freeofficeapi.gvbsoft.vn/api/listbirthdays'
+        ? 'https://quocdung.sitienbmt.workers.dev/?url=http://freeofficeapi.gvbsoft.vn/api/listbirthdays'
         : 'http://freeofficeapi.gvbsoft.vn/api/listbirthdays';
     
     final response = await http.get(
