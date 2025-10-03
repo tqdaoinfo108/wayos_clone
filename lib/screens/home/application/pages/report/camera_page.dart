@@ -11,8 +11,6 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../../../service/bill_tracking/bill_tracking_service.dart';
-import 'camera_web_helper.dart' if (dart.library.io) 'camera_web_helper_stub.dart';
-import 'camera_page_web_widget.dart' if (dart.library.io) 'camera_page_web_widget_stub.dart';
 
 class PhotoScreen extends StatefulWidget {
   const PhotoScreen({required this.title, super.key});
@@ -123,20 +121,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   Future<void> _initializeCamera() async {
-    if (kIsWeb) {
-      try {
-        await CameraWebHelper.initializeWebCamera();
-        if (mounted) {
-          setState(() => _isInitialized = true);
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() => _location = 'Lỗi khi khởi tạo camera: $e');
-        }
-      }
-      return;
-    }
-    
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
@@ -144,9 +128,19 @@ class _PhotoScreenState extends State<PhotoScreen> {
         return;
       }
 
-      final firstCamera = cameras.first;
+      // Ưu tiên camera sau (back camera)
+      CameraDescription selectedCamera;
+      try {
+        selectedCamera = cameras.firstWhere(
+          (camera) => camera.lensDirection == CameraLensDirection.back,
+        );
+      } catch (e) {
+        // Nếu không có camera sau, dùng camera đầu tiên
+        selectedCamera = cameras.first;
+      }
+
       _controller = CameraController(
-        firstCamera,
+        selectedCamera,
         ResolutionPreset.high, // Dùng high cho chất lượng tốt hơn
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg, // JPEG nhẹ hơn
@@ -166,27 +160,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   Future<void> _getLocation() async {
-    if (kIsWeb) {
-      try {
-        setState(() => _isLoadingLocation = true);
-        final location = await CameraWebHelper.getWebLocation();
-        if (mounted) {
-          setState(() {
-            _location = location;
-            _isLoadingLocation = false;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _location = 'Không thể lấy vị trí';
-            _isLoadingLocation = false;
-          });
-        }
-      }
-      return;
-    }
-    
     try {
       setState(() => _isLoadingLocation = true);
       
@@ -257,21 +230,25 @@ class _PhotoScreenState extends State<PhotoScreen> {
     setState(() => _isProcessing = true);
 
     try {
+      // Chụp ảnh
+      await _initializeControllerFuture!;
+      await _controller!.takePicture();
+      await _controller!.setFlashMode(FlashMode.off);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Capture overlay + camera preview
+      RenderRepaintBoundary boundary = _previewContainerKey.currentContext!
+          .findRenderObject() as RenderRepaintBoundary;
+      final ui.Image renderedImage = await boundary.toImage(pixelRatio: 3.0);
+      final ByteData? byteData =
+          await renderedImage.toByteData(format: ui.ImageByteFormat.png);
+
+      if (byteData == null) throw Exception('Không thể tạo byte dữ liệu ảnh');
+
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
+      
       if (kIsWeb) {
-        // Web: capture the overlay with video element
-        await Future.delayed(const Duration(milliseconds: 100));
-        
-        // Capture the overlay
-        RenderRepaintBoundary boundary = _previewContainerKey.currentContext!
-            .findRenderObject() as RenderRepaintBoundary;
-        final ui.Image renderedImage = await boundary.toImage(pixelRatio: 3.0);
-        final ByteData? byteData =
-            await renderedImage.toByteData(format: ui.ImageByteFormat.png);
-
-        if (byteData == null) throw Exception('Không thể tạo byte dữ liệu ảnh');
-
-        final Uint8List pngBytes = byteData.buffer.asUint8List();
-        
+        // Web: Lưu dưới dạng bytes
         if (mounted) {
           setState(() {
             _imageBytes = pngBytes;
@@ -279,21 +256,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
           });
         }
       } else {
-        // Mobile: use camera package
-        await _initializeControllerFuture!;
-        await _controller!.takePicture();
-        await _controller!.setFlashMode(FlashMode.off);
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        RenderRepaintBoundary boundary = _previewContainerKey.currentContext!
-            .findRenderObject() as RenderRepaintBoundary;
-        final ui.Image renderedImage = await boundary.toImage(pixelRatio: 3.0);
-        final ByteData? byteData =
-            await renderedImage.toByteData(format: ui.ImageByteFormat.png);
-
-        if (byteData == null) throw Exception('Không thể tạo byte dữ liệu ảnh');
-
-        final Uint8List pngBytes = byteData.buffer.asUint8List();
+        // Mobile: Lưu vào file
         final tempDir = await getTemporaryDirectory();
         final String tempPath =
             '${tempDir.path}/marked_image_${DateTime.now().millisecondsSinceEpoch}.png';
@@ -353,16 +316,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
     }
   }
 
-  Widget _buildWebCamera() {
-    if (!_isInitialized) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
-      );
-    }
-    return const CameraWebWidget();
-  }
-
-  Widget _buildMobileCamera() {
+  Widget _buildCamera() {
     return FutureBuilder<void>(
       future: _initializeControllerFuture,
       builder: (context, snapshot) {
@@ -413,11 +367,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
 
   @override
   void dispose() {
-    if (kIsWeb) {
-      CameraWebHelper.dispose();
-    } else {
-      _controller?.dispose();
-    }
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -489,9 +439,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                                   width: double.infinity,
                                   height: double.infinity,
                                 )
-                              : kIsWeb
-                                  ? _buildWebCamera()
-                                  : _buildMobileCamera(),
+                              : _buildCamera(),
                     ),
                     
                     // Overlay thông tin LÊN TRÊN ảnh (sẽ được capture)
