@@ -1,11 +1,16 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:wayos_clone/model/get_listbirthdays.dart';
 import 'package:http/http.dart' as http;
 
 class DashboardService {
   Future<GetListBirthday> fetchStaffBirthdayList() async {
-    // test call api with headers authorization
+    // Sử dụng AllOrigins proxy cho web
+    final apiUrl = kIsWeb
+        ? 'https://api.allorigins.win/raw?url=http://freeofficeapi.gvbsoft.vn/api/listbirthdays'
+        : 'http://freeofficeapi.gvbsoft.vn/api/listbirthdays';
+    
     final response = await http.get(
-        Uri.parse('http://freeofficeapi.gvbsoft.vn/api/listbirthdays'),
+        Uri.parse(apiUrl),
         headers: {
           "limit": "1000",
           "page": "1",

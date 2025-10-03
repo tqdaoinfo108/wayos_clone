@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:wayos_clone/service/project_service.dart';
 import 'package:wayos_clone/service/bill_tracking/bill_tracking_service.dart';
@@ -644,8 +645,11 @@ class _ExportMaterialDetailPageState extends State<ExportMaterialDetailPage> {
       return;
     }
 
-    // Tạo URL trực tiếp để xem PDF
-    final pdfUrl = 'http://freeofficeapi.gvbsoft.vn/api/exporttrackingbill/view-export-tracking-bill?exportTrackingBillID=$exportTrackingBillId';
+    // Tạo URL trực tiếp để xem PDF với AllOrigins proxy cho web
+    final baseUrl = kIsWeb
+        ? 'https://api.allorigins.win/raw?url=http://freeofficeapi.gvbsoft.vn/api'
+        : 'http://freeofficeapi.gvbsoft.vn/api';
+    final pdfUrl = '$baseUrl/exporttrackingbill/view-export-tracking-bill?exportTrackingBillID=$exportTrackingBillId';
     
     // Mở PDF trong trang mới
     Navigator.push(

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:wayos_clone/utils/constants.dart';
@@ -18,7 +19,11 @@ abstract class ApiService {
     return {...defaultHeaders, ...?customHeaders};
   }
 
-  final String baseUrl = 'http://freeofficeapi.gvbsoft.vn/api';
+  // Sử dụng AllOrigins proxy cho web để tránh Mixed Content error
+  // Note: Response sẽ được wrap trong {contents: "...", status: {...}}
+  final String baseUrl = kIsWeb 
+      ? 'https://api.allorigins.win/raw?url=http://freeofficeapi.gvbsoft.vn/api'
+      : 'http://freeofficeapi.gvbsoft.vn/api';
   final GetStorage storage = GetStorage();
 
   // Lấy token từ GetStorage

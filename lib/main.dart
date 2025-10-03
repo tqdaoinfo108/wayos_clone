@@ -27,7 +27,7 @@ void main() async {
 
   runApp(
     DevicePreview(
-      enabled: kIsWeb,
+      enabled: false,
       tools: const [...DevicePreview.defaultTools],
       builder: (context) => const MyApp(),
     ),
