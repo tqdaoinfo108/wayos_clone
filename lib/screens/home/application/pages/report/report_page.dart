@@ -166,7 +166,7 @@ class ImportMaterialTab extends StatefulWidget {
 
 class _ImportMaterialTabState extends State<ImportMaterialTab> {
   final TextEditingController _searchController = TextEditingController();
-  DateTime timeStart = DateTime.now().subtract(const Duration(days: 30));
+  DateTime timeStart = DateTime.now().subtract(const Duration(days: 1));
   DateTime timeEnd = DateTime.now();
   List<Map<String, dynamic>> items = [];
   int currentPage = 1;
@@ -1107,7 +1107,7 @@ class _ImportMaterialTabState extends State<ImportMaterialTab> {
                                     selectedTypeVehicleId = null;
                                     selectedDeliveryVehicleId = null;
                                     timeStart = DateTime.now()
-                                        .subtract(const Duration(days: 30));
+                                        .subtract(const Duration(days: 1));
                                     timeEnd = DateTime.now();
                                     _searchController.clear();
                                   });
@@ -1343,7 +1343,7 @@ class ExportMaterialTab extends StatefulWidget {
 
 class _ExportMaterialTabState extends State<ExportMaterialTab> {
   final TextEditingController _searchController = TextEditingController();
-  DateTime timeStart = DateTime.now().subtract(const Duration(days: 30));
+  DateTime timeStart = DateTime.now().subtract(const Duration(days: 1));
   DateTime timeEnd = DateTime.now();
   List<dynamic> items = [];
   int currentPage = 1;
@@ -1851,7 +1851,7 @@ class _ExportMaterialTabState extends State<ExportMaterialTab> {
                                     selectedProjectFrom = null;
                                     selectedProjectTo = null;
                                     timeStart = DateTime.now()
-                                        .subtract(const Duration(days: 30));
+                                        .subtract(const Duration(days: 1));
                                     timeEnd = DateTime.now();
                                     _searchController.clear();
                                   });

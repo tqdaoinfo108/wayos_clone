@@ -16,7 +16,14 @@ import './route/router.dart' as router;
 void main() async {
   await GetStorage.init();
 
-  await FlutterDownloader.initialize(debug: true);
+  // Chỉ khởi tạo FlutterDownloader trên mobile platforms (Android/iOS)
+  if (!kIsWeb) {
+    try {
+      await FlutterDownloader.initialize(debug: true);
+    } catch (e) {
+      log('FlutterDownloader initialization failed: $e');
+    }
+  }
 
   runApp(
     DevicePreview(

@@ -2036,7 +2036,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Vui lòng chụp đủ 2 ảnh để hoàn tất việc cập nhật',
+              'Vui lòng chụp đủ 1 ảnh để hoàn tất việc cập nhật',
               style: TextStyle(
                 color: Colors.grey[700],
                 fontSize: 14,
@@ -2112,7 +2112,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
               'Đã chụp: $capturedCount/3 ảnh',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: capturedCount == 2 ? Colors.green : Colors.orange,
+                color: capturedCount == 1 ? Colors.green : Colors.orange,
               ),
             ),
           ],
@@ -2124,7 +2124,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
           child: const Text('Hủy'),
         ),
         ElevatedButton.icon(
-          onPressed: (isSaving || capturedCount < 2) ? null : _saveImages,
+          onPressed: (isSaving || capturedCount < 1) ? null : _saveImages,
           icon: isSaving 
               ? const SizedBox(
                   width: 16,
