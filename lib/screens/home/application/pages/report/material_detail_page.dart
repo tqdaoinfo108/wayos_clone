@@ -213,7 +213,9 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   Widget _buildImageRow(List<String?> paths, String title, BuildContext context, {bool isInImages = false}) {
     final signaturePath = trackingBillData?['FileReceive'] as String?;
     final hasFileReceive = signaturePath != null && signaturePath.isNotEmpty;
-    final canRetake = !hasFileReceive; // Chỉ cho phép chụp lại khi chưa có FileReceive
+    final hasImages = paths.any((path) => path != null && path.isNotEmpty);
+    // Chỉ hiển thị nút "Chụp lại" khi: chưa có FileReceive VÀ đã có ảnh
+    final canRetake = !hasFileReceive && hasImages;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -579,6 +581,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     
     // Ảnh chữ ký
     final signaturePath = trackingBillData!['FileReceive'] as String?;
+    final hasFileReceive = signaturePath != null && signaturePath.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -678,7 +681,49 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
             // Thông tin vi phạm (nếu có)
             if (isError) ...[
               const SizedBox(height: 24),
-              _buildSectionTitle('Thông tin vi phạm', Icons.report_problem),
+              
+              // Section title với nút chỉnh sửa
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  children: [
+                    Icon(Icons.report_problem, color: Colors.grey[600], size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Thông tin vi phạm',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[700],
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        height: 1,
+                        margin: const EdgeInsets.only(left: 12, right: 12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.grey[300]!, Colors.transparent],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Nút chỉnh sửa chỉ hiển thị khi chưa có FileReceive
+                    if (!hasFileReceive)
+                      TextButton.icon(
+                        onPressed: _updateViolation,
+                        icon: const Icon(Icons.edit, size: 16),
+                        label: const Text('Chỉnh sửa'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.orange,
+                          textStyle: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              
               Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 elevation: 3,
@@ -862,13 +907,18 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     // If FileReceive exists, no updates are allowed
     if (hasFileReceive) return false;
 
-    // If FileReceive doesn't exist, allow updates for in images, out images, signature, and violation
+    // Allow updates if no signature
     return true;
   }
 
   void _showUpdateOptions(BuildContext context) {
     if (trackingBillData == null) return;
     
+    final inImagePaths = [
+      trackingBillData!['ImageIn1'] as String?,
+      trackingBillData!['ImageIn2'] as String?,
+      trackingBillData!['ImageIn3'] as String?,
+    ];
     final outImagePaths = [
       trackingBillData!['ImageOut1'] as String?,
       trackingBillData!['ImageOut2'] as String?,
@@ -877,11 +927,22 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     final signaturePath = trackingBillData!['FileReceive'] as String?;
     final hasFileReceive = signaturePath != null && signaturePath.isNotEmpty;
 
-    // Check what updates are available
-    final bool canUpdateInImages = !hasFileReceive; // Luôn cho phép cập nhật ảnh vào nếu chưa có FileReceive
-    final bool canUpdateOutImages = !hasFileReceive && outImagePaths.every((path) => path == null || path.isEmpty);
-    final bool canUpdateSignature = signaturePath == null || signaturePath.isEmpty;
-    final bool canUpdateViolation = !hasFileReceive; // Cho phép cập nhật vi phạm nếu chưa có FileReceive
+    // Check what data already exists
+    final hasInImages = inImagePaths.any((path) => path != null && path.isNotEmpty);
+    final hasOutImages = outImagePaths.any((path) => path != null && path.isNotEmpty);
+    final hasViolation = (trackingBillData!['ViolationRuleID'] as int?) != null && 
+                         (trackingBillData!['ViolationRuleID'] as int?) != 0;
+
+    // Nếu đã có ký nhận thì không cho cập nhật gì cả
+    if (hasFileReceive) return;
+
+    // Check what updates are available based on new logic
+    // Nếu đã có ảnh thì sẽ có nút "Chụp lại" trên card, không cần hiển thị trong bottom sheet
+    // Nếu đã có vi phạm thì sẽ có nút "Chỉnh sửa" trên card vi phạm, không cần hiển thị trong bottom sheet
+    final bool canAddInImages = !hasInImages; // Chỉ hiện "Cập nhật" trong bottom sheet nếu CHƯA có
+    final bool canAddOutImages = !hasOutImages; // Chỉ hiện "Cập nhật" trong bottom sheet nếu CHƯA có
+    final bool canAddViolation = !hasViolation; // Chỉ hiện "Cập nhật" trong bottom sheet nếu CHƯA có
+    final bool canAddSignature = !hasFileReceive; // Hiện "Cập nhật" nếu chưa có
 
     showModalBottomSheet(
       context: context,
@@ -922,19 +983,20 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               ),
               const SizedBox(height: 20),
 
-              // Update options
-              if (canUpdateInImages)
+              // Update options - Ảnh vào (chỉ hiển thị khi CHƯA có, nếu đã có sẽ dùng nút "Chụp lại" trên card)
+              if (canAddInImages)
                 _buildUpdateOption(
                   icon: Icons.photo_camera_front,
                   title: 'Cập nhật hình ảnh vào',
-                  subtitle: 'Chụp lại ảnh khi vào',
+                  subtitle: 'Chụp ảnh khi vào',
                   onTap: () {
                     Navigator.pop(context);
                     _updateInImages();
                   },
                 ),
 
-              if (canUpdateOutImages)
+              // Update options - Ảnh ra (chỉ hiển thị khi CHƯA có, nếu đã có sẽ dùng nút "Chụp lại" trên card)
+              if (canAddOutImages)
                 _buildUpdateOption(
                   icon: Icons.photo_camera_back,
                   title: 'Cập nhật hình ảnh ra',
@@ -945,7 +1007,8 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                   },
                 ),
 
-              if (canUpdateViolation)
+              // Update options - Vi phạm (chỉ hiển thị khi CHƯA có, nếu đã có sẽ dùng nút "Chỉnh sửa" trên card)
+              if (canAddViolation)
                 _buildUpdateOption(
                   icon: Icons.report_problem,
                   title: 'Cập nhật vi phạm',
@@ -956,7 +1019,8 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                   },
                 ),
               
-              if (canUpdateSignature)
+              // Update options - Ký nhận
+              if (canAddSignature)
                 _buildUpdateOption(
                   icon: Icons.edit_note,
                   title: 'Cập nhật ký nhận',
@@ -968,7 +1032,10 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                 ),
 
               // If no updates available
-              if (!canUpdateOutImages && !canUpdateSignature && !canUpdateViolation)
+              if (!canAddInImages && 
+                  !canAddOutImages && 
+                  !canAddViolation && 
+                  !canAddSignature)
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -981,7 +1048,9 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Tất cả thông tin đã được cập nhật đầy đủ',
+                          hasInImages || hasOutImages 
+                            ? 'Sử dụng nút "Chụp lại" trên ảnh để cập nhật' 
+                            : 'Tất cả thông tin đã được cập nhật đầy đủ',
                           style: TextStyle(
                             color: Colors.grey[700],
                             fontWeight: FontWeight.w500,
@@ -1005,7 +1074,10 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Color? color,
   }) {
+    final displayColor = color ?? Theme.of(context).colorScheme.primary;
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -1022,12 +1094,12 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: displayColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   icon,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: displayColor,
                   size: 24,
                 ),
               ),
@@ -1072,6 +1144,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
       barrierDismissible: false,
       builder: (context) => _MultiImageCaptureDialog(
         title: 'Cập nhật ảnh vào - ${trackingBillData?['TitleBill'] ?? ''}',
+        isInImages: true, // Đánh dấu là ảnh vào
         onImagesCapture: (images) async {
           await _saveInImages(images);
         },
@@ -1080,7 +1153,17 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   }
 
   void _updateOutImages() {
-    _showMultiImageCaptureDialog();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _MultiImageCaptureDialog(
+        title: 'Cập nhật ảnh ra - ${trackingBillData?['TitleBill'] ?? ''}',
+        isInImages: false, // Đánh dấu là ảnh ra
+        onImagesCapture: (images) async {
+          await _saveOutImages(images);
+        },
+      ),
+    );
   }
 
   void _updateSignature() {
@@ -1120,19 +1203,6 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
           pdfUrl: pdfUrl,
           title: 'Phiếu Theo Dõi - ${trackingBillData?['TitleBill'] ?? ''}',
         ),
-      ),
-    );
-  }
-
-  void _showMultiImageCaptureDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => _MultiImageCaptureDialog(
-        title: trackingBillData?['TitleBill'] ?? 'Cập nhật ảnh ra',
-        onImagesCapture: (images) async {
-          await _saveOutImages(images);
-        },
       ),
     );
   }
@@ -1935,10 +2005,12 @@ class _SignatureCaptureDialogState extends State<_SignatureCaptureDialog> {
 class _MultiImageCaptureDialog extends StatefulWidget {
   final Function(List<String>) onImagesCapture;
   final String title;
+  final bool isInImages; // true = ảnh vào, false = ảnh ra
 
   const _MultiImageCaptureDialog({
     required this.onImagesCapture,
     required this.title,
+    this.isInImages = false, // Mặc định là ảnh ra
   });
 
   @override
@@ -1952,11 +2024,12 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
   @override
   Widget build(BuildContext context) {
     final capturedCount = capturedImages.where((img) => img != null).length;
+    final imageType = widget.isInImages ? 'ảnh vào' : 'ảnh ra';
     
     return AlertDialog(
-      title: const Text(
-        'Cập nhật ảnh ra',
-        style: TextStyle(fontWeight: FontWeight.bold),
+      title: Text(
+        'Cập nhật $imageType',
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       content: SingleChildScrollView(
         child: Column(
