@@ -1,17 +1,18 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:get_storage/get_storage.dart';
 import '../../../../../service/bill_tracking/bill_tracking_service.dart';
+import '../../../../../utils/location/location_cache.dart';
+import '../../../../../utils/location/location_provider.dart';
+import '../../../../../utils/location/location_snapshot.dart';
 
 class PhotoScreen extends StatefulWidget {
   const PhotoScreen({required this.title, super.key});
@@ -23,8 +24,6 @@ class PhotoScreen extends StatefulWidget {
 class _PhotoScreenState extends State<PhotoScreen> {
   double _currentZoom = 1.0;
   double _baseZoom = 1.0;
-  final box = GetStorage();
-
   CameraController? _controller;
   List<CameraDescription> _availableCameras = [];
   int _selectedCameraIndex = 0;
@@ -49,106 +48,62 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   // Khởi tạo vị trí và thời gian ngay lập tức
-  void _initializeLocationAndTime() {
+  Future<void> _initializeLocationAndTime() async {
     // Set thời gian ngay lập tức
     setState(() {
       _time = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
     });
 
-    // Thử load từ cache trước
-    final cachedLocation = box.read<String>('cached_location');
-    final cachedTimeStr = box.read<String>('cached_location_time');
-    DateTime? cachedTime = cachedTimeStr != null ? DateTime.tryParse(cachedTimeStr) : null;
+    final cachedLocation = await readCachedLocation();
+    final cachedTime = await readCachedTimestamp();
 
-    // Nếu có cache và còn mới (trong vòng 10 phút)
-    if (cachedLocation != null && 
-        cachedTime != null && 
+    if (cachedLocation != null &&
+        cachedTime != null &&
         DateTime.now().difference(cachedTime).inMinutes < 10) {
-      setState(() {
-        _location = cachedLocation;
-        _isLoadingLocation = false;
-      });
+      if (mounted) {
+        setState(() {
+          _location = cachedLocation;
+          _isLoadingLocation = false;
+        });
+      }
       // Vẫn refresh vị trí ở background
-      _refreshLocationInBackground();
+      unawaited(_refreshLocationInBackground());
     } else {
       // Không có cache hoặc cache cũ, lấy vị trí mới
-      _getLocation();
+      unawaited(_getLocation());
     }
   }
 
   // Refresh vị trí trong background mà không làm gián đoạn UI
   Future<void> _refreshLocationInBackground() async {
     try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied || 
-          permission == LocationPermission.deniedForever) {
-        return; // Không làm gì nếu không có quyền
+      if (!locationServiceSupported()) {
+        return;
       }
 
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium, // Dùng medium cho nhanh hơn
-        timeLimit: const Duration(seconds: 5), // Giới hạn thời gian
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Timeout'),
+      if (!await ensureLocationPermission()) {
+        return;
+      }
+
+      final snapshot = await getCurrentPosition(
+        timeout: const Duration(seconds: 5),
       );
 
-      final address = await _resolveAddress(position);
+      final address = await resolveAddress(snapshot);
+      final resolvedAddress =
+          address.isEmpty ? formatCoordinates(snapshot) : address;
 
-      if (address.isNotEmpty && mounted) {
+      if (resolvedAddress.isNotEmpty && mounted) {
         final now = DateTime.now();
         setState(() {
-          _location = address;
+          _location = resolvedAddress;
         });
-        // Cập nhật cache
-        box.write('cached_location', address);
-        box.write('cached_location_time', now.toIso8601String());
+        await writeCachedLocation(resolvedAddress, now);
       }
     } catch (e) {
       // Không làm gì, giữ nguyên location cache
-      print('Background location refresh failed: $e');
+      debugPrint('Background location refresh failed: $e');
     }
-  }
-
-  Future<String> _resolveAddress(Position position) async {
-    if (kIsWeb) {
-      return _formatCoordinates(position);
-    }
-
-    try {
-      final placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      ).timeout(
-        const Duration(seconds: 3),
-        onTimeout: () => throw Exception('Timeout'),
-      );
-
-      if (placemarks.isNotEmpty) {
-        final place = placemarks.first;
-        final address = [
-          place.street,
-          place.subLocality,
-          place.locality,
-          place.administrativeArea,
-        ].where((e) => e != null && e.isNotEmpty).join(', ');
-
-        if (address.isNotEmpty) {
-          return address;
-        }
-      }
-    } on MissingPluginException {
-      // Fall back to raw coordinates nếu geocoding không hỗ trợ trên platform hiện tại
-      return _formatCoordinates(position);
-    } catch (_) {
-      // Bỏ qua, fallback bên dưới
-    }
-
-    return _formatCoordinates(position);
-  }
-
-  String _formatCoordinates(Position position) {
-    return 'Tọa độ: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
   }
 
   Future<Uint8List> _composeImageWithOverlay(Uint8List baseBytes) async {
@@ -395,44 +350,43 @@ class _PhotoScreenState extends State<PhotoScreen> {
     try {
       setState(() => _isLoadingLocation = true);
       
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            setState(() {
-              _location = 'Quyền vị trí bị từ chối';
-              _isLoadingLocation = false;
-            });
-          }
-          return;
+      if (!locationServiceSupported()) {
+        if (mounted) {
+          setState(() {
+            _location = 'Thiết bị không hỗ trợ định vị';
+            _isLoadingLocation = false;
+          });
         }
+        return;
       }
 
-      // Sử dụng medium accuracy để nhanh hơn
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 10),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout khi lấy vị trí');
-        },
+      if (!await ensureLocationPermission()) {
+        if (mounted) {
+          setState(() {
+            _location = 'Quyền vị trí bị từ chối';
+            _isLoadingLocation = false;
+          });
+        }
+        return;
+      }
+
+      final snapshot = await getCurrentPosition(
+        timeout: const Duration(seconds: 10),
       );
 
-      final address = await _resolveAddress(position);
+      final address = await resolveAddress(snapshot);
+      final resolvedLocation =
+          address.isEmpty ? formatCoordinates(snapshot) : address;
 
       final now = DateTime.now();
       if (mounted) {
         setState(() {
-          _location = address.isEmpty ? 'Không xác định vị trí' : address;
+          _location = resolvedLocation;
           _isLoadingLocation = false;
         });
       }
-      
-      // Lưu cache
-      box.write('cached_location', _location);
-      box.write('cached_location_time', now.toIso8601String());
+
+      await writeCachedLocation(resolvedLocation, now);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -440,6 +394,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
           _isLoadingLocation = false;
         });
       }
+      debugPrint('Get location failed: $e');
     }
   }
 
