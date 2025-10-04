@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -25,6 +26,8 @@ class _PhotoScreenState extends State<PhotoScreen> {
   final box = GetStorage();
 
   CameraController? _controller;
+  List<CameraDescription> _availableCameras = [];
+  int _selectedCameraIndex = 0;
   Future<void>? _initializeControllerFuture;
   File? _image;
   Uint8List? _imageBytes; // For web
@@ -33,7 +36,10 @@ class _PhotoScreenState extends State<PhotoScreen> {
   bool _isInitialized = false;
   bool _isProcessing = false;
   bool _isLoadingLocation = true;
+  String? _cameraErrorMessage;
   final GlobalKey _previewContainerKey = GlobalKey();
+
+  bool get _hasCapturedImage => kIsWeb ? _imageBytes != null : _image != null;
 
   @override
   void initState() {
@@ -87,7 +93,30 @@ class _PhotoScreenState extends State<PhotoScreen> {
         onTimeout: () => throw Exception('Timeout'),
       );
 
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      final address = await _resolveAddress(position);
+
+      if (address.isNotEmpty && mounted) {
+        final now = DateTime.now();
+        setState(() {
+          _location = address;
+        });
+        // Cập nhật cache
+        box.write('cached_location', address);
+        box.write('cached_location_time', now.toIso8601String());
+      }
+    } catch (e) {
+      // Không làm gì, giữ nguyên location cache
+      print('Background location refresh failed: $e');
+    }
+  }
+
+  Future<String> _resolveAddress(Position position) async {
+    if (kIsWeb) {
+      return _formatCoordinates(position);
+    }
+
+    try {
+      final placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
       ).timeout(
@@ -96,67 +125,270 @@ class _PhotoScreenState extends State<PhotoScreen> {
       );
 
       if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        String address = [
+        final place = placemarks.first;
+        final address = [
           place.street,
           place.subLocality,
           place.locality,
           place.administrativeArea,
         ].where((e) => e != null && e.isNotEmpty).join(', ');
 
-        if (address.isNotEmpty && mounted) {
-          final now = DateTime.now();
-          setState(() {
-            _location = address;
-          });
-          // Cập nhật cache
-          box.write('cached_location', address);
-          box.write('cached_location_time', now.toIso8601String());
+        if (address.isNotEmpty) {
+          return address;
         }
       }
-    } catch (e) {
-      // Không làm gì, giữ nguyên location cache
-      print('Background location refresh failed: $e');
+    } on MissingPluginException {
+      // Fall back to raw coordinates nếu geocoding không hỗ trợ trên platform hiện tại
+      return _formatCoordinates(position);
+    } catch (_) {
+      // Bỏ qua, fallback bên dưới
     }
+
+    return _formatCoordinates(position);
+  }
+
+  String _formatCoordinates(Position position) {
+    return 'Tọa độ: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
+  }
+
+  Future<Uint8List> _composeImageWithOverlay(Uint8List baseBytes) async {
+    final codec = await ui.instantiateImageCodec(baseBytes);
+    final frame = await codec.getNextFrame();
+    final originalImage = frame.image;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final Size size = Size(
+      originalImage.width.toDouble(),
+      originalImage.height.toDouble(),
+    );
+
+    canvas.drawImage(originalImage, Offset.zero, Paint());
+
+    double clampFont(double value, double min, double max) =>
+        value.clamp(min, max).toDouble();
+
+    final double titleFontSize = clampFont(size.width * 0.05, 28, 64);
+    final double timeFontSize = clampFont(size.width * 0.042, 24, 48);
+    final double locationFontSize = clampFont(size.width * 0.036, 20, 40);
+
+    final double overlayHeight = size.height * 0.28;
+    final Rect overlayRect = Rect.fromLTWH(
+      0,
+      size.height - overlayHeight,
+      size.width,
+      overlayHeight,
+    );
+
+    final Paint overlayPaint = Paint()
+      ..shader = ui.Gradient.linear(
+        Offset(0, size.height),
+        Offset(0, size.height - overlayHeight),
+        const [
+          Color(0xBF000000),
+          Color(0x66000000),
+          Colors.transparent,
+        ],
+        const [0.0, 0.7, 1.0],
+      );
+
+    canvas.drawRect(overlayRect, overlayPaint);
+
+    final double horizontalPadding = size.width * 0.05;
+    double textY = overlayRect.top + horizontalPadding;
+
+    void drawText(
+      String text,
+      TextStyle style, {
+      int maxLines = 2,
+    }) {
+      final textPainter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        maxLines: maxLines,
+        ellipsis: '…',
+      );
+      textPainter.layout(maxWidth: size.width - (horizontalPadding * 2));
+      textPainter.paint(canvas, Offset(horizontalPadding, textY));
+      textY += textPainter.height + 8;
+    }
+
+    drawText(
+      _getCleanTitle(),
+      TextStyle(
+        color: Colors.white,
+        fontSize: titleFontSize,
+        fontWeight: FontWeight.w700,
+        shadows: const [
+          Shadow(
+            offset: Offset(2, 2),
+            blurRadius: 6,
+            color: Colors.black87,
+          ),
+        ],
+      ),
+    );
+
+    drawText(
+      _time,
+      TextStyle(
+        color: Colors.white,
+        fontSize: timeFontSize,
+        fontWeight: FontWeight.w500,
+        shadows: const [
+          Shadow(
+            offset: Offset(2, 2),
+            blurRadius: 6,
+            color: Colors.black87,
+          ),
+        ],
+      ),
+      maxLines: 1,
+    );
+
+    drawText(
+      _location,
+      TextStyle(
+        color: _isLoadingLocation ? Colors.orange[200] : Colors.white,
+        fontSize: locationFontSize,
+        fontWeight: FontWeight.w500,
+        shadows: const [
+          Shadow(
+            offset: Offset(2, 2),
+            blurRadius: 6,
+            color: Colors.black87,
+          ),
+        ],
+      ),
+      maxLines: 3,
+    );
+
+    final picture = recorder.endRecording();
+    final ui.Image finalImage = await picture.toImage(
+      originalImage.width,
+      originalImage.height,
+    );
+
+    final byteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) {
+      throw Exception('Không thể xử lý hình ảnh');
+    }
+
+    originalImage.dispose();
+    finalImage.dispose();
+
+    return byteData.buffer.asUint8List();
   }
 
   Future<void> _initializeCamera() async {
     try {
       final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        if (mounted) setState(() => _location = 'Không tìm thấy camera');
+
+      if (!mounted) {
         return;
       }
 
-      // Ưu tiên camera sau (back camera)
-      CameraDescription selectedCamera;
-      try {
-        selectedCamera = cameras.firstWhere(
-          (camera) => camera.lensDirection == CameraLensDirection.back,
-        );
-      } catch (e) {
-        // Nếu không có camera sau, dùng camera đầu tiên
-        selectedCamera = cameras.first;
+      if (cameras.isEmpty) {
+        setState(() {
+          _cameraErrorMessage = 'Không tìm thấy camera';
+          _isInitialized = false;
+          _availableCameras = [];
+        });
+        return;
       }
 
-      _controller = CameraController(
-        selectedCamera,
-        ResolutionPreset.high, // Dùng high cho chất lượng tốt hơn
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.jpeg, // JPEG nhẹ hơn
+      final int backCameraIndex = cameras.indexWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.back,
       );
-      
-      _initializeControllerFuture = _controller!.initialize();
-      await _initializeControllerFuture;
 
-      if (mounted) {
-        setState(() => _isInitialized = true);
-      }
+      setState(() {
+        _availableCameras = cameras;
+      });
+
+      final initialIndex = backCameraIndex >= 0 ? backCameraIndex : 0;
+
+      await _setupCameraController(initialIndex);
     } catch (e) {
       if (mounted) {
-        setState(() => _location = 'Lỗi khi khởi tạo camera: $e');
+        setState(() {
+          _cameraErrorMessage = 'Lỗi khi khởi tạo camera: $e';
+          _isInitialized = false;
+        });
       }
     }
+  }
+
+  Future<void> _setupCameraController(int cameraIndex) async {
+    if (cameraIndex < 0 || cameraIndex >= _availableCameras.length) {
+      return;
+    }
+
+    final previousController = _controller;
+    _controller = null;
+    await previousController?.dispose();
+
+    CameraController? controller;
+
+    try {
+      final selectedCamera = _availableCameras[cameraIndex];
+      controller = kIsWeb
+          ? CameraController(
+              selectedCamera,
+              ResolutionPreset.high,
+              enableAudio: false,
+            )
+          : CameraController(
+              selectedCamera,
+              ResolutionPreset.high,
+              enableAudio: false,
+              imageFormatGroup: ImageFormatGroup.jpeg,
+            );
+
+      final initializeFuture = controller.initialize();
+
+      if (mounted) {
+        setState(() {
+          _controller = controller;
+          _initializeControllerFuture = initializeFuture;
+          _selectedCameraIndex = cameraIndex;
+          _isInitialized = false;
+          _cameraErrorMessage = null;
+        });
+      }
+
+      await initializeFuture;
+
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      await controller?.dispose();
+      if (mounted) {
+        setState(() {
+          _cameraErrorMessage = 'Lỗi khi khởi tạo camera: $e';
+          _controller = null;
+          _initializeControllerFuture = null;
+          _isInitialized = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _switchCamera() async {
+    if (_availableCameras.length < 2 || _isProcessing) {
+      return;
+    }
+
+    final nextIndex = (_selectedCameraIndex + 1) % _availableCameras.length;
+    setState(() {
+      _image = null;
+      _imageBytes = null;
+    });
+    await _setupCameraController(nextIndex);
   }
 
   Future<void> _getLocation() async {
@@ -188,21 +420,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
         },
       );
 
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Timeout'),
-      );
-
-      Placemark place = placemarks[0];
-      String address = [
-        place.street,
-        place.subLocality,
-        place.locality,
-        place.administrativeArea,
-      ].where((e) => e != null && e.isNotEmpty).join(', ');
+      final address = await _resolveAddress(position);
 
       final now = DateTime.now();
       if (mounted) {
@@ -218,7 +436,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _location = 'Lỗi khi lấy vị trí: $e';
+          _location = 'Không thể lấy vị trí. Vui lòng kiểm tra quyền truy cập.';
           _isLoadingLocation = false;
         });
       }
@@ -226,37 +444,54 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   Future<void> _takePhoto() async {
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
+    if (_isProcessing || _controller == null || _initializeControllerFuture == null) {
+      return;
+    }
+
+    final captureTime = DateTime.now();
+
+    setState(() {
+      _isProcessing = true;
+      _time = DateFormat('dd/MM/yyyy HH:mm:ss').format(captureTime);
+    });
 
     try {
-      // Chụp ảnh
       await _initializeControllerFuture!;
-      await _controller!.takePicture();
-      await _controller!.setFlashMode(FlashMode.off);
-      await Future.delayed(const Duration(milliseconds: 100));
+      final XFile capturedFile = await _controller!.takePicture();
 
-      // Capture overlay + camera preview
-      RenderRepaintBoundary boundary = _previewContainerKey.currentContext!
-          .findRenderObject() as RenderRepaintBoundary;
-      final ui.Image renderedImage = await boundary.toImage(pixelRatio: 3.0);
-      final ByteData? byteData =
-          await renderedImage.toByteData(format: ui.ImageByteFormat.png);
+      if (!kIsWeb && _controller!.value.flashMode != FlashMode.off) {
+        await _controller!.setFlashMode(FlashMode.off);
+      }
 
-      if (byteData == null) throw Exception('Không thể tạo byte dữ liệu ảnh');
-
-      final Uint8List pngBytes = byteData.buffer.asUint8List();
-      
       if (kIsWeb) {
-        // Web: Lưu dưới dạng bytes
+        final rawBytes = await capturedFile.readAsBytes();
+        final Uint8List compositedBytes = await _composeImageWithOverlay(rawBytes);
+
         if (mounted) {
           setState(() {
-            _imageBytes = pngBytes;
+            _imageBytes = compositedBytes;
+            _image = null;
             _isProcessing = false;
           });
         }
       } else {
-        // Mobile: Lưu vào file
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        final renderObject = _previewContainerKey.currentContext?.findRenderObject();
+        if (renderObject is! RenderRepaintBoundary) {
+          throw Exception('Không thể truy cập camera preview');
+        }
+
+        final ui.Image renderedImage = await renderObject.toImage(pixelRatio: 3.0);
+        final ByteData? byteData =
+            await renderedImage.toByteData(format: ui.ImageByteFormat.png);
+
+        if (byteData == null) {
+          throw Exception('Không thể tạo byte dữ liệu ảnh');
+        }
+
+        final Uint8List pngBytes = byteData.buffer.asUint8List();
+
         final tempDir = await getTemporaryDirectory();
         final String tempPath =
             '${tempDir.path}/marked_image_${DateTime.now().millisecondsSinceEpoch}.png';
@@ -266,6 +501,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
         if (mounted) {
           setState(() {
             _image = finalFile;
+            _imageBytes = null;
             _isProcessing = false;
           });
         }
@@ -321,29 +557,58 @@ class _PhotoScreenState extends State<PhotoScreen> {
       future: _initializeControllerFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          if (_cameraErrorMessage != null) {
+            return Center(
+              child: Text(
+                _cameraErrorMessage!,
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+
           if (_isInitialized && _controller != null) {
             return GestureDetector(
               onScaleStart: (details) {
+                if (kIsWeb || _controller == null) {
+                  return;
+                }
                 _baseZoom = _currentZoom;
               },
               onScaleUpdate: (details) async {
-                if (_controller != null && details.scale != 1.0) {
-                  double minZoom = await _controller!.getMinZoomLevel();
-                  double maxZoom = await _controller!.getMaxZoomLevel();
-                  double newZoom = (_baseZoom * details.scale).clamp(minZoom, maxZoom);
-                  setState(() {
-                    _currentZoom = newZoom;
-                  });
-                  await _controller!.setZoomLevel(_currentZoom);
+                if (kIsWeb || _controller == null || !_controller!.value.isInitialized) {
+                  return;
                 }
+                if (details.scale == 1.0) {
+                  return;
+                }
+
+                double minZoom = await _controller!.getMinZoomLevel();
+                double maxZoom = await _controller!.getMaxZoomLevel();
+                double newZoom = (_baseZoom * details.scale).clamp(minZoom, maxZoom);
+                setState(() {
+                  _currentZoom = newZoom;
+                });
+                await _controller!.setZoomLevel(_currentZoom);
               },
               child: ClipRect(
                 child: FittedBox(
                   fit: BoxFit.cover,
-                  child: SizedBox(
-                    width: _controller!.value.previewSize!.height,
-                    height: _controller!.value.previewSize!.width,
-                    child: CameraPreview(_controller!),
+                  child: Builder(
+                    builder: (context) {
+                      final previewSize = _controller!.value.previewSize;
+                      final preview = CameraPreview(_controller!);
+
+                      if (previewSize == null) {
+                        return SizedBox.expand(child: preview);
+                      }
+
+                      return SizedBox(
+                        width: previewSize.height,
+                        height: previewSize.width,
+                        child: preview,
+                      );
+                    },
                   ),
                 ),
               ),
@@ -413,6 +678,14 @@ class _PhotoScreenState extends State<PhotoScreen> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          if (_availableCameras.length > 1)
+            IconButton(
+              onPressed: _isProcessing ? null : _switchCamera,
+              icon: const Icon(Icons.cameraswitch, color: Colors.white, size: 28),
+              tooltip: 'Đổi camera',
+            ),
+        ],
       ),
       body: SafeArea(
         child: Stack(
@@ -557,7 +830,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
             ),
             
             // Nút điều khiển - BÊN NGOÀI RepaintBoundary (không capture)
-            if (_image != null || _isInitialized)
+            if (_hasCapturedImage || _isInitialized)
               Positioned(
                 bottom: 20,
                 left: 0,
@@ -569,38 +842,36 @@ class _PhotoScreenState extends State<PhotoScreen> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Nút chụp/chụp lại
-                          if (_location != 'Đang lấy vị trí...')
-                            Flexible(
-                              child: _buildControlButton(
-                                icon: _image == null ? Icons.camera_alt : Icons.refresh,
-                                label: _image == null ? 'Chụp' : 'Chụp lại',
-                                color: _image == null ? Colors.blue : Colors.orange,
-                                onPressed: _image == null
-                                    ? _takePhoto
-                                    : () {
-                                        setState(() {
-                                          _image = null;
-                                          _time = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
-                                        });
-                                      },
-                              ),
+                          Flexible(
+                            child: _buildControlButton(
+                              icon: _hasCapturedImage ? Icons.refresh : Icons.camera_alt,
+                              label: _hasCapturedImage ? 'Chụp lại' : 'Chụp',
+                              color: _hasCapturedImage ? Colors.orange : Colors.blue,
+                              onPressed: _hasCapturedImage
+                                  ? () {
+                                      setState(() {
+                                        _image = null;
+                                        _imageBytes = null;
+                                        _time = DateFormat('dd/MM/yyyy HH:mm:ss')
+                                            .format(DateTime.now());
+                                      });
+                                      _refreshLocationInBackground();
+                                    }
+                                  : (_isLoadingLocation ? null : _takePhoto),
                             ),
-                          
-                          // Spacing giữa 2 button
-                          if (_image != null && _location != 'Đang lấy vị trí...')
+                          ),
+
+                          if (_hasCapturedImage) ...[
                             const SizedBox(width: 16),
-                          
-                          // Nút lưu
-                          if (_image != null)
                             Flexible(
                               child: _buildControlButton(
                                 icon: Icons.check,
                                 label: 'Lưu',
                                 color: Colors.green,
-                                onPressed: _saveImageToGallery,
+                                onPressed: _isProcessing ? null : _saveImageToGallery,
                               ),
                             ),
+                          ],
                         ],
                       ),
               ),
@@ -614,19 +885,46 @@ class _PhotoScreenState extends State<PhotoScreen> {
     required IconData icon,
     required String label,
     required Color color,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
   }) {
+    final baseStyle = ElevatedButton.styleFrom(
+      backgroundColor: color,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+      elevation: 8,
+      shadowColor: color.withOpacity(0.5),
+    );
+
     return ElevatedButton(
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+      style: baseStyle.copyWith(
+        backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+          (states) {
+            if (states.contains(MaterialState.disabled)) {
+              return color.withOpacity(0.5);
+            }
+            return color;
+          },
         ),
-        elevation: 8,
-        shadowColor: color.withOpacity(0.5),
+        foregroundColor: MaterialStateProperty.resolveWith<Color?>(
+          (states) {
+            if (states.contains(MaterialState.disabled)) {
+              return Colors.white.withOpacity(0.7);
+            }
+            return Colors.white;
+          },
+        ),
+        shadowColor: MaterialStateProperty.resolveWith<Color?>(
+          (states) {
+            if (states.contains(MaterialState.disabled)) {
+              return Colors.transparent;
+            }
+            return color.withOpacity(0.5);
+          },
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

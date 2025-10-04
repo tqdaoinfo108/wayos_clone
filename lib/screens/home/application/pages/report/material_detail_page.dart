@@ -1140,12 +1140,20 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   }
 
   void _updateInImages() {
+    // Load ảnh hiện tại
+    final currentImages = [
+      trackingBillData?['ImageIn1'] as String?,
+      trackingBillData?['ImageIn2'] as String?,
+      trackingBillData?['ImageIn3'] as String?,
+    ];
+    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => _MultiImageCaptureDialog(
         title: 'Cập nhật ảnh vào - ${trackingBillData?['TitleBill'] ?? ''}',
         isInImages: true, // Đánh dấu là ảnh vào
+        currentImages: currentImages, // Truyền ảnh hiện tại
         onImagesCapture: (images) async {
           await _saveInImages(images);
         },
@@ -1154,12 +1162,20 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   }
 
   void _updateOutImages() {
+    // Load ảnh hiện tại
+    final currentImages = [
+      trackingBillData?['ImageOut1'] as String?,
+      trackingBillData?['ImageOut2'] as String?,
+      trackingBillData?['ImageOut3'] as String?,
+    ];
+    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => _MultiImageCaptureDialog(
         title: 'Cập nhật ảnh ra - ${trackingBillData?['TitleBill'] ?? ''}',
         isInImages: false, // Đánh dấu là ảnh ra
+        currentImages: currentImages, // Truyền ảnh hiện tại
         onImagesCapture: (images) async {
           await _saveOutImages(images);
         },
@@ -1729,32 +1745,35 @@ class _ViolationUpdateDialogState extends State<_ViolationUpdateDialog> {
                   ),
                   const SizedBox(height: 16),
                   
-                  const Text(
-                    'Khối lượng bị trừ (m³):',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _violateController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Nhập khối lượng bị trừ',
-                      suffixText: 'm³',
+                  // Chỉ hiển thị ô khối lượng khi HandlingPlanID = 1
+                  if (selectedHandlingPlanId == 1) ...[
+                    const Text(
+                      'Khối lượng bị trừ (m³):',
+                      style: TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    onChanged: (value) {
-                      violateAmount = double.tryParse(value) ?? 0.0;
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập khối lượng';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Vui lòng nhập số hợp lệ';
-                      }
-                      return null;
-                    },
-                  ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _violateController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Nhập khối lượng bị trừ',
+                        suffixText: 'm³',
+                      ),
+                      onChanged: (value) {
+                        violateAmount = double.tryParse(value) ?? 0.0;
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập khối lượng';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Vui lòng nhập số hợp lệ';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1794,10 +1813,13 @@ class _ViolationUpdateDialogState extends State<_ViolationUpdateDialog> {
     });
 
     try {
+      // Nếu HandlingPlanID != 1 thì gửi violateAmount = 0
+      final finalViolateAmount = selectedHandlingPlanId == 1 ? violateAmount : 0.0;
+      
       await widget.onViolationUpdate(
         selectedViolationRuleId!,
         selectedHandlingPlanId!,
-        violateAmount,
+        finalViolateAmount,
       );
       Navigator.pop(context);
     } catch (e) {
@@ -2010,11 +2032,13 @@ class _MultiImageCaptureDialog extends StatefulWidget {
   final Function(List<String>) onImagesCapture;
   final String title;
   final bool isInImages; // true = ảnh vào, false = ảnh ra
+  final List<String?>? currentImages; // Ảnh hiện tại để load lại
 
   const _MultiImageCaptureDialog({
     required this.onImagesCapture,
     required this.title,
     this.isInImages = false, // Mặc định là ảnh ra
+    this.currentImages, // Ảnh hiện tại
   });
 
   @override
@@ -2026,9 +2050,23 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
   bool isSaving = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Load ảnh cũ nếu có
+    if (widget.currentImages != null) {
+      for (int i = 0; i < widget.currentImages!.length && i < 3; i++) {
+        if (widget.currentImages![i] != null && widget.currentImages![i]!.isNotEmpty) {
+          capturedImages[i] = widget.currentImages![i];
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final capturedCount = capturedImages.where((img) => img != null).length;
     final imageType = widget.isInImages ? 'ảnh vào' : 'ảnh ra';
+    final minRequired = widget.isInImages ? 1 : 2; // Ảnh vào: min 1, Ảnh ra: min 2
     
     return AlertDialog(
       title: Text(
@@ -2040,7 +2078,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Vui lòng chụp đủ 1 ảnh để hoàn tất việc cập nhật',
+              'Vui lòng chụp đủ $minRequired ảnh để hoàn tất việc cập nhật',
               style: TextStyle(
                 color: Colors.grey[700],
                 fontSize: 14,
@@ -2116,7 +2154,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
               'Đã chụp: $capturedCount/3 ảnh',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: capturedCount == 1 ? Colors.green : Colors.orange,
+                color: capturedCount >= minRequired ? Colors.green : Colors.orange,
               ),
             ),
           ],
@@ -2128,7 +2166,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
           child: const Text('Hủy'),
         ),
         ElevatedButton.icon(
-          onPressed: (isSaving || capturedCount < 1) ? null : _saveImages,
+          onPressed: (isSaving || capturedCount < minRequired) ? null : _saveImages,
           icon: isSaving 
               ? const SizedBox(
                   width: 16,
@@ -2138,7 +2176,7 @@ class _MultiImageCaptureDialogState extends State<_MultiImageCaptureDialog> {
               : const Icon(Icons.save),
           label: Text(isSaving ? 'Đang lưu...' : 'Lưu'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: capturedCount == 2 ? Colors.green : Colors.grey,
+            backgroundColor: capturedCount >= minRequired ? Colors.green : Colors.grey,
             foregroundColor: Colors.white,
           ),
         ),
