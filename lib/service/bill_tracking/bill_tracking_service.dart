@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'package:wayos_clone/utils/io/file_stub.dart';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:wayos_clone/service/api_service.dart';
 
@@ -151,6 +152,10 @@ class BillRequestService extends ApiService {
     required File file,
     String subDirectory = 'RequestAttachment',
   }) async {
+    if (kIsWeb) {
+      throw UnsupportedError('uploadFileHttp is not available on the web.');
+    }
+
     try {
       var uri = Uri.parse('http://freeofficefile.gvbsoft.vn/api/publicupload');
       var request = http.MultipartRequest('POST', uri)
@@ -413,11 +418,12 @@ class BillRequestService extends ApiService {
     required int projectID,
     required int typeTrackingBillID,
     required int deliveryVehicleID,
+    required bool isFirst,
   }) async {
     try {
       var rs = await request(
         HttpMethod.get,
-        '/trackingbill/get-title?projectID=$projectID&typeTrackingBillID=$typeTrackingBillID&deliveryVehicleID=$deliveryVehicleID',
+        '/trackingbill/get-title?projectID=$projectID&typeTrackingBillID=$typeTrackingBillID&deliveryVehicleID=$deliveryVehicleID&isFirst=$isFirst',
         headers: {
           'accept': 'application/json',
         },

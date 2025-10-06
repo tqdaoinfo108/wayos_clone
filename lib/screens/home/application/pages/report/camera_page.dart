@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'package:wayos_clone/utils/io/file_stub.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -262,6 +262,15 @@ class _PhotoScreenState extends State<PhotoScreen> {
       final initialIndex = backCameraIndex >= 0 ? backCameraIndex : 0;
 
       await _setupCameraController(initialIndex);
+    } on CameraException catch (e) {
+      if (mounted) {
+        setState(() {
+          _cameraErrorMessage = kIsWeb
+              ? _cameraErrorMessageForWeb(e)
+              : 'Lỗi khi khởi tạo camera: ${e.description ?? e.code}';
+          _isInitialized = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -320,6 +329,18 @@ class _PhotoScreenState extends State<PhotoScreen> {
       setState(() {
         _isInitialized = true;
       });
+    } on CameraException catch (e) {
+      await controller?.dispose();
+      if (mounted) {
+        setState(() {
+          _cameraErrorMessage = kIsWeb
+              ? _cameraErrorMessageForWeb(e)
+              : 'Lỗi khi khởi tạo camera: ${e.description ?? e.code}';
+          _controller = null;
+          _initializeControllerFuture = null;
+          _isInitialized = false;
+        });
+      }
     } catch (e) {
       await controller?.dispose();
       if (mounted) {
@@ -589,6 +610,26 @@ class _PhotoScreenState extends State<PhotoScreen> {
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  /// Maps the `camera_web` error codes to end-user friendly Vietnamese messages.
+  String _cameraErrorMessageForWeb(CameraException exception) {
+    final code = exception.code.toLowerCase();
+
+    if (code.contains('permissiondenied')) {
+      return 'Trình duyệt đã chặn quyền camera. Vui lòng cho phép truy cập camera và thử lại.';
+    }
+    if (code.contains('notfound')) {
+      return 'Không tìm thấy camera phù hợp. Kiểm tra lại thiết bị hoặc kết nối camera.';
+    }
+    if (code.contains('notreadable') || code.contains('abort')) {
+      return 'Không thể truy cập camera. Đảm bảo camera không bị ứng dụng khác sử dụng.';
+    }
+    if (code.contains('security') || code.contains('type')) {
+      return 'Trình duyệt yêu cầu kết nối bảo mật (HTTPS) hoặc quyền camera chưa được cấp.';
+    }
+
+    return exception.description ?? 'Không thể khởi tạo camera trên trình duyệt.';
   }
 
   // Hàm xử lý title để loại bỏ prefix không cần thiết

@@ -14,6 +14,7 @@ class CreateMaterialPage extends StatefulWidget {
 
 class _CreateMaterialPageState extends State<CreateMaterialPage> {
   final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController(text: '0');
   List<File?> inImages = List.generate(3, (_) => null);
   List<String?> inImagePaths = List.generate(3, (_) => null);
 
@@ -36,6 +37,7 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   int? selectedDeliveryId;
 
   bool _isLoadingTitle = false;
+  bool _isFirstTitleFetch = true;
 
   @override
   void initState() {
@@ -43,6 +45,8 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     fetchTypeBillList();
     fetchProjectList();
     fetchDeliveryList();
+    // Gọi fetchTitle lần đầu với isFirst = true
+    fetchTitle();
   }
 
   Future<void> fetchTypeBillList() async {
@@ -73,38 +77,44 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   }
 
   Future<void> fetchTitle() async {
-    if (selectedProjectId != null && 
-        selectedTypeBillId != null && 
-        selectedDeliveryId != null) {
-      setState(() {
-        _isLoadingTitle = true;
-      });
+    setState(() {
+      _isLoadingTitle = true;
+    });
 
-      try {
-        final response = await BillRequestService().getTitle(
-          projectID: selectedProjectId!,
-          typeTrackingBillID: selectedTypeBillId!,
-          deliveryVehicleID: selectedDeliveryId!,
-        );
+    try {
+      // Lần đầu tiên chưa chọn gì: truyền id = 0, isFirst = true
+      // Các lần sau: truyền id thực tế, isFirst = false
+      final projectId = selectedProjectId ?? 0;
+      final typeBillId = selectedTypeBillId ?? 0;
+      final deliveryId = selectedDeliveryId ?? 0;
+      
+      final response = await BillRequestService().getTitle(
+        projectID: projectId,
+        typeTrackingBillID: typeBillId,
+        deliveryVehicleID: deliveryId,
+        isFirst: _isFirstTitleFetch,
+      );
 
-        if (response != null) {
-          setState(() {
-            // Handle different possible response structures
-            if (response['data'] != null ) {
-              _titleController.text = response['data'];
-            } else {
-              _titleController.text = 'Tiêu đề được tạo tự động';
-            }
-          });
-        }
-      } catch (e) {
-        // Handle error silently or show a message if needed
-        print('Error fetching title: $e');
-      } finally {
+      if (response != null) {
         setState(() {
-          _isLoadingTitle = false;
+          // Handle different possible response structures
+          if (response['data'] != null) {
+            _titleController.text = response['data'];
+          } else {
+            _titleController.text = 'Tiêu đề được tạo tự động';
+          }
+          
+          // Sau lần gọi đầu tiên, đánh dấu không còn là first nữa
+          _isFirstTitleFetch = false;
         });
       }
+    } catch (e) {
+      // Handle error silently or show a message if needed
+      print('Error fetching title: $e');
+    } finally {
+      setState(() {
+        _isLoadingTitle = false;
+      });
     }
   }
 
@@ -294,6 +304,16 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                             hint: 'Tiêu đề sẽ được tự động tạo',
                             icon: Icons.title,
                             isLoading: _isLoadingTitle,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Amount Field
+                          _buildTextFieldWithLabel(
+                            label: 'Số lượng *',
+                            controller: _amountController,
+                            hint: 'Nhập số lượng',
+                            icon: Icons.inventory_2,
+                            keyboardType: TextInputType.number,
                           ),
                         ],
                       ),
@@ -636,6 +656,15 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
       _showErrorSnackBar('Tiêu đề chưa được tạo. Vui lòng chọn đầy đủ thông tin.');
       return;
     }
+    if (_amountController.text.trim().isEmpty) {
+      _showErrorSnackBar('Vui lòng nhập số lượng');
+      return;
+    }
+    final amount = double.tryParse(_amountController.text.trim());
+    if (amount == null || amount <= 0) {
+      _showErrorSnackBar('Số lượng phải là số dương hợp lệ');
+      return;
+    }
     
     // Kiểm tra ít nhất 1 ảnh In
     bool hasIn = inImagePaths.any((e) => e != null && e.isNotEmpty);
@@ -666,12 +695,14 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     );
 
     // Xử lý lưu dữ liệu
+    final amountValue = double.tryParse(_amountController.text.trim()) ?? 0;
     final data = {
       "TitleBill": _titleController.text,
       "TypeTrackingBillID": selectedTypeBillId,
       "ProjectID": selectedProjectId,
       "DeliveryVehicleID": selectedDeliveryId,
       "DateBill": DateTime.now().toIso8601String(),
+      "Amount": amountValue,
       "ImageIn1": inImagePaths[0] ?? "",
       "ImageIn2": inImagePaths[1] ?? "",
       "ImageIn3": inImagePaths[2] ?? "",
@@ -738,6 +769,54 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   @override
   void dispose() {
     _titleController.dispose();
+    _amountController.dispose();
     super.dispose();
+  }
+
+  Widget _buildTextFieldWithLabel({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey.shade400),
+            prefixIcon: Icon(icon, color: Colors.grey.shade500),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.blue, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+      ],
+    );
   }
 }
