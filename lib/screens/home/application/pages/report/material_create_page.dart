@@ -15,6 +15,7 @@ class CreateMaterialPage extends StatefulWidget {
 class _CreateMaterialPageState extends State<CreateMaterialPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController(text: '0');
+  final TextEditingController _deliveryVehicleController = TextEditingController();
   List<File?> inImages = List.generate(3, (_) => null);
   List<String?> inImagePaths = List.generate(3, (_) => null);
 
@@ -47,6 +48,68 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
     fetchDeliveryList();
     // Gọi fetchTitle lần đầu với isFirst = true
     fetchTitle();
+    // Gọi API lấy dữ liệu lần cuối sau khi load xong dropdown lists
+    _loadLastTrackingBill();
+  }
+
+  Future<void> _loadLastTrackingBill() async {
+    // Đợi các dropdown lists load xong
+    await Future.wait([
+      Future.doWhile(() async {
+        await Future.delayed(const Duration(milliseconds: 100));
+        return projectList.isEmpty || typeBillList.isEmpty || deliveryList.isEmpty;
+      }),
+    ]);
+
+    try {
+      final response = await BillRequestService().getTrackingBillLatest();
+      if (response != null && response['data'] != null) {
+        final data = response['data'];
+        
+        setState(() {
+          // Fill ProjectID
+          if (data['ProjectID'] != null) {
+            final projectId = data['ProjectID'] as int;
+            if (projectList.any((p) => p['ProjectID'] == projectId)) {
+              selectedProjectId = projectId;
+            }
+          }
+          
+          // Fill TypeTrackingBillID
+          if (data['TypeTrackingBillID'] != null) {
+            final typeId = data['TypeTrackingBillID'] as int;
+            if (typeBillList.any((t) => t['TypeTrackingBillID'] == typeId)) {
+              selectedTypeBillId = typeId;
+            }
+          }
+          
+          // Fill DeliveryVehicleID
+          if (data['DeliveryVehicleID'] != null) {
+            final deliveryId = data['DeliveryVehicleID'] as int;
+            final deliveryVehicle = deliveryList.firstWhere(
+              (d) => d['DeliveryVehicleID'] == deliveryId,
+              orElse: () => {},
+            );
+            if (deliveryVehicle.isNotEmpty) {
+              selectedDeliveryId = deliveryId;
+              // Fill autocomplete text field
+              _deliveryVehicleController.text = 
+                  '${deliveryVehicle['NumberVehicle'] ?? ''} - ${deliveryVehicle['TypeVehicleName'] ?? ''}';
+            }
+          }
+          
+          // Fill Amount
+          if (data['Amount'] != null) {
+            _amountController.text = data['Amount'].toString();
+          }
+        });
+        
+        // Gọi fetchTitle để cập nhật tiêu đề sau khi fill các giá trị
+        fetchTitle();
+      }
+    } catch (e) {
+      print('Error loading last tracking bill: $e');
+    }
   }
 
   Future<void> fetchTypeBillList() async {
@@ -274,26 +337,21 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Delivery Vehicle Dropdown
-                          _buildDropdownField(
+                          // Delivery Vehicle Autocomplete
+                          _buildAutocompleteField(
                             label: 'Phương tiện *',
-                            hint: 'Chọn phương tiện',
-                            value: selectedDeliveryId,
-                            items: deliveryList
-                                .map((item) => DropdownMenuItem<int>(
-                                      value: item['DeliveryVehicleID'],
-                                      child: Text(
-                                        '${item['NumberVehicle'] ?? ''} - ${item['TypeVehicleName'] ?? ''}',
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
+                            hint: 'Tìm kiếm phương tiện',
+                            items: deliveryList,
+                            controller: _deliveryVehicleController,
+                            onSelected: (item) {
                               setState(() {
-                                selectedDeliveryId = value;
+                                selectedDeliveryId = item['DeliveryVehicleID'];
                               });
                               fetchTitle();
                             },
-                            icon: Icons.local_shipping,
+                            displayStringForOption: (item) =>
+                                '${item['NumberVehicle'] ?? ''} - ${item['TypeVehicleName'] ?? ''}',
+                            icon: Icons.local_shipping, 
                           ),
                           const SizedBox(height: 20),
 
@@ -770,7 +828,143 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
   void dispose() {
     _titleController.dispose();
     _amountController.dispose();
+    _deliveryVehicleController.dispose();
     super.dispose();
+  }
+
+  Widget _buildAutocompleteField({
+    required String label,
+    required String hint,
+    required List<Map<String, dynamic>> items,
+    required TextEditingController controller,
+    required Function(Map<String, dynamic>) onSelected,
+    required String Function(Map<String, dynamic>) displayStringForOption,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Autocomplete<Map<String, dynamic>>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            // Chỉ hiển thị đề xuất khi người dùng đã nhập
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<Map<String, dynamic>>.empty();
+            }
+            return items.where((item) {
+              final displayText = displayStringForOption(item).toLowerCase();
+              final searchText = textEditingValue.text.toLowerCase();
+              return displayText.contains(searchText);
+            });
+          },
+          displayStringForOption: displayStringForOption,
+          onSelected: onSelected,
+          fieldViewBuilder: (
+            BuildContext context,
+            TextEditingController textEditingController,
+            FocusNode focusNode,
+            VoidCallback onFieldSubmitted,
+          ) {
+            // Use our controller instead of the default one
+            if (controller.text.isNotEmpty && textEditingController.text.isEmpty) {
+              textEditingController.text = controller.text;
+            }
+            return TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              onChanged: (value) {
+                controller.text = value;
+              },
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: TextStyle(color: Colors.grey.shade400),
+                prefixIcon: Icon(icon, color: Colors.grey.shade500),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            );
+          },
+          optionsViewBuilder: (
+            BuildContext context,
+            AutocompleteOnSelected<Map<String, dynamic>> onSelected,
+            Iterable<Map<String, dynamic>> options,
+          ) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(12),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxHeight: 200,
+                    maxWidth: 400,
+                  ),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final option = options.elementAt(index);
+                      return InkWell(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                icon,
+                                size: 20,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  displayStringForOption(option),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
   }
 
   Widget _buildTextFieldWithLabel({

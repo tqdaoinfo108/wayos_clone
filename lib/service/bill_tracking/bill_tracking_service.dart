@@ -434,4 +434,20 @@ class BillRequestService extends ApiService {
       return null;
     }
   }
+
+  Future<dynamic> getTrackingBillLatest() async {
+    try {
+      var rs = await request(
+        HttpMethod.get,
+        '/trackingbill/get-tracking-bill-lastest',
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+      return rs;
+    } catch (e) {
+      log('Lấy tracking bill lastest thất bại: $e');
+      return null;
+    }
+  }
 }
