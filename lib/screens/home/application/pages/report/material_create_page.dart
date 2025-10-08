@@ -95,10 +95,14 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
               // Fill autocomplete text field
               _deliveryVehicleController.text = 
                   '${deliveryVehicle['NumberVehicle'] ?? ''} - ${deliveryVehicle['TypeVehicleName'] ?? ''}';
+              // Fill NumberContainer vào Amount nếu chưa có Amount từ API
+              if (data['Amount'] == null && deliveryVehicle['NumberContainer'] != null) {
+                _amountController.text = deliveryVehicle['NumberContainer'].toString();
+              }
             }
           }
           
-          // Fill Amount
+          // Fill Amount (ưu tiên Amount từ API nếu có)
           if (data['Amount'] != null) {
             _amountController.text = data['Amount'].toString();
           }
@@ -346,6 +350,10 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
                             onSelected: (item) {
                               setState(() {
                                 selectedDeliveryId = item['DeliveryVehicleID'];
+                                // Load NumberContainer vào Amount field
+                                if (item['NumberContainer'] != null) {
+                                  _amountController.text = item['NumberContainer'].toString();
+                                }
                               });
                               fetchTitle();
                             },
