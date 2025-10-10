@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/service/project_service.dart';
 import 'package:wayos_clone/service/bill_tracking/bill_tracking_service.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import '../../../../../utils/constants.dart';
 import 'camera_page.dart';
 
 class MaterialDetailPage extends StatefulWidget {
@@ -2265,6 +2267,7 @@ class _PdfViewScreenState extends State<_PdfViewScreen> {
         children: [
           // PDF Viewer
           SfPdfViewer.network(
+            headers: {'Authorization': GetStorage().read<String>(tokenID) ?? ""},
             widget.pdfUrl,
             onDocumentLoaded: (PdfDocumentLoadedDetails details) {
               setState(() {
