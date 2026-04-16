@@ -1,17 +1,15 @@
 import 'dart:developer';
-
-import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:toastification/toastification.dart';
-import 'package:wayos_clone/route/route_constants.dart';
-import 'package:wayos_clone/theme/app_theme.dart';
-import 'package:wayos_clone/utils/constants.dart';
+import 'package:wayos_clone/core/route/route_constants.dart';
+import 'package:wayos_clone/core/theme/app_theme.dart';
+import 'package:wayos_clone/core/utils/constants.dart';
 
-import './route/router.dart' as router;
+import 'package:wayos_clone/core/route/router.dart' as router;
 
 void main() async {
   await GetStorage.init();
@@ -25,13 +23,7 @@ void main() async {
     }
   }
 
-  runApp(
-    DevicePreview(
-      enabled: false,
-      tools: const [...DevicePreview.defaultTools],
-      builder: (context) => const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 final RouteObserverService routeObserver = RouteObserverService();
