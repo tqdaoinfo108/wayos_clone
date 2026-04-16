@@ -34,6 +34,8 @@ dependencies:
   geocoding: ^2.2.0
   flutter_widget_from_html: ^0.17.1
   web: ^1.1.1
+  connectivity_plus: ^6.1.4
+  device_info_plus: ^11.3.3
   
   flutter_localizations:
     sdk: flutter

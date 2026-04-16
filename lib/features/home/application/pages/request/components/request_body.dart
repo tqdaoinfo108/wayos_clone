@@ -78,11 +78,13 @@ class _RequestBodyState extends State<RequestBody> {
       // with loadmore: increate page 1
       // without loadmore: page = 0
       if (_loadmoreNotifier.value) {
+        if (!mounted) return;
         setState(() {
           page++;
         });
       } else {
         loading(true);
+        if (!mounted) return;
         setState(() {
           page = 1;
         });
@@ -92,6 +94,7 @@ class _RequestBodyState extends State<RequestBody> {
           ? initRequestProcessingData(statusID, searchText)
           : initRequestWorkHandlingData(statusID, searchText));
     } finally {
+      if (!mounted) return;
       // end of fetch data: stop loadmore (if existed), loading
       if (_loadmoreNotifier.value) {
         _loadmoreNotifier.value = false;
@@ -105,6 +108,7 @@ class _RequestBodyState extends State<RequestBody> {
       int statusID, String searchText) async {
     var response = await RequestService()
         .getRequestList(status: statusID, searchText: searchText, page: page);
+    if (!mounted) return;
     if (response['data'] != null) {
       setState(() {
         if (_loadmoreNotifier.value) {
@@ -135,6 +139,7 @@ class _RequestBodyState extends State<RequestBody> {
         break;
     }
 
+    if (!mounted) return;
     if (response['data'] != null) {
       setState(() {
         if (_loadmoreNotifier.value) {

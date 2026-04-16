@@ -28,4 +28,5 @@ const String IMPORT_MATERIAL_ROUTE = "import_supplies_route";
 const String EXPORT_MATERIAL_ROUTE = "export_supplies_route";
 
 const String SUPPORT_ROUTE = "support_route";
+const String ATTENDANCE_ROUTE = "attendance";
 
