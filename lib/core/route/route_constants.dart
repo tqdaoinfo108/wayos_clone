@@ -29,4 +29,6 @@ const String EXPORT_MATERIAL_ROUTE = "export_supplies_route";
 
 const String SUPPORT_ROUTE = "support_route";
 const String ATTENDANCE_ROUTE = "attendance";
+const String ATTENDANCE_JUSTIFICATION_ROUTE = "attendanceJustification";
+const String ATTENDANCE_SYNC_ROUTE = "attendanceSync";
 

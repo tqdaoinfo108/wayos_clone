@@ -8,6 +8,8 @@ import 'package:wayos_clone/features/home/application/pages/report/camera_page.d
 import 'package:wayos_clone/features/home/application/pages/support/support_page.dart';
 import 'package:wayos_clone/features/home/application/pages/export_material/export_material_page.dart';
 import 'package:wayos_clone/features/home/application/pages/attendance/attendance_page.dart';
+import 'package:wayos_clone/features/home/application/pages/attendance/attendance_justification_page.dart';
+import 'package:wayos_clone/features/home/application/pages/attendance/attendance_sync_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -112,6 +114,16 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case ATTENDANCE_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const AttendancePage(),
+        settings: settings,
+      );
+    case ATTENDANCE_JUSTIFICATION_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const AttendanceJustificationPage(),
+        settings: settings,
+      );
+    case ATTENDANCE_SYNC_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const AttendanceSyncPage(),
         settings: settings,
       );
     default:
