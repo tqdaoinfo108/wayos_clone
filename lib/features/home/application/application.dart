@@ -377,6 +377,24 @@ class _ApplicationPageState extends State<ApplicationPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _OperationItem(
+                      icon: Icons.event_available_outlined,
+                      label: 'Duyệt phép',
+                      iconColor: const Color(0xFF9C27B0), // Purple
+                      bgColor: const Color(0xFFF3E5F5),
+                      onTap: () {
+                        Navigator.pushNamed(context, LEAVE_APPROVAL_ROUTE);
+                      },
+                    ),
+                    _OperationItem(
+                      icon: Icons.calendar_month_outlined,
+                      label: 'Nộp phép',
+                      iconColor: const Color(0xFFFF9800), // Orange
+                      bgColor: const Color(0xFFFFF3E0),
+                      onTap: () {
+                        Navigator.pushNamed(context, LEAVE_REQUEST_ROUTE);
+                      },
+                    ),
+                    _OperationItem(
                       icon: Icons.logout_rounded,
                       label: 'Đăng xuất',
                       iconColor: const Color(0xFFE53935),
@@ -385,8 +403,6 @@ class _ApplicationPageState extends State<ApplicationPage> {
                         _showLogoutDialog(context);
                       },
                     ),
-                    const SizedBox(width: 90), // Empty spacer to keep grid aligned
-                    const SizedBox(width: 90),
                   ],
                 ),
               ],

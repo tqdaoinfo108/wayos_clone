@@ -4,10 +4,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:wayos_clone/core/utils/constants.dart';
 import 'package:wayos_clone/core/route/route_constants.dart';
 import 'package:wayos_clone/data/model/attendance_record.dart';
-import 'package:wayos_clone/data/mock/attendance_mock_data.dart';
-import 'package:wayos_clone/data/service/attendance/attendance_local_service.dart';
-import 'package:wayos_clone/core/utils/connectivity_utils.dart';
 import 'package:wayos_clone/core/utils/location_utils.dart';
+import 'package:wayos_clone/data/service/attendance/attendance_api_service.dart';
 import 'package:wayos_clone/features/home/application/pages/attendance/components/attendance_card.dart';
 import 'package:toastification/toastification.dart';
 
@@ -19,68 +17,175 @@ class AttendancePage extends StatefulWidget {
 }
 
 class _AttendancePageState extends State<AttendancePage> {
-  final AttendanceLocalService _service = AttendanceLocalService();
+  final AttendanceApiService _apiService = AttendanceApiService();
 
-  bool _isOnline = true;
+  bool _isLoadingData = false;
   bool _isLoadingAction = false;
-
-  // Today state
-  AttendanceType? _nextAction; // null means done
-  DailyAttendance? _todayData;
 
   // History state
   List<DailyAttendance> _history = [];
 
-  StreamSubscription? _connectivitySubscription;
-
   @override
   void initState() {
     super.initState();
-    _checkConnectivity();
     _loadData();
-
-    // Simulate background sync polling
-    Timer.periodic(const Duration(seconds: 30), (timer) {
-      if (mounted) _checkConnectivity(triggerSync: true);
-    });
   }
 
-  @override
-  void dispose() {
-    _connectivitySubscription?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _checkConnectivity({bool triggerSync = false}) async {
-    final isOnline = await ConnectivityUtils.isOnline();
-    if (mounted) {
-      setState(() => _isOnline = isOnline);
-    }
-
-    if (isOnline && triggerSync) {
-      await _service.syncPendingRecords();
-      _loadData(); // Re-load to update unsynced badge if needed
-    }
-  }
-
-  void _loadData() {
-    // 1. Get today's state
-    final (nextAction, todayData) = _service.getTodayStatus();
-
-    // 2. Load mock history + local history
-    final mockHistory = AttendanceMockData.getMockHistory();
-    // In a real app we would combine mockHistory with local history grouping.
-    // For now we just use mock for the past, and `todayData` for top element.
-
+  Future<void> _loadData() async {
     setState(() {
-      _nextAction = nextAction;
-      _todayData = todayData;
-      _history = mockHistory;
+      _isLoadingData = true;
     });
+
+    try {
+      final now = DateTime.now();
+      // Fetch from beginning of month to today
+      final fromDate = DateTime(now.year, now.month, 1);
+      final toDate = now;
+
+      final result = await _apiService.getAttendanceList(fromDate, toDate);
+
+      List<DailyAttendance> mappedHistory = [];
+      if (result != null && result['lstTimekeeping'] != null) {
+        final lst = result['lstTimekeeping'] as List;
+        final staffId = result['StaffID']?.toString() ?? '';
+
+        for (int i = 0; i < lst.length; i++) {
+          final item = lst[i];
+          final currentDate = fromDate.add(Duration(days: i));
+
+          DateTime? checkInTime;
+          DateTime? checkOutTime;
+
+          if (item['CheckInTime'] != null) {
+            checkInTime = DateTime.tryParse(item['CheckInTime'].toString());
+          }
+          if (item['CheckOutTime'] != null) {
+            checkOutTime = DateTime.tryParse(item['CheckOutTime'].toString());
+          }
+
+          AttendanceRecord? checkInRecord;
+          if (checkInTime != null) {
+            checkInRecord = AttendanceRecord(
+              id: '',
+              userId: staffId,
+              time: checkInTime,
+              type: AttendanceType.checkin,
+              lat: 0,
+              lng: 0,
+              deviceId: '',
+              isSynced: true,
+            );
+          }
+
+          AttendanceRecord? checkOutRecord;
+          if (checkOutTime != null) {
+            checkOutRecord = AttendanceRecord(
+              id: '',
+              userId: staffId,
+              time: checkOutTime,
+              type: AttendanceType.checkout,
+              lat: 0,
+              lng: 0,
+              deviceId: '',
+              isSynced: true,
+            );
+          }
+
+          AttendanceStatus status = AttendanceStatus.absent;
+          final now = DateTime.now();
+          final isToday = currentDate.year == now.year &&
+              currentDate.month == now.month &&
+              currentDate.day == now.day;
+
+          if (currentDate.isAfter(now) && !isToday) {
+            status = AttendanceStatus.notYet;
+          } else {
+            final apiStatus = item['StatusTimekeeping'] ?? 0;
+            switch (apiStatus) {
+              case 1: // Đúng giờ
+                status = AttendanceStatus.onTime;
+                break;
+              case 2: // Vi phạm (Đi muộn / Về sớm / Thiếu in/out)
+                status = AttendanceStatus
+                    .late; // Map sang màu vàng (hoặc error tuỳ logic hiển thị)
+                break;
+              case 3: // Nghỉ phép
+              case 4: // Ngày nghỉ (Lễ / Cuối tuần)
+                status = AttendanceStatus.absent; // Không hiển thị lỗi
+                break;
+              case 0: // Vắng mặt
+              default:
+                if (isToday && checkInTime != null && checkOutTime == null) {
+                  status =
+                      AttendanceStatus.onTime; // Đang làm việc, chưa check-out
+                } else if (isToday &&
+                    checkInTime == null &&
+                    checkOutTime == null) {
+                  status = AttendanceStatus.notYet; // Chưa tới giờ chấm
+                } else if (!isToday &&
+                    (checkInTime != null || checkOutTime != null)) {
+                  status = AttendanceStatus
+                      .error; // Có chấm 1 lần nhưng hệ thống báo vắng -> lỗi thiếu
+                } else {
+                  status = AttendanceStatus.absent; // Quá khứ không đi làm
+                }
+                break;
+            }
+          }
+
+          mappedHistory.add(
+            DailyAttendance(
+              date: currentDate,
+              checkIn: checkInRecord,
+              checkOut: checkOutRecord,
+              status: status,
+              location:
+                  '', // Backend hiện tại không trả về location trong mảng này
+            ),
+          );
+        }
+      }
+
+      setState(() {
+        _history = mappedHistory.reversed.toList();
+      });
+      print('API List result mapped: ${_history.length} records');
+    } catch (e) {
+      print('Load Data Error: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingData = false;
+        });
+      }
+    }
   }
 
   Future<void> _handlePerformAttendance() async {
-    if (_nextAction == null) return;
+    // Show confirmation dialog before calling API
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Xác nhận"),
+          content: const Text("Thực hiện chấm công tại vị trí hiện tại?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("Hủy", style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("Đồng ý",
+                  style: TextStyle(
+                      color: primaryColor, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) return;
 
     setState(() => _isLoadingAction = true);
 
@@ -93,25 +198,15 @@ class _AttendancePageState extends State<AttendancePage> {
       final position = await LocationUtils.getCurrentPosition();
       final address = await LocationUtils.getAddressFromPosition(position);
 
-      // 3. Create Record
-      final String userId = GetStorage().read(staffCode) ?? 'user_1';
-      final record = AttendanceRecord(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: userId,
-        time: DateTime.now(),
-        type: _nextAction!,
+      // 3. Call API
+      await _apiService.insertAttendance(
         lat: position.latitude,
         lng: position.longitude,
-        address: address,
-        deviceId: 'device_dummy', // Real: deviceId
       );
-
-      // 4. Save + Sync
-      await _service.saveRecord(record);
 
       toastification.show(
         context: context,
-        title: Text('${_nextAction!.value.toUpperCase()} THÀNH CÔNG'),
+        title: const Text('CHẤM CÔNG THÀNH CÔNG'),
         description: Text(address),
         type: ToastificationType.success,
         autoCloseDuration: const Duration(seconds: 3),
@@ -155,19 +250,12 @@ class _AttendancePageState extends State<AttendancePage> {
             onPressed: () =>
                 Navigator.pushNamed(context, ATTENDANCE_JUSTIFICATION_ROUTE),
           ),
-          IconButton(
-            icon: const Icon(Icons.sync, color: Color(0xFF1E2A4A)),
-            tooltip: 'Đồng bộ offline',
-            onPressed: () =>
-                Navigator.pushNamed(context, ATTENDANCE_SYNC_ROUTE),
-          ),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Network Status Bar & Address
-            _buildStatusBar(),
+            const SizedBox(height: 16),
 
             // Week Calendar Strip
             _buildWeekStrip(),
@@ -199,18 +287,28 @@ class _AttendancePageState extends State<AttendancePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  // Show today block if exists
-                  if (_todayData != null) ...[
-                    _buildHistoryCard(_todayData!, isToday: true),
-                    const SizedBox(height: 12),
-                  ],
-                  // Show previous history
-                  ..._history
-                      .map((record) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _buildHistoryCard(record),
-                          ))
-                      .toList(),
+                  // Show remote history
+                  if (_isLoadingData)
+                    const Center(
+                        child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: CircularProgressIndicator(),
+                    ))
+                  else if (_history.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text("Đang chờ định dạng dữ liệu API...",
+                            style: TextStyle(color: Colors.grey)),
+                      ),
+                    )
+                  else
+                    ..._history
+                        .map((record) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildHistoryCard(record),
+                            ))
+                        .toList(),
                   const SizedBox(height: 100), // Padding for bottom button
                 ],
               ),
@@ -220,56 +318,6 @@ class _AttendancePageState extends State<AttendancePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _buildActionButton(),
-    );
-  }
-
-  Widget _buildStatusBar() {
-    // Current user location simulation
-    return Container(
-      color: Colors.grey.shade100,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
-              const SizedBox(width: 4),
-              Text(
-                "Đang lấy vị trí...", // Can be dynamic
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: _isOnline ? Colors.green.shade50 : Colors.red.shade50,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  _isOnline ? Icons.cloud_done : Icons.cloud_off,
-                  size: 14,
-                  color:
-                      _isOnline ? Colors.green.shade700 : Colors.red.shade700,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _isOnline ? "SẴN SÀNG ONLINE" : "OFFLINE MODE",
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color:
-                        _isOnline ? Colors.green.shade700 : Colors.red.shade700,
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
     );
   }
 
@@ -373,27 +421,22 @@ class _AttendancePageState extends State<AttendancePage> {
     String statusText;
 
     // Status text mapping
-    if (isToday) {
-      statusColor = _nextAction == null ? Colors.green : Colors.orange;
-      statusText = _nextAction == null ? "HOÀN TẤT" : "CHƯA XONG";
-    } else {
-      switch (record.status) {
-        case AttendanceStatus.onTime:
-          statusColor = Colors.green;
-          statusText = "ĐÚNG GIỜ";
-          break;
-        case AttendanceStatus.late:
-          statusColor = Colors.orange;
-          statusText = "MUỘN";
-          break;
-        case AttendanceStatus.error:
-          statusColor = Colors.red;
-          statusText = "THIẾU CHECK-OUT";
-          break;
-        default:
-          statusColor = Colors.grey;
-          statusText = "";
-      }
+    switch (record.status) {
+      case AttendanceStatus.onTime:
+        statusColor = Colors.green;
+        statusText = "ĐÚNG GIỜ";
+        break;
+      case AttendanceStatus.late:
+        statusColor = Colors.orange;
+        statusText = "MUỘN";
+        break;
+      case AttendanceStatus.error:
+        statusColor = Colors.red;
+        statusText = "LỖI";
+        break;
+      default:
+        statusColor = Colors.grey;
+        statusText = "";
     }
 
     // Has pending sync data?
@@ -432,20 +475,6 @@ class _AttendancePageState extends State<AttendancePage> {
           color: Color(0xFF1E2A4A),
           letterSpacing: 0.5,
         ),
-      ),
-      subtitle: Row(
-        children: [
-          Icon(Icons.location_on, size: 14, color: Colors.grey.shade400),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              record.location.isNotEmpty ? record.location : 'Chưa có vị trí',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -487,25 +516,20 @@ class _AttendancePageState extends State<AttendancePage> {
   }
 
   Widget _buildActionButton() {
-    bool isDone = _nextAction == null;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isDone
-              ? Colors.grey.shade400
-              : const Color(0xFF0D47A1), // Deep blue
+          backgroundColor: const Color(0xFF0D47A1), // Deep blue
           disabledBackgroundColor: Colors.grey.shade300,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          elevation: isDone ? 0 : 8,
+          elevation: 8,
           shadowColor: const Color(0xFF0D47A1).withOpacity(0.5),
         ),
-        onPressed:
-            (_isLoadingAction || isDone) ? null : _handlePerformAttendance,
+        onPressed: _isLoadingAction ? null : _handlePerformAttendance,
         child: _isLoadingAction
             ? const SizedBox(
                 width: 24,
@@ -513,19 +537,14 @@ class _AttendancePageState extends State<AttendancePage> {
                 child: CircularProgressIndicator(
                     color: Colors.white, strokeWidth: 3),
               )
-            : Row(
+            : const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(isDone ? Icons.check_circle : Icons.fingerprint,
-                      color: Colors.white, size: 28),
-                  const SizedBox(width: 8),
+                  Icon(Icons.fingerprint, color: Colors.white, size: 28),
+                  SizedBox(width: 8),
                   Text(
-                    isDone
-                        ? "Đã hoàn tất hôm nay"
-                        : (_nextAction == AttendanceType.checkin
-                            ? "Check-in"
-                            : "Check-out"),
-                    style: const TextStyle(
+                    "Chấm công",
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,

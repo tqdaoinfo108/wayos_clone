@@ -373,6 +373,25 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 20),
+                // Row 3
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _OperationItem(
+                      icon: Icons.event_available_outlined,
+                      label: 'Duyệt phép',
+                      iconColor: const Color(0xFF9C27B0), // Purple
+                      bgColor: const Color(0xFFF3E5F5),
+                      onTap: () {
+                        Navigator.pushNamed(context, LEAVE_APPROVAL_ROUTE);
+                      },
+                    ),
+                    // Invisible items to maintain grid alignment
+                    const SizedBox(width: 90),
+                    const SizedBox(width: 90),
+                  ],
+                ),
               ],
             ),
           ),

@@ -148,10 +148,9 @@ class _AttendanceSyncPageState extends State<AttendanceSyncPage>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: (allSynced
-                    ? const Color(0xFF2E7D32)
-                    : const Color(0xFF0D47A1))
-                .withOpacity(0.3),
+            color:
+                (allSynced ? const Color(0xFF2E7D32) : const Color(0xFF0D47A1))
+                    .withOpacity(0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -304,9 +303,7 @@ class _AttendanceSyncPageState extends State<AttendanceSyncPage>
       title: Row(
         children: [
           Icon(
-            record.type == AttendanceType.checkin
-                ? Icons.login
-                : Icons.logout,
+            record.type == AttendanceType.checkin ? Icons.login : Icons.logout,
             size: 16,
             color: record.type == AttendanceType.checkin
                 ? Colors.green.shade600
@@ -319,20 +316,6 @@ class _AttendanceSyncPageState extends State<AttendanceSyncPage>
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Color(0xFF1E2A4A),
-            ),
-          ),
-        ],
-      ),
-      subtitle: Row(
-        children: [
-          Icon(Icons.location_on, size: 14, color: Colors.grey.shade400),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              record.address.isNotEmpty ? record.address : 'Chưa có vị trí',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -418,9 +401,7 @@ class _AttendanceSyncPageState extends State<AttendanceSyncPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    _pendingCount == 0
-                        ? Icons.check_circle
-                        : Icons.sync,
+                    _pendingCount == 0 ? Icons.check_circle : Icons.sync,
                     color: Colors.white,
                     size: 24,
                   ),

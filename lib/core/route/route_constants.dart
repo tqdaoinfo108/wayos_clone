@@ -31,4 +31,7 @@ const String SUPPORT_ROUTE = "support_route";
 const String ATTENDANCE_ROUTE = "attendance";
 const String ATTENDANCE_JUSTIFICATION_ROUTE = "attendanceJustification";
 const String ATTENDANCE_SYNC_ROUTE = "attendanceSync";
+const String LEAVE_APPROVAL_ROUTE = "leaveApproval";
+const String LEAVE_REQUEST_ROUTE = "leaveRequest";
+const String CREATE_LEAVE_REQUEST_ROUTE = "createLeaveRequest";
 

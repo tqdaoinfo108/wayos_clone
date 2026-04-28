@@ -10,6 +10,9 @@ import 'package:wayos_clone/features/home/application/pages/export_material/expo
 import 'package:wayos_clone/features/home/application/pages/attendance/attendance_page.dart';
 import 'package:wayos_clone/features/home/application/pages/attendance/attendance_justification_page.dart';
 import 'package:wayos_clone/features/home/application/pages/attendance/attendance_sync_page.dart';
+import 'package:wayos_clone/features/home/application/pages/leave_approval/leave_approval_page.dart';
+import 'package:wayos_clone/features/home/application/pages/leave_request/leave_request_page.dart';
+import 'package:wayos_clone/features/home/application/pages/leave_request/create_leave_request_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -124,6 +127,21 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case ATTENDANCE_SYNC_ROUTE:
       return MaterialPageRoute(
         builder: (context) => const AttendanceSyncPage(),
+        settings: settings,
+      );
+    case LEAVE_APPROVAL_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const LeaveApprovalPage(),
+        settings: settings,
+      );
+    case LEAVE_REQUEST_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const LeaveRequestPage(),
+        settings: settings,
+      );
+    case CREATE_LEAVE_REQUEST_ROUTE:
+      return MaterialPageRoute(
+        builder: (context) => const CreateLeaveRequestPage(),
         settings: settings,
       );
     default:
